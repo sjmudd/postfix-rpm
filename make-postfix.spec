@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.11 2003/05/06 08:41:55 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.12 2003/07/13 21:10:38 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -9,10 +9,15 @@
 # 
 # The following external variables if set to 1 affect the behaviour
 #
-# POSTFIX_REDHAT_MYSQL	include support for RedHat's mysql packages
 # POSTFIX_MYSQL		include support for MySQL's MySQL packages
-# POSTFIX_MYSQLQUERY	include support for writing full select statements
+# POSTFIX_MYSQL_REDHAT	include support for RedHat's mysql packages
+# POSTFIX_MYSQL_PATHS	include support for locally installed mysql binary,
+#			providing the colon seperated include and
+#			library paths ( /usr/include/mysql:/usr/lib/mysql )
+# POSTFIX_MYSQL_QUERY	include support for writing full select statements
 #			in mysql maps
+# POSTFIX_MYSQL_DICT_REG
+#			include support for mysql: dict_register patch
 # POSTFIX_LDAP		include support for openldap packages
 # POSTFIX_PCRE		include support for pcre maps
 # POSTFIX_PGSQL		include support for PostGres database
@@ -37,9 +42,15 @@
 # POSTFIX_CDB		support for Constant Database, CDB, by Michael Tokarev
 #			<mjt@corpit.ru>, as originally devised by djb.
 #
-# The following external variables can be used to define the postfix
-# uid/gid and postdrop gid if the standard values I'm assigning are
-# not correct on your system.
+# Distribution Specific Configurations
+# ------------------------------------
+#
+# Please advise me if any of these assumptions are incorrect.
+#
+# Red Hat Linux Enterprise and Advanced Server 2.1 require
+# REQUIRES_INIT_D	add /etc/init.d/ to requires list
+# POSTFIX_DB=3		add db3 package to requires list
+# LDAP support is included
 #
 # Red Hat Linux 9 requires
 # REQUIRES_INIT_D	add /etc/init.d/ to requires list
@@ -69,10 +80,11 @@
 # cd `rpm --eval '%{_specdir}'`
 # rpm -ba postfix.spec
 
-# ensure that these variables are not set from outside
-SUFFIX=
-REQUIRES_INIT_D=
-TLSFIX=
+# ensure that these variables are NOT set from outside
+SUFFIX=			# RPM package suffix
+REQUIRES_INIT_D=	# do we require /etc/init.d? (rh 7 and later)
+TLSFIX=			# Apply "fixes" to TLS patches
+
 # This appears to be .gz, except for Mandrake 8 which uses .bz2
 MANPAGE_SUFFIX=".gz"
 
@@ -93,46 +105,40 @@ minor=`echo $distribution | sed -e 's;[a-z]*-;;' -e 's;[0-9]*\.;;'`
 echo "  Distribution is: ${distribution}"
 echo ""
 
-# Ensure only one of POSTFIX_MYSQL and POSTFIX_REDHAT_MYSQL are defined
-[ -n "$POSTFIX_MYSQL" ] && \
-[ -n "$POSTFIX_REDHAT_MYSQL" ] && {
-    cat <<EOF
-Postfix MySQL support
----------------------
-
-There are MySQL packages available from two different sources built with
-different package names.  According to the MySQL package you are using
-choose to set _ONE_ of the following environment variables accordingly:
-
-POSTFIX_MYSQL = 1	# MySQL packages named MySQL... from www.mysql.com
-POSTFIX_REDHAT_MYSQL = 1# MySQL packages named mysql... from RedHat (7+)
-
-Please set the appropriate value and rerun make-postfix.spec again
-EOF
-    exit 1
-}
+if [ "$POSTFIX_MYSQL_DICT_REG" = 1 ]; then
+    echo "including patch for dict_register fix for proxy:mysql:mysql-xxx.cf"
+fi
 
 if [ "$POSTFIX_CDB" = 1 ]; then
     echo "  adding CDB support to spec file"
     SUFFIX="${SUFFIX}.cdb"
 fi
 
-# LDAP support is provided by default on redhat >= 7.2, and yellowdog >= 2.3.
-# Therefore if adding LDAP support on these platforms don't bother to include
-# the .ldap suffix:  It is assumed.  We also automatically include LDAP support
-# on these platforms, if it's not been explicitly disabled.
+# LDAP support is provided by default on:
+#	redhat >= 7.2
+#	rhes, rhas >= 2.1
+#	yellowdog >= 2.3.
+# Therefore if adding LDAP support on these platforms don't include the .ldap
+# suffix:  It is assumed.  We also automatically include LDAP support on
+# these platforms, unless it has been explicitly disabled.
 
 DEFAULT_LDAP=0
 case ${releasename} in
 mandrake)
-    # Not sure from when Mandrake supported LDAP, but it's now the
-    # default.
+    # Not sure from when Mandrake supported LDAP,
+    # however it's now the default.
     DEFAULT_LDAP=1
     ;;
+
+rhes|rhas)
+    DEFAULT_LDAP=1
+    ;;
+
 redhat)
     [ "${major}" -eq 7 -a "${minor}" -ge 2 ] && DEFAULT_LDAP=1
     [ "${major}" -ge 8 ] && DEFAULT_LDAP=1
     ;;
+
 yellowdog)
     [ "${major}" -eq 2 -a "${minor}" -ge 3 ] && DEFAULT_LDAP=1
     [ "${major}" -ge 3 ] && DEFAULT_LDAP=1
@@ -159,18 +165,41 @@ if [ "$POSTFIX_PGSQL2" = 1 ]; then
     echo "  including additional experimental PostGres patches"
 fi
 if [ "$POSTFIX_MYSQL" = 1 ]; then
-    POSTFIX_REDHAT_MYSQL=0
+    POSTFIX_MYSQL_REDHAT=0
+    POSTFIX_MYSQL_PATHS=
     echo "  adding MySQL support (www.mysql.com MySQL* packages) to spec file"
     SUFFIX="${SUFFIX}.MySQL"
 fi
-if [ "$POSTFIX_REDHAT_MYSQL" = 1 ]; then
+if [ -n "$POSTFIX_REDHAT_MYSQL" ]; then
+    cat <<END
+WARNING: POSTFIX_REDHAT_MYSQL has been replaced by POSTFIX_MYSQL_REDHAT.
+  Please unset POSTFIX_REDHAT_MYSQL and set POSTFIX_MYSQL_REDHAT to continue.
+END
+    exit 1
+fi
+if [ "$POSTFIX_MYSQL_REDHAT" = 1 ]; then
     POSTFIX_MYSQL=0
+    POSTFIX_MYSQL_PATHS=
     echo "  adding MySQL support (RedHat mysql* packages) to spec file"
     SUFFIX="${SUFFIX}.mysql"
 fi
-if [ "$POSTFIX_MYSQLQUERY" = 1 ]; then
+if [ -n "$POSTFIX_MYSQL_PATHS" ]; then
+    POSTFIX_MYSQL=0
+    POSTFIX_MYSQL_REDHAT=0
+    echo "  adding MySQL support (paths set to $POSTFIX_MYSQL_PATHS) to spec file"
+    SUFFIX="${SUFFIX}.mysql_path"
+fi
+
+if [ -n "$POSTFIX_MYSQLQUERY" ]; then
+    cat <<END
+WARNING: POSTFIX_MYSQLQUERY has been replaced by POSTFIX_MYSQL_QUERY.
+  Please unset POSTFIX_MYSQLQUERY and set POSTFIX_MYSQL_QUERY to continue.
+END
+    exit 1
+fi
+if [ "$POSTFIX_MYSQL_QUERY" = 1 ]; then
     echo "  adding support for full mysql select statements to spec file"
-    SUFFIX="${SUFFIX}.mysqlquery"
+    SUFFIX="${SUFFIX}.mysql_query"
 fi
 POSTFIX_SASL_LIBRARY=notused
 if [ "$POSTFIX_SASL" = 1 -o "$POSTFIX_SASL" = 2 ]; then
@@ -198,7 +227,7 @@ fi
 cat <<END
 WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
 
-According to RedHat's Postfix spec file on RH versions earlier than 8.0.1 as
+According to the RedHat Postfix spec file on RH versions earlier than 8.0.1 as
 LDAP is compiled with SASL v1 Postfix will not work if compiled with SASL v2.
 
 You have selected both LDAP and SASL v2 with such a RH release.
@@ -256,6 +285,13 @@ case ${releasename} in
 yellowdog)
     DEFAULT_DB=3
     REQUIRES_INIT_D=1
+    ;;
+
+rhes|rhas)
+    DEFAULT_DB=3
+    REQUIRES_INIT_D=1
+    [ ${releasename} = "rhes" ] && DIST=".rhes21"
+    [ ${releasename} = "rhas" ] && DIST=".rhas21"
     ;;
 
 redhat)
@@ -347,8 +383,10 @@ esac
 [ -z "$POSTFIX_DB" ]			   && POSTFIX_DB=0
 [ -z "$POSTFIX_LDAP" ]			   && POSTFIX_LDAP=0
 [ -z "$POSTFIX_MYSQL" ]			   && POSTFIX_MYSQL=0
-[ -z "$POSTFIX_REDHAT_MYSQL" ]		   && POSTFIX_REDHAT_MYSQL=0
-[ -z "$POSTFIX_MYSQLQUERY" ]		   && POSTFIX_MYSQLQUERY=0
+[ -z "$POSTFIX_MYSQL_REDHAT" ]		   && POSTFIX_MYSQL_REDHAT=0
+[ -z "$POSTFIX_MYSQL_PATHS" ]		   && POSTFIX_MYSQL_PATHS=0
+[ -z "$POSTFIX_MYSQL_QUERY" ]		   && POSTFIX_MYSQL_QUERY=0
+[ -z "$POSTFIX_MYSQL_DICT_REG" ]	   && POSTFIX_MYSQL_DICT_REG=0
 [ -z "$POSTFIX_PCRE" ]			   && POSTFIX_PCRE=0
 [ -z "$POSTFIX_PGSQL" ]			   && POSTFIX_PGSQL=0
 [ -z "$POSTFIX_PGSQL2" ]		   && POSTFIX_PGSQL2=0
@@ -380,8 +418,10 @@ s!__SMTPD_MULTILINE_GREETING__!$POSTFIX_SMTPD_MULTILINE_GREETING!g
 s!__SUFFIX__!$SUFFIX!g
 s!__LDAP__!$POSTFIX_LDAP!g
 s!__MYSQL__!$POSTFIX_MYSQL!g
-s!__REDHAT_MYSQL__!$POSTFIX_REDHAT_MYSQL!g
-s!__MYSQL_QUERY__!$POSTFIX_MYSQLQUERY!g
+s!__MYSQL_REDHAT__!$POSTFIX_MYSQL_REDHAT!g
+s!__MYSQL_PATHS__!$POSTFIX_MYSQL_PATHS!g
+s!__MYSQL_QUERY__!$POSTFIX_MYSQL_QUERY!g
+s!__MYSQL_DICT_REG__!$POSTFIX_MYSQL_DICT_REG!g
 s!__PCRE__!$POSTFIX_PCRE!g
 s!__PGSQL__!$POSTFIX_PGSQL!g
 s!__PGSQL2__!$POSTFIX_PGSQL2!g

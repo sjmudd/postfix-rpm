@@ -1,21 +1,20 @@
-# $Id: postfix.spec.in,v 2.247 2003/05/06 08:41:56 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.248 2003/07/13 21:10:39 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
-# Please send bugfixes and comments to the packager.
-#
-# This spec file was built on distribution: __DISTRIBUTION__
-#
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
 # and regenerate the spec file.
 #
 # See make-postfix.spec and postfix-build in %{_sourcedir} for more information.
 #
-# Information imported from postfix.spec.in
+# This spec file was built on distribution: __DISTRIBUTION__
+#
+# Information imported from postfix.spec.in: DO NOT CHANGE IT BY HAND
 #
 # ldap                     - include LDAP support
-# mysql	                   - include www.mysql.com's MySQL rpms
-# redhatmysql              - include RedHat's MySQL rpms
-# mysqlquery               - include support for writing full select statements
+# mysql                    - include support for www.mysql.com's MySQL rpms
+# mysql_redhat             - include support for RedHat's MySQL rpms
+# mysql_paths              - path where locally installed MySQL resides (or 0)
+# mysql_query              - include support for writing full select statements
 #                            in mysql maps
 # pcre                     - include pcre support
 # pgsql                    - include Postgres database support
@@ -36,13 +35,19 @@
 # disable_chroot           - disable setup of chroot environment
 # mps			   - man page suffix, .gz except Mandrake 8 which uses .bz2
 #
+# Please send bugfixes and comments to the packager.
+#
 %define distribution __DISTRIBUTION__
 %define mps __MANPAGE_SUFFIX__
 %define cdb __CDB__
 %define ldap __LDAP__
 %define mysql __MYSQL__
-%define redhatmysql __REDHAT_MYSQL__
-%define mysqlquery __MYSQL_QUERY__
+%define mysql_redhat __MYSQL_REDHAT__
+%define mysql_paths __MYSQL_PATHS__
+%define mysql_local %(test "%{mysql_paths}" != 0 && echo 1 || echo 0)
+%define mysql_include %(echo "%{mysql_paths}" | cut -d: -f1)
+%define mysql_lib %(echo "%{mysql_paths}" | cut -d: -f2)
+%define mysql_query __MYSQL_QUERY__
 %define pcre __PCRE__
 %define pgsql __PGSQL__
 %define pgsql2 __PGSQL2__
@@ -58,8 +63,7 @@
 %define disable_chroot __DISABLE_CHROOT__
 %define ipv6 __IPV6__
 
-# start to support the conditional builds via rpm's
-# --with debug
+# start to support the conditional builds via rpm's --with debug
 %define debug %{?_with_debug:1}%{?!_with_debug:0}
 
 # Version information
@@ -73,7 +77,7 @@
 %define official 0
 %define ver 2.0.9
 %define mail_release_date 20030424
-%define rel 1
+%define rel 1.99
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -94,6 +98,7 @@
 
 %define init_directory /etc/rc.d/init.d
 
+%define postfinger postfinger-1.26
 %define whinge /usr/bin/logger -p mail.info -t postfix/rpm
 %define die_cmd die(){ %whinge "$*"; exit 1; }
 
@@ -132,8 +137,9 @@ Source8: make-postfix.spec
 Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{pfixtls}.tar.gz
 Source11: postfix-build
 Source12: http://www.corpit.ru/ftp/postfix/postfix-dict_cdb-%{cdbver}.tar.gz
-Source14: ftp://ftp.stack.nl/pub/postfix/tls+ipv6/1.13/%{pfixipv6}.patch.gz
+Source14: ftp://ftp.stack.nl/pub/postfix/tls+ipv6/current/%{pfixipv6}.patch.gz
 Source15: postfix-RPM-TODO
+Source16: http://postfix.wl0.org/ftp/postfinger/%{postfinger}
 
 # Obligatory Patches
 Patch2: postfix-smtp_sasl_proto.c.patch
@@ -174,9 +180,14 @@ Requires: pcre
 BuildRequires: pcre, pcre-devel
 %endif
 
-%if %{redhatmysql}
+%if %{mysql_redhat}
 Requires: mysql
 BuildRequires: mysql, mysql-devel
+%endif
+
+%if %{mysql_local}
+BuildRequires: %{mysql_include}/mysql.h
+Requires: %{mysql_lib}/mysqlclient.so
 %endif
 
 %if %{mysql}
@@ -185,8 +196,8 @@ BuildRequires: MySQL-shared, MySQL-devel, zlib-devel
 %endif
 
 %if %{pgsql}
-Requires: postgresql, libpq.so
-BuildRequires: postgresql, libpq.so, postgresql-devel
+Requires: postgresql-libs
+BuildRequires: postgresql-devel
 %endif
 
 %if %{sasl}
@@ -214,11 +225,12 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.247 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.248 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
-ldap=%{ldap}, sasl=%{sasl}, pcre=%{pcre}, tls=%{tls}, tlsfix=%{tlsfix}, mysql=%{mysql}, redhatmysql=%{redhatmysql}
+ldap=%{ldap}, sasl=%{sasl}, pcre=%{pcre}, tls=%{tls}, tlsfix=%{tlsfix}, mysql=%{mysql}, mysql_redhat=%{mysql_redhat}, mysql_pat
+hs=%{mysql_paths}
 include_db=%{include_db}, requires_db=%{requires_db}, requires_init_d=%{requires_init_d}, cdb=%{cdb}, ipv6=%{ipv6}
 debug=%{?_with_debug:1}%{?!_with_debug:0}
 
@@ -241,26 +253,26 @@ distribution=`sh ${tmpdir}/postfix-get-distribution`
 
 if [ "${distribution}" != "%{distribution}" ]; then
     cat <<ENDTEXT
-*** ERROR ***
+ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR
 
 This postfix.spec file was built for %{distribution}, while you are
-running ${distribution}.
-
-Rebuild the postfix.spec file for your distribution by performing the
-following steps:
+running ${distribution}.  It may not work correctly.  Rebuild postfix.spec
+for your distribution as follows:
 
 	cd `rpm --eval '%{_sourcedir}'`
 	# define the POSTFIX_XXX variables according to your requirements
+	# see make-postfix.spec for more information
 	sh make-postfix.spec
 
-Once you have rebuilt the spec file, you can build the RPM files as
-follows:
+Once you have rebuilt postfix.spec, you build the RPMs as follows:
 
 	cd `rpm --eval '%{_specdir}'`
 	rpmbuild -ba postfix.spec
 
 If this procedure does not allow you to produce a working package, please
 let me know.
+
+ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR
 ENDTEXT
 	exit 1
 fi
@@ -273,7 +285,9 @@ fi
   patch -p1 <%{pfixtls}/pfixtls.diff
 %endif
 %if %{ipv6}
-  gzip -dc %{SOURCE14} | patch -p1 -b --suffix .ipv6
+  test -e  %{SOURCE14} && \
+  gzip -dc %{SOURCE14} | patch -p1 -b --suffix .ipv6 || \
+    die "%{SOURCE14} not found or patch failed"
 %endif
 
 # Apply obligatory patches
@@ -288,10 +302,12 @@ sh dict_cdb.sh
 %endif
 
 %if %{vda}
-  gzip -dc %{_sourcedir}/postfix-%{vdaver}.patch.gz | patch -p1 -b --suffix .vda -s
+  test -e  %{_sourcedir}/postfix-%{vdaver}.patch.gz && \
+  gzip -dc %{_sourcedir}/postfix-%{vdaver}.patch.gz | patch -p1 -b --suffix .vda -s || \
+    die "%{_sourcedir}/postfix-%{vdaver}.patch.gz not found or patch failed"
 %endif
 
-%if %{mysqlquery}
+%if %{mysql_query}
 %patch5 -p1 -b .mysql_query
 %endif
 
@@ -369,16 +385,22 @@ CCARGS="${CCARGS} -fsigned-char"
   CCARGS="${CCARGS} -DNO_PCRE"
 %endif
 
-# Postfix compiles without needing zlib on RedHat's mysql package, but doesn't
-# when using MySQL's (www.mysql.com) package.
+# Postfix compiles without needing zlib on RedHat's mysql package, but
+# requires zlib when using MySQL's package or if using a locally installed
+# MySQL binary.
 %if %{mysql}
   CCARGS="${CCARGS} -DHAS_MYSQL -I/usr/include/mysql"
   AUXLIBS="${AUXLIBS} -L/usr/%{_lib}/mysql -lmysqlclient -lz -lm"
 %endif
 
-%if %{redhatmysql}
+%if %{mysql_redhat}
   CCARGS="${CCARGS} -DHAS_MYSQL -I/usr/include/mysql"
   AUXLIBS="${AUXLIBS} -L/usr/%{_lib}/mysql -lmysqlclient -lm"
+%endif
+
+%if %{mysql_local}
+  CCARGS="${CCARGS} -DHAS_MYSQL -I%{mysql_include}"
+  AUXLIBS="${AUXLIBS} -L%{mysql_lib} -lmysqlclient -lz -lm"
 %endif
 
 %if %{pgsql}
@@ -420,8 +442,6 @@ make DEBUG="%{?_with_debug:-g}" OPT="$RPM_OPT_FLAGS"
 %pre
 umask 022
 
-%{die_cmd}
-
 # create postfix user and group, and maildrop group if necessary.
 # Use perl rather than looking in /etc/passwd or /etc/group as this works
 # in a wider NIS or LDAP environment
@@ -450,9 +470,9 @@ test -z "${GROUP}" && usermod -G mail postfix || :
 %install
 umask 022
 
-[ %{buildroot} != "/" ] && {
-    /bin/rm -rf   %{buildroot}
-    /bin/mkdir -p %{buildroot}
+[ -n "${RPM_BUILD_ROOT}" -a "${RPM_BUILD_ROOT}" != "/" ] && {
+    rm -rf   ${RPM_BUILD_ROOT}
+    mkdir -p ${RPM_BUILD_ROOT}
 }
 
 %{?!debug:strip -R .comment --strip-unneeded bin/* libexec/*}
@@ -464,9 +484,9 @@ mv man/man1/newaliases.1 man/man1/newaliases.postfix.1
 mv man/man1/sendmail.1   man/man1/sendmail.postfix.1
 mv man/man5/aliases.5    man/man5/aliases.postfix.5
 
-# install postfix into %{buildroot}
+# install postfix into build root
 sh postfix-install -non-interactive \
-       install_root=%{buildroot} \
+       install_root=${RPM_BUILD_ROOT} \
        config_directory=%{_sysconfdir}/postfix \
        daemon_directory=%{_libexecdir}/postfix \
        command_directory=%{_sbindir} \
@@ -482,7 +502,7 @@ sh postfix-install -non-interactive \
 
 # RPM compresses man pages automatically.  Edit postfix-files to reflect this,
 # so post-install won't get confused.
-ed %{buildroot}%{_sysconfdir}/postfix/postfix-files <<EOF || exit 1
+ed ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/postfix-files <<EOF || exit 1
 %s/\(\/man[158]\/.*\.[158]\):/\1%{mps}:/
 w
 q
@@ -490,54 +510,57 @@ EOF
 
 # Change alias_maps and alias_database default directory to use
 # %{_sysconfdir}/postfix
-bin/postconf -c %{buildroot}%{_sysconfdir}/postfix -e \
+bin/postconf -c ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix -e \
 	"alias_maps = hash:%{_sysconfdir}/postfix/aliases" \
 	"alias_database = hash:%{_sysconfdir}/postfix/aliases" \
 || exit 1
 
-# This installs into the /etc/rc.d/init.d directory
-/bin/mkdir -p %{buildroot}%{init_directory}
-install %{_sourcedir}/postfix-etc-init.d-postfix \
-                  %{buildroot}%{init_directory}/postfix
+# This installs into the "init" directory
+mkdir -p ${RPM_BUILD_ROOT}%{init_directory}
+install -c %{_sourcedir}/postfix-etc-init.d-postfix \
+                  ${RPM_BUILD_ROOT}%{init_directory}/postfix
 
 # Copy the Linux chroot setup script to %{_sysconfdir}/postfix, ready to use,
 # later, removing the 'postfix reload' call from this script
 %if ! %{disable_chroot}
 # These set up the chroot directory structure
-mkdir -p %{buildroot}%{_var}/spool/postfix/etc
-mkdir -p %{buildroot}%{_var}/spool/postfix/lib
-mkdir -p %{buildroot}%{_var}/spool/postfix/usr/lib/zoneinfo
+mkdir -p ${RPM_BUILD_ROOT}%{_var}/spool/postfix/etc
+mkdir -p ${RPM_BUILD_ROOT}%{_var}/spool/postfix/lib
+mkdir -p ${RPM_BUILD_ROOT}%{_var}/spool/postfix/usr/lib/zoneinfo
 %endif
 
-install auxiliary/rmail/rmail %{buildroot}%{rmail_path}
+install -c auxiliary/rmail/rmail ${RPM_BUILD_ROOT}%{rmail_path}
 
 # copy new aliases files and generate a ghost aliases.db file
-cp -f %{_sourcedir}/postfix-aliases %{buildroot}%{_sysconfdir}/postfix/aliases
-chmod 644 %{buildroot}%{_sysconfdir}/postfix/aliases
+cp -f %{_sourcedir}/postfix-aliases ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/aliases
+chmod 644 ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/aliases
 
-touch %{buildroot}/%{_sysconfdir}/postfix/aliases.db
+touch ${RPM_BUILD_ROOT}/%{_sysconfdir}/postfix/aliases.db
 
 for i in active bounce corrupt defer deferred flush incoming private saved; do
-    mkdir -p %{buildroot}%{_var}/spool/postfix/$i
+    mkdir -p ${RPM_BUILD_ROOT}%{_var}/spool/postfix/$i
 done
 for i in hold maildrop public pid; do
-    mkdir -p %{buildroot}%{_var}/spool/postfix/$i
+    mkdir -p ${RPM_BUILD_ROOT}%{_var}/spool/postfix/$i
 done
 
 # install qmqp-source, smtp-sink & smtp-source by hand
 for i in qmqp-source smtp-sink smtp-source; do
-  install -m 755 bin/$i %{buildroot}%{_sbindir}/$i
+  install -c -m 755 bin/$i ${RPM_BUILD_ROOT}%{_sbindir}/$i
 done
+
+# install postfinger
+install -c -m 755 %{_sourcedir}/%{postfinger} ${RPM_BUILD_ROOT}%{_bindir}/postfinger
 
 # fix path to perl
 %if %{tls}
-perl -pi -e "s,/usr/local/bin/perl,/usr/bin/perl,g" html/TLS/loadCAcert.pl
+perl -pi -e "s,/usr/local/bin/perl,/usr/bin/perl,g" TLS/loadCAcert.pl
 %endif
 
 %post
 umask 022
 
-/sbin/chkconfig --add postfix
+chkconfig --add postfix
 
 # upgrade configuration files if necessary
 sh %{_sysconfdir}/postfix/post-install upgrade-package \
@@ -665,6 +688,8 @@ else
         ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
         ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
         ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
+    else
+        :
     fi
 fi
 
@@ -698,8 +723,25 @@ else
         ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
         ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
         ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
+    else
+        :
     fi
 fi
+
+# cleanup on upgrade: previous versions of my package installed /etc/passwd
+# into the chroot.  As the proxymap daemon now makes this unnecessary remove
+# the chrooted password file if it exists.
+dir=`postconf -h queue_directory`
+file=${dir}/etc/passwd
+[ -e ${file} ] && \
+    [ -n "${dir}" ] && \
+    [ `postconf -h local_recipient_maps | grep -q proxy:unix:passwd.byname; echo $?` = 0 ] && \
+        %whinge "remove etc/passwd from chroot ${dir}: no longer needed as proxymap enabled" && \
+        rm -f ${file}
+
+# Ensure the trigger script returns 0. the previous function may cause it to
+# return a different value which makes RPM barf.
+:
 
 # Generate chroot jails on the fly when needed things are installed/upgraded
 %if ! %{disable_chroot}
@@ -723,7 +765,7 @@ ldconfig -n %{_var}/spool/postfix/lib
 # copy real files into chroot environment
 for i in /etc/localtime /usr/lib/zoneinfo/localtime \
 	/etc/host.conf /etc/resolv.conf /etc/nsswitch.conf \
-	/etc/hosts /etc/passwd /etc/services; do
+	/etc/hosts /etc/services; do
     [ -e ${i} ] && rm -f %{_var}/spool/postfix${i} && copy ${i} `/usr/bin/dirname %{_var}/spool/postfix${i}`
 done
 %endif
@@ -753,8 +795,8 @@ ldconfig -n %{_var}/spool/postfix%{_libdir}
 # remove ldap chroot environment
 %triggerun -- openldap
 [ $2 = 0 ] || exit 0
-/bin/rm -f %{_var}/spool/postfix%{_libdir}/libldap*.so*
-/bin/rm -f %{_var}/spool/postfix%{_libdir}/liblber.so*
+rm -f %{_var}/spool/postfix%{_libdir}/libldap*.so*
+rm -f %{_var}/spool/postfix%{_libdir}/liblber.so*
 %endif
 
 %if %{pgsql} && ! %{disable_chroot}
@@ -780,22 +822,22 @@ umask 022
 
 chroot_remove () {
 %if %{ldap}
-    /bin/rm -f %{_var}/spool/postfix%{_libdir}/libldap*.so*
-    /bin/rm -f %{_var}/spool/postfix%{_libdir}/liblber.so*
+    rm -f %{_var}/spool/postfix%{_libdir}/libldap*.so*
+    rm -f %{_var}/spool/postfix%{_libdir}/liblber.so*
 %endif
 
     for i in etc/localtime usr/lib/zoneinfo/localtime \
             etc/host.conf etc/resolv.conf etc/nsswitch.conf \
-	    etc/hosts etc/passwd etc/services \
+	    etc/hosts etc/services \
 %if %{requires_db}
             lib/libdb-%{requires_db}.*so \
 %endif
 	    lib/libnss_* lib/libresolv*; do
-	test -f %{_var}/spool/postfix/${i} -o -L %{_var}/spool/postfix/${i} && /bin/rm -f %{_var}/spool/postfix/${i}
+	test -f %{_var}/spool/postfix/${i} -o -L %{_var}/spool/postfix/${i} && rm -f %{_var}/spool/postfix/${i}
     done
 
     for dir in usr/lib/zoneinfo usr/lib usr lib etc; do
-        test -d $dir && /bin/rmdir $dir || \
+        test -d $dir && rmdir $dir || \
 	    %whinge "WARNING: preun - unable to remove directory %{_var}/spool/postfix/$dir"
     done
 }
@@ -814,8 +856,8 @@ queue_hash_depth_remove () {
                 test -d $dir/$a && queue_hash_depth_remove $dir/$a $new_depth
             done
         fi
-        /bin/rm -f $dir/*
-        /bin/rmdir $dir || %whinge "WARNING: preun - unable to remove directory %{_var}/spool/postfix/$dir"
+        rm -f $dir/*
+        rmdir $dir || %whinge "WARNING: preun - unable to remove directory %{_var}/spool/postfix/$dir"
     }
 }
 
@@ -834,9 +876,9 @@ queue_directory_remove () {
     done
 }
 
-if [ "$1" = 0 ]; then
-    /sbin/service postfix stop >/dev/null 2>&1
-    /sbin/chkconfig --del postfix
+[ "$1" = 0 ] && {
+    service postfix stop >/dev/null 2>&1
+    chkconfig --del postfix
 
     if [ -x %{_sbindir}/alternatives ]; then
         %{_sbindir}/alternatives --remove mta %{_sbindir}/sendmail.postfix
@@ -866,16 +908,19 @@ if [ "$1" = 0 ]; then
         
         queue_directory_remove
     } || :
-fi
+} || :
 
 %postun
 umask 022
-if [ "$1" -ge 1 ]; then
-    /sbin/service postfix condrestart 
-fi
+[ "$1" -ge 1 ] && {
+    service postfix condrestart 
+} || :
 
 %clean
-/bin/rm -rf %{buildroot}
+umask 022
+[ -n "${RPM_BUILD_ROOT}" -a "${RPM_BUILD_ROOT}" != "/" ] && {
+    rm -rf ${RPM_BUILD_ROOT}
+} || :
 
 %files
 %defattr(-, root, root)
@@ -936,10 +981,6 @@ fi
 %doc PORTING
 %doc RELEASE_NOTES-1.1
 %doc RELEASE_NOTES-2.0
-
-%if %{pgsql}
-%doc PGSQL_README
-%endif
 
 %doc postfix-RPM-new-packages
 %doc postfix-RPM-TODO
@@ -1006,6 +1047,7 @@ fi
 %{mailq_path}
 %{newaliases_path}
 %attr(0755, root, root) %{rmail_path}
+%attr(0755, root, root) %{_bindir}/postfinger
 
 %{_mandir}/*/*
 
@@ -1017,6 +1059,9 @@ fi
 #
 
 %changelog
+
+* Sun Jul 13 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.9-20030424-1.99
+  - general tidyup compared to 2.0.13-3.1, ready to update again.
 
 * Tue May 06 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.9-20030424-1
   - update to latest snapshot

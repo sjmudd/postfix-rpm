@@ -81,7 +81,7 @@ test_patches() {
     [ "${test_patches}" = 1 ] && sh test-patches
 }
 
-# build the package
+# Perform the package build
 build () {
 ( cd ${srcdir} && \
   sh make-postfix.spec && \
@@ -133,7 +133,7 @@ cat <<EOF
 	srcdir=$srcdir
 EOF
 
-echo "===> checking Postfix tar ball"
+echo "===> checking for Postfix tar ball"
 
 download_if_necessary ${srcdir} ${base} ${file}
 
@@ -147,7 +147,7 @@ base=`dirname ${source0}`
 file=`echo ${source0} | sed -e 's;.*/;;'`
 
 cat <<EOF
-===> checking TLS patches
+===> checking TLS patches...
 	pfixtls:		${pfixtls}
 	TLS patch tarball name:	${file}
 	URL location:		${base}
@@ -163,14 +163,14 @@ base=`dirname ${patch4}`
 file=`echo ${patch4} | sed -e 's;.*/;;'`
 
 cat <<EOF
-===> checking VDA patches
+===> checking VDA patches...
 	vdaver:			${vdaver}
 	VDA patch tarball name:	${file}
 	URL location:		${base}
 EOF
 download_if_necessary . ${base} ${file}
 
-echo "===> CVS Status:"
+echo "===> checking CVS Status"
 if [ $no_check ]; then
     echo "	NOT checking repository."
 else

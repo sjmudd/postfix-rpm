@@ -4,20 +4,19 @@
          A mailing list to announce updates to my packages
          =================================================
 
-For those of you interested in being kept up to date of the latest postfix
-RPM packages I produce I have setup a mailing list for this purpose.
+If you are interested in being kept up to date of the latest postfix
+RPM packages I produce you can subscribe to a mailing list setup for
+this purpose.
 
-I simply announce the latest package I've updated, and or changes which
-have been made, either following newer releases by Wietse, or as I update
+I announce new packages as they are updated, and or changes which have
+been made, either following newer releases by Wietse, or as I update
 the packages due to suggestions I receive from users.
 
-I don't send these announcements to the postfix-users mailing list as
-there are already a large number of users on that list, and probably a
-majority do not use RPM or Linux: for them the announcements would be
-rather off-topic.
+These announcements are not sent to the postfix-users mailing list as
+a large number of users on that list are not Linux users: for them the
+announcements would be rather off-topic.
 
-If you are interested in receiving these email announcements, please
-subscribe to the list: send a message with the text "subscribe
+To subscribe to the list: send a message with the text "subscribe
 postfix-rpm-announce" to majordomo@WL0.org
 
 A searchable version of the contents of the list is also available on
@@ -26,17 +25,19 @@ the web at the following URL:
 	http://www.WL0.org/cgi-bin/wilma/postfix-rpm-announce
 
 For those of you looking for newer versions of my packages you can find
-them at:
+them at the following sites:
 
-via http:
-        http://postfix.WL0.org/ftp
- 
-via anonymous ftp:
-        ftp://ftp.WL0.org              Madrid, Spain
+http://postfix.WL0.org/ftp			Madrid, Spain
+ftp://ftp.WL0.org				Madrid, Spain
+http://postfix.etes.de/ftp.wl0.org/		Germany, Stuttgart
+http://ftp.sanguine.net/pub/postfix/		Japan, Tokyo
+http://ftp.iestradas.pt/postfix/ftp.wl0.org/	Portugal
+ftp://ftp.everdigital.org/mirrors/postfix/	USA, Houston, TX
+ftp://ftp.nobandwidth.net/pub/postfix-mudd/	USA, Milford, New Hampshire
 
-or at the mirrors listed at http://pobox.com/~sjmudd/postfix/en/mirrors/
- 
-My main Postfix website can be found at:
+The packages are also available by rsync and apt.
+
+For more information see main Postfix website, which can be found at:
 
 	http://postfix.WL0.org
 
