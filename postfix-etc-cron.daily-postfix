@@ -43,5 +43,8 @@ perl -e "use Date::Calc;" 2>/dev/null || {
     EXECUTABLE=${PFLOGSUMTMP}
 }
 
+echo "# Output of pflogsumm.pl applied to ${LOGFILE} follows."
+echo "# Further information from http://jimsun.linxnet.com/postfix_contrib.html"
+echo "# --"
 ${EXECUTABLE} < ${LOGFILE}
 
