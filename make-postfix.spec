@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.5 2000/12/22 16:12:39 root Exp $
+#  $Id: make-postfix.spec,v 1.6 2000/12/22 16:19:59 root Exp $
 
 POSTFIX_SUFFIX=
 POSTFIX_CCARGS=
@@ -16,7 +16,7 @@ if [ "X$POSTFIX_LDAP" = "X1" ]; then
     echo "  adding LDAP support to spec file"
 #   if it's the default don't add it to the name
 #   POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+ldap"
-    POSTFIX_CCARGS="${POSTFIX_CCARGS} -I/usr/local/include -DHAS_LDAP"
+    POSTFIX_CCARGS="${POSTFIX_CCARGS} -DHAS_LDAP"
     POSTFIX_AUXLIBS="${POSTFIX_AUXLIBS} -L/usr/lib -lldap -llber"
 fi
 if [ "X$POSTFIX_PCRE" = "X1" ]; then
@@ -71,6 +71,8 @@ s!XX_POSTFIX_SUFFIX!$POSTFIX_SUFFIX!g
 s!XX_POSTFIX_CCARGS!$POSTFIX_CCARGS!g
 s!XX_POSTFIX_AUXLIBS!$POSTFIX_AUXLIBS!g
 " postfix.spec.in >> ../SPECS/postfix.spec
+
+echo " "
 
 ( cd ../SPECS; rpm -ba postfix.spec )
 

@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.34 2000/12/22 16:18:17 root Exp $
+# $Id: postfix.spec.in,v 2.35 2000/12/22 16:19:59 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -446,7 +446,8 @@ rm -rf ${RPM_BUILD_ROOT}
 ##############################################################################
 # List of changes made to this package.
 #
-# Old changelog from Tue Dec 15 1998 - Sun Nov 07 has been removed.
+# Old changelog from Tue Dec 15 1998 - Dec 31 1999 has been removed.
+#
 # This included changes and suggestions from:
 #
 #	Lars Hecking <lhecking@nmrc.ucc.ie> 
@@ -455,6 +456,7 @@ rm -rf ${RPM_BUILD_ROOT}
 #	Simon J Mudd <sjmudd@pobox.com>
 #	Matt Shibla <mshibla@iname.com>
 #	Bennett Todd <bet@mordor.net>
+#       Tim Powers <timp@redhat.com>
 
 %changelog
 * Fri Dec 22 2000 Simon Mudd <sjmudd@pobox.com>
@@ -592,51 +594,3 @@ rm -rf ${RPM_BUILD_ROOT}
 - Fix BEWARE problem in doc
 - change man page compression to work on required files
 
-* Fri Dec 24 1999 Simon Mudd <sjmudd@pobox.com>
-- update for 19991223 snapshot
-- setup the alias_maps and alias_database parameters correctly
-- rebuild aliases on install (should fix this to only do this if
-  required)
-- fix INSTALL.sh which didn't quite work
-
-* Thu Dec 23 1999 Simon Mudd <sjmudd@pobox.com>
-- modified the aliases file somewhat.
-- re-enabled the whinging after ensuring that output will NOT go to
-  stderr, but only syslog.
-
-* Wed Dec 22 1999 Chuck Mead <chuck@moongroup.com>
-- added an aliases file per discussions with Tim Powers
-
-* Wed Dec 22 1999 Tim Powers <timp@redhat.com>
-- changed group so that it's a valid Red Hat group
-- commented out the whinge stuff in the %pre and %post sections to conform
-	with Red Hat policy
-- changed BuildRoot to be in /var/tmp
-- gzip man pages
-- changed %{manpath} reference in %files section so that this package doesn't
-	claim ownership of /usr/man
-- commented out the Patch99 stuff since we don't need it
-
-* Fri Dec 17 1999 Simon J Mudd <sjmudd@pobox.com>
-  [19991216-1]: update for new snapshot
-
-* Mon Dec 13 1999 Simon J Mudd <sjmudd@pobox.com>
-  [19991126-1]: update for new snapshot
-
-* Sat Dec 03 1999 Simon J Mudd <sjmudd@pobox.com>
-  [19991126-1]: update for new snapshot
-
-* Fri Nov 26 1999 Simon J Mudd <sjmudd@pobox.com>
-  [19991123-4]: /etc/cron.daily/postfix was installed as well as a crontab
-                - remove the crontab entry as this isn't necessary
-  [19991123-3]: add a small delay between postfix stop && postfix start
-  [19991123-2]: Wietse's rbl code needed, patching - include the patch
-
-* Tue Nov 23 1999 Simon J Mudd <sjmudd@pobox.com>
-  [19991123-1]: try the snapshot which looks nice (?)
-
-* Mon Nov 22 1999 Simon J Mudd <sjmudd@pobox.com>
-  [19990906-pl07-1]: patch against pl07
-
-* Thu Nov 17 1999 Simon J Mudd <sjmudd@pobox.com>
-  [19990906-pl06-2]: tidy up spec file and include rmail
