@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.47 2002/10/18 20:02:22 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.48 2002/10/19 16:55:22 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -65,7 +65,7 @@
 %define official 1 
 %define ver 1.1.11
 %define mail_release_date 20020115
-%define rel 8
+%define rel 9
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -211,7 +211,7 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.47 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.48 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -964,7 +964,11 @@ fi
 
 %changelog
 
-* Mon Jul 15 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-8
+* Sat Oct 19 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-9
+  - 1.1.11-8 was released with an error. (multiline patch was wrong)
+    This releases fixes the problem.
+
+* Fri Oct 18 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-8
   - add optional RBL_MAP patch from Lamont Jones <lamont@hp.com>,
     applied with POSTFIX_RBL_MAPS=1 when used with make-postfix.spec
   - convert src/smtpd/smtpd_chat.c provided by Wietse from the
