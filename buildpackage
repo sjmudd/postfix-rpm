@@ -14,5 +14,5 @@ cvs diff 2>&1 >/dev/null || { echo "WARNING please commit changes before buildin
   (( grep "define vers" postfix.spec | awk '{ print $3 }' ) || true ) && \
   (( grep "define rel" postfix.spec | awk '{ print $3 }' ) || true ) && \
   sleep 2 && \
-  rpm -ba postfix.spec )
+  rpm -ba postfix.spec ) 2>&1 | tee build-output
 ./removelinks
