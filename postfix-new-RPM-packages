@@ -33,17 +33,11 @@ via http:
  
 via anonymous ftp:
         ftp://ftp.WL0.org/              Madrid, Spain
-        ftp://ftp.everdigital.org/      Houston, Texas, USA
-        ftp://ftp.shuttleamerica.com    Windsor Locks, Connecticut, USA
- 
-via rsync:
-        rsync.shuttleamerica.com::postfix
 
+or at the mirrors listed at http://pobox.com/~sjmudd/postfix/en/mirrors/
+ 
 My main Postfix website can be found at:
 
 	http://pobox.com/~sjmudd/postfix
 
-Simon Mudd
--- 
-Simon J Mudd,   Tel: +34-91-408 4878, Mobile: +34-605-085 219
-Madrid, Spain. email: sjmudd@pobox.com,  Postfix RPM Packager
+Simon Mudd <sjmudd@pobox.com>
