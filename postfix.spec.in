@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.23 2000/12/13 21:04:15 root Exp $
+# $Id: postfix.spec.in,v 2.24 2000/12/13 21:23:47 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -423,8 +423,8 @@ rm -rf ${RPM_BUILD_ROOT}
 %{command_directory}/postmap
 %{command_directory}/postsuper
 
-%{command_directory}/smtpsink
-%{command_directory}/smtpsource
+%{command_directory}/smtp-sink
+%{command_directory}/smtp-source
 
 %{sendmail_path}
 %{mailq_path}
@@ -458,7 +458,7 @@ rm -rf ${RPM_BUILD_ROOT}
       now use POSTFIX_SMTPD_MULTILINE=1 for smtpd multiline greetings
               POSTFIX_SAFE_MYNETWORKS=1 for droeson's patch
   - create postfix user/group on package build if necessary
-  - include smtpsource/smtpsink for testing
+  - include smtp-source/smtp-sink for testing
   - include comments in spec file for building with other libraries
       this is so later I can do this automatically
 
