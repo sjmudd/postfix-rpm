@@ -1,3 +1,5 @@
 #!/bin/sh
 
-exec `/bin/sed -n '/command_directory/s/^.*= //p' /etc/postfix/main.cf`/postfix check
+[ -f /usr/sbin/postfix ] || exit 0
+/usr/sbin/postfix check
+
