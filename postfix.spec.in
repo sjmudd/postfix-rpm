@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.30 2002/04/18 12:16:55 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.31 2002/04/30 07:41:07 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -60,7 +60,7 @@
 %define official 1 
 %define ver 1.1.7
 %define mail_release_date 20020115
-%define rel 4
+%define rel 5
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -161,8 +161,8 @@ BuildRequires: pcre, pcre-devel
 %endif
 
 %if %{redhatmysql}
-Requires: mysql, mysqlclient9
-BuildRequires: mysql, mysqlclient9, mysql-devel
+Requires: mysql
+BuildRequires: mysql, mysql-devel
 %endif
 
 %if %{mysql}
@@ -200,7 +200,7 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.30 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.31 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, VDA=%{VDA}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -283,8 +283,8 @@ patch -p1 <%{pfixtls}/pfixtls.diff
 
 %if %{tls}
 # Move postfix/tls docs into TLS dir
-mkdir html/TLS
-mv %{pfixtls}/doc/* html/TLS
+mkdir TLS
+mv %{pfixtls}/doc/* TLS
 for i in ACKNOWLEDGEMENTS CHANGES INSTALL README TODO; do
   mv %{pfixtls}/$i $i.TLS
 done
@@ -545,7 +545,10 @@ smtps		465/tcp			# SMTP over SSL (TLS)
 EOF
 fi
 
+# Start of trigger scripts ------------------------------------------------
 # Generate chroot jails on the fly when needed things are installed/upgraded
+%if ! %{DISABLE_CHROOT}
+
 %triggerin -- glibc
 %{copy_cmd}
 # kill off old versions
@@ -559,7 +562,12 @@ for i in compat dns files hesoid nis nisplus winbind wins; do
 done
 copy /lib/libresolv-${LIBCVER}.so %{queue_dir}/lib
 ldconfig -n %{queue_dir}/lib
-rm -f %{queue_dir}/etc/localtime && copy /etc/localtime %{queue_dir}/etc
+# copy real files into chroot environment
+for i in /etc/localtime /usr/lib/zoneinfo/localtime \
+	/etc/host.conf /etc/resolv.conf /etc/nsswitch.conf \
+	/etc/hosts /etc/passwd /etc/services; do
+    test -f ${i} && rm -f %{queue_dir}${i} && copy ${i} `/usr/bin/dirname %{queue_dir}${i}`
+done
 
 %if %{REQUIRES_DB3}
 %triggerin -- db3
@@ -613,7 +621,10 @@ ldconfig -n %{queue_dir}%{_libdir}
 rm -f %{queue_dir}%{_sysconfdir}/services
 copy %{_sysconfdir}/services %{queue_dir}%{_sysconfdir}
 
-# end of trigger scripts
+# end of if ! %{DISABLE_CHROOT}
+%endif
+
+# end of trigger scripts --------------------------------------------------
 
 %preun
 umask 022
@@ -791,11 +802,12 @@ fi
 %doc CHANGES.TLS
 %doc README.TLS
 %doc TODO.TLS
-%doc html/TLS/*
+%doc TLS
 %doc %{pfixtls}/contributed/make-postfix-cert.sh
 %endif
 
 %doc html
+%doc examples
 
 %dir %attr(0755, root, root) %verify(not md5 size mtime) %{daemon_dir}
 %{daemon_dir}/bounce
@@ -854,6 +866,16 @@ fi
 #
 
 %changelog
+
+* Sun Apr 28 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-5
+  - various changes suggested by Todd <Freedom_Lover@bigfoot.com>
+    - minor change to redhatmysql support, removing unneeded
+    Requires:
+    - minor change to TLS support, moving documentation to
+    /usr/share/doc/postfix-1.1.7/TLS/
+    - inclusion of Postfix examples directory which was missing
+  - chroot environment changes: after removing chroot-setup-LINUX2 and
+    replacing it with triggerin scripts some files were missing.  Fixed
 
 * Thu Apr 18 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-4
   - bugfix: add Source2: postfix-get-distribution
