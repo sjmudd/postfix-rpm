@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.44 2003/04/29 18:52:51 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.45 2003/04/29 19:50:12 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -196,7 +196,7 @@ BuildRequires: cyrus-sasl, %{sasl_library}
 
 %if %{tls}
 Requires: openssl
-BuildRequires: openssl-devel >= 0.9.6
+BuildRequires: openssl-devel
 %endif
 
 %description
@@ -214,7 +214,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.44 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.45 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
