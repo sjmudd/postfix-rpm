@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.110 2004/03/15 22:17:06 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.111 2004/03/27 19:10:35 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -41,7 +41,8 @@
 # distribution which the spec file was built from
 %define distribution __DISTRIBUTION__
 # distribution which we are building Postfix on
-%define build_dist %(sh $(rpm --eval '%{_sourcedir}')/postfix-get-distribution --distribution)
+%define build_dist %(sh $(rpm --eval '%{_sourcedir}')/postfix-get-distribution)
+%define build_dist_full %(sh $(rpm --eval '%{_sourcedir}')/postfix-get-distribution --full)
 %define mps __MANPAGE_SUFFIX__
 %define cdb __CDB__
 %define ldap __LDAP__
@@ -84,7 +85,7 @@
 %define official 1
 %define ver 2.0.19
 %define mail_release_date notused
-%define rel 1
+%define rel 2
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -127,7 +128,7 @@ Version: %{package_version}
 Release: %{rel}__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Summary: Postfix Mail Transport Agent
-Vendor: Built on %{distribution}
+Vendor: Built on %{build_dist_full} (%{build_dist})
 Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_dir}/postfix-%{tarball_version}.tar.gz
 Source1: postfix-RPM-new-packages
 Source2: postfix-get-distribution
@@ -235,7 +236,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.110 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.111 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -949,6 +950,11 @@ umask 022
 #
 
 %changelog
+
+* Mon Mar 15 2004 Simon J Mudd <sjmudd@pobox.com> 2.0.19-1
+- recognise rhel-3.0WS and also show the full distribution the rpm was built
+  on. This allows us to distinguish a build on Whitebox and RedHat Enterprise
+  Linux.  Problem noted by Tom Diehl <tdiehl@rogueind.com>
 
 * Mon Mar 15 2004 Simon J Mudd <sjmudd@pobox.com> 2.0.19-1
 - update to 2.0.19
