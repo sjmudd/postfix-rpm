@@ -1,0 +1,26 @@
+*** snapshot-20010329/src/smtpd/smtpd.c.orig	Thu Feb 22 15:53:23 2001
+--- snapshot-20010329/src/smtpd/smtpd.c		Wed Apr 11 17:07:58 2001
+***************
+*** 823,831 ****
+       * error.
+       */
+      if (state->rcpt_count == 0) {
+! 	if (state->cleanup == 0)
+  	    state->error_mask |= MAIL_ERROR_PROTOCOL;
+! 	smtpd_chat_reply(state, "503 Error: need RCPT command");
+  	return (-1);
+      }
+      if (argc != 1) {
+--- 823,834 ----
+       * error.
+       */
+      if (state->rcpt_count == 0) {
+! 	if (state->cleanup == 0) {
+  	    state->error_mask |= MAIL_ERROR_PROTOCOL;
+! 	    smtpd_chat_reply(state, "503 Error: need RCPT command");
+! 	} else {
+! 	    smtpd_chat_reply(state, "550 Error: no valid recipients");
+! 	}
+  	return (-1);
+      }
+      if (argc != 1) {

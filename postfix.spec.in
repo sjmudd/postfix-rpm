@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.96 2001/04/06 19:06:19 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.97 2001/04/20 17:40:51 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -53,7 +53,7 @@
 #define version1 %{vers}-%{patchlevel}
 #define version2 %{vers}_%{patchlevel}
 %define rel  3
-%define tlsno pfixtls-0.7.0-20010228-0.9.6
+%define tlsno pfixtls-0.7.1-20010228-0.9.6a
 
 Name: postfix
 Summary: Postfix Mail Transport Agent
@@ -76,11 +76,12 @@ Source5: postfix-aliases
 Source6: postfix-chroot-setup.awk
 Source7: postfix.spec.in
 Source8: make-postfix.spec
-Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{tlsno}.tar.gz
+#Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{tlsno}.tar.gz
 Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
 # required to install smtp-sink and smtp-source
 Patch3:  postfix-INSTALL.sh.patch
+Patch4:  postfix-smtpd.c.patch
 #
 # Optional patches - set the appropriate environment variables to include
 #                    them when building the package/spec file
@@ -130,11 +131,9 @@ BuildRequires: openssl-devel
 %description
 Postfix is a Mail Transport Agent (MTA), intended to be an alternative
 to the widely-used sendmail.  This is a reasonably sophisticated package
-which includes many patches and optional support for LDAP, pcre, mysql,
-and SMTP AUTH (SASL); it sets up chroot for added security; and it
-starts and stops the daemon on install/remove.
-An alternative simple rpm is available from Todd Bennett, for download
-at http://people.oven.com/bet/bent/.
+which includes optional support for LDAP, pcre, mysql, SMTP AUTH (SASL) and
+TLS; it sets up chroot for added security; and it starts and stops the
+daemon on install/remove.
 
 See http://www.redhat.com/support/docs/faqs/RH-postfix-FAQ/book1.html,
 a slightly outdated FAQ, which covers steps which should be taken prior
@@ -143,7 +142,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.96 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.97 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -156,6 +155,9 @@ TLS=__TLS__
 
 The source package contains information about rebuilding with alternative
 options.
+
+An alternative simpler postfix rpm is available from Todd Bennett, for
+download at http://people.oven.com/bet/bent/.
 
 
 %define config_directory /etc/postfix
@@ -203,14 +205,11 @@ fi
 patch -p1 <%{tlsno}/pfixtls.diff
 %endif
 
-# setup master.cf to be chrooted
-mv conf/master.cf conf/master.cf-nochroot
-awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > conf/master.cf
-
 # APPLY OBLIGATORY PATCHES
 %patch1 -p1 -b .config
 %patch2 -p1 -b .chk
 %patch3 -p1 -b .install
+%patch4 -p1 -b .smtpd
 
 # APPLY OPTIONAL PATCHES
 
@@ -227,6 +226,10 @@ for i in ACKNOWLEDGEMENTS CHANGES INSTALL README TODO; do
   mv %{tlsno}/$i $i.TLS
 done
 %endif
+
+# setup master.cf to be chrooted
+mv conf/master.cf conf/master.cf-nochroot
+awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > conf/master.cf
 
 # Copy README files allowing us to just go %doc below, and have rpm(1)
 # automatically tuck it in alongside the READMEs and COPYRIGHTs.
@@ -647,6 +650,12 @@ fi
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Fri Apr 06 2001 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20010329-3, minor changes
+  - remove TLS files from my cvs tree
+  - add %{branch} macro to fall in line with release spec file
+  - change rpm -qi information
+
 * Fri Apr 06 2001 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20010329-2
 - disable TLS support as the given patch doesn't work
