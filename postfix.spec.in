@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.80 2003/07/29 20:58:37 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.81 2003/07/29 21:51:41 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -79,7 +79,7 @@
 %define official 1
 %define ver 2.0.13
 %define mail_release_date 20021219
-%define rel 3.99.6
+%define rel 3.100
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -221,7 +221,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.80 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.81 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -930,17 +930,11 @@ umask 022
 
 %changelog
 
-* Mon Jul 28 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.13-3.99.5
-  - as close as I'll get to a safe new package. Prepare final tests
-
-* Wed Jul 23 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.13-3.99.2
-  - Finish postfix-chroot.sh script. It looks ok, prepare for testing
-
-* Mon Jul 21 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.13-3.2
-  - Remove chroot from package (Wietse's suggested it is better that way
-    for new users)
-  - add new script postfix-chroot.sh to allow this to be done by hand by the
-    user.
+* Tue Jul 28 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.13-3.100
+  - Remove chroot from package:
+    (Wietse's suggested it is better that way for new users)
+  - add new script postfix-chroot.sh (enable|disable)
+    to allow this to be done by hand by the user.
 
 * Sun Jul 13 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.13-3.1
   - Add preliminary support for RedHat Linux Advanced Server 2.1 (looks
