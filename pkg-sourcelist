@@ -3,7 +3,6 @@ pfixtls-0.8.16-2.0.16-0.9.7b.tar.gz
 postfinger-1.26
 postfix-2.0.13.v2.patch.gz
 postfix-2.0.16-20031026-multiline-greeting.patch
-postfix-2.0.17.tar.gz
 postfix-aliases
 postfix-bounce_notify_util.c.patch
 postfix-build
