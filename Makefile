@@ -19,6 +19,12 @@ commit:
 # checks if there have been changes to source
 checkcvs:
 
+# to build the latest version of the rpm
+latest:
+	@echo updating CVS files
+	cvs update || : 
+	$(MAKE) rpm
+
 # build the rpm
 rpm:
 	@echo Building RPM; \
