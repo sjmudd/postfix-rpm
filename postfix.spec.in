@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.2.7 2004/07/17 16:19:36 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.2.8 2004/07/17 22:30:45 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -84,7 +84,7 @@
 %define official 1
 %define ver 2.1.4
 %define mail_release_date RC4-20040418
-%define rel 1__SUFFIX__
+%define rel 1.1__SUFFIX__
 %if %{official}
 %define tarball_version %{ver}
 %define ftp_dir official
@@ -240,7 +240,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.2.7 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.2.8 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -262,19 +262,11 @@ if [ "${distribution}" != "%{distribution}" ]; then
     cat <<ENDTEXT
 ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR
 
-This postfix.spec file was built for %{distribution}, while you are
-running ${distribution}.  It may not work correctly.  Rebuild postfix.spec
-for your distribution as follows:
+This postfix.spec file may not work correctly.
+It was built for %{distribution}, while you are running ${distribution}.
 
-	cd `rpm --eval '%{_sourcedir}'`
-	# define the POSTFIX_XXX variables according to your requirements
-	# see make-postfix.spec for more information
-	sh make-postfix.spec
-
-Once you have rebuilt postfix.spec, you build the RPMs as follows:
-
-	cd `rpm --eval '%{_specdir}'`
-	rpmbuild -ba postfix.spec
+Please rebuild postfix.spec for your distribution by following the
+instructions in postfix.spec.cf.
 
 If this procedure does not allow you to produce a working package, please
 let me know.
@@ -408,8 +400,8 @@ CCARGS="${CCARGS} -fsigned-char"
 # - rh6.2 needs LIBS=-ldl to build correctly.
 # - reported by Jauder Ho <jauderho@carumba.com>
   if pkg-config openssl; then
-    CCARGS="${CCARGS} -DHAS_SSL `pkg-config --cflags openssl`"
-    AUXLIBS="${AUXLIBS} `pkg-config --libs openssl`"
+    CCARGS="${CCARGS} -DHAS_SSL $(pkg-config --cflags openssl)"
+    AUXLIBS="${AUXLIBS} $(pkg-config --libs openssl)"
   else
     [ "%{tlsfix}" = 1 ] && LIBS=-ldl
     [ "%{tlsfix}" = 2 ] && CCARGS="${CCARGS} -I/usr/kerberos/include"
@@ -454,7 +446,7 @@ umask 022
 # If Postfix is not a member of the mail group (it wasn't in older versions of
 # my package) add it to the group.  This is needed for people using cyrus,
 # linked by unix sockets (amongst other things)
-GROUP=`id postfix | awk '{print $3}' | sed -e 's/groups=//' | grep mail`
+GROUP=$(id postfix | awk '{print $3}' | sed -e 's/groups=//' | grep mail)
 test -z "${GROUP}" && usermod -G mail postfix || :
 
 %install
@@ -875,9 +867,9 @@ queue_hash_depth_remove () {
 # remove the rest of the queue directory structure
 queue_directory_remove () {
     # remove the hashed directories
-    depth=`postconf -h hash_queue_depth`
-    for dir in `postconf -h hash_queue_names | sed -e 's/,/\\
-/g'`; do
+    depth=$(postconf -h hash_queue_depth)
+    for dir in $(postconf -h hash_queue_names | sed -e 's/,/\\
+/g'); do
         queue_hash_depth_remove $dir $depth
     done
 
@@ -902,7 +894,7 @@ queue_directory_remove () {
         %{_sbindir}/alternatives --remove mta %{sendmail_path}
     elif [ -L %{_sbindir}/sendmail} ]; then
         # check that symbolic link belongs to postfix
-        if [ `ls -l %{_sbindir}/sendmail | awk '{print $11}'` = %{sendmail_path} ]; then
+        if [ $(ls -l %{_sbindir}/sendmail | awk '{print $11}') = %{sendmail_path} ]; then
             # remove files
             rm -f %{_sbindir}/sendmail
             rm -f %{_bindir}/mailq

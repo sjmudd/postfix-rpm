@@ -15,9 +15,9 @@ current_directory=`pwd`
 parametername=$1
 parametervalue=${2:-1}
 
-srcdir=`rpm --eval '%{_sourcedir}'`
-specdir=`rpm --eval '%{_specdir}'`
-pwd=`pwd`
+srcdir=$(rpm --eval '%{_sourcedir}' | sed -e 's;%{name};postfix;')
+specdir=$(rpm --eval '%{_specdir} | sed -e 's;%{name};postfix;'')
+pwd=$PWD
 
 ( cd ${srcdir} && \
     eval unset $parametername && \

@@ -6,29 +6,27 @@
 # - cvs and rpm directory structure within $HOME based on the rpmmacros
 #   installed previously
 
-DEBUG=0
-
 msg_debug () {
-    [ ${DEBUG} = 1 ] && echo $1
+    [ -n "${DEBUG}" ] && echo "$*"
 }
 msg_info () {
-    echo $1
+    echo "$*"
 }
 msg_warn () {
-    echo "warning: $1" >&2
+    echo "warning: $*" >&2
 }
 msg_err () {
-    echo "error: $1" >&2
+    echo "error: $*" >&2
     exit 1
 }
 
-myname=`basename $0`
+myname=$(basename $0)
 msg_debug "$myname: started"
 
-[ id = 0 ] && msg_err "This script is intented to be run as a non-root user"
+[ $(id -u) = 0 ] && msg_err "This script is intented to be run as a non-root user"
 
 # create a ~/cvs subdirectory to put the cvs files
-# I use postfix-2, postfix-current, postfix-1.1 by renaming
+# I use postfix-current, postfix-2.1, postfix-2.0, postfix-1.1 by renaming
 # postfix-rpm after checking out the appropriate tree.
 
 [ ! -d ~/cvs ] && {
@@ -41,25 +39,14 @@ msg_debug "$myname: started"
     cp rpmmacros ~/.rpmmacros && \
 	msg_info "Installing default RPM Macros file..." || \
 	msg_warn "Could not copy rpmmacros to ~/.rpmmacros"
-} || msg_info "RPM macros already installed in ~/.rpmmacros"
+} || msg_info "RPM macros already installed in ~/.rpmmacros (not overwriting, but consider using file rpmmacros)"
 
 for param in _topdir _sourcedir _specdir _tmppath _builddir \
 	 _srcrpmdir _rpmdir; do
-    dir=`rpm --eval %{$param}`
+    dir=$(rpm --eval '%{$param}' | sed -e 's;%{name};postfix;')
     [ ! -d "$dir" ] && {
-        mkdir $dir && msg_info "Creating directory $dir" || \
+        mkdir -p $dir && msg_info "Creating directory $dir" || \
 		msg_warn "Could not create directory $dir"
-    } || msg_info "Directory $dir required by macro %{$param} exists"
-done
-
-# manually add i386 and noarch: not sure how to check for ppc users
-# and those who build for other iX86 architectures
-basedir=`rpm --eval '%{_rpmdir}'`
-for param in i386 noarch; do
-    dir=$basedir/$param
-    [ ! -d "$dir" ] && {
-        mkdir $dir && msg_info "Creating directory $dir" || \
-		msg_warn "Could not create directory $dir"
-    } || msg_info "Directory $dir exists"
+    } || msg_info "Directory $dir required by macro %{$param} already exists"
 done
 

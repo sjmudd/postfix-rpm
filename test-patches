@@ -3,7 +3,7 @@
 #set -x
 
 # Test all the patches in the package and check which ones apply cleanly
-myname=`basename $0`
+myname=$(basename $0)
 testresults=postfix-test-patch-results
 
 echo "$myname: Postfix RPM patch tester"
