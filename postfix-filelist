@@ -11,6 +11,7 @@ postfix-chroot-setup.awk
 postfix-chroot_chk.patch
 postfix-chroot_setup.patch
 postfix-config.patch
+postfix-errors-to.patch
 postfix-etc-cron.daily-postfix
 postfix-etc-init.d-postfix
 postfix-fallback_relay.patch
