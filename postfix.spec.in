@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.26 2002/04/09 15:14:34 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.27 2002/04/15 11:24:43 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -12,45 +12,43 @@
 #
 # Information imported from postfix.spec.in
 #
-# LDAP                     - include LDAP support
-# MYSQL	                   - include www.mysql.com's MySQL rpms
-# REDHATMYSQL              - include RedHat's MySQL rpms
-# PCRE                     - include pcre support
-# PGSQL                    - include Postgres database support
-# PGSQL2                   - experimental postgres patches by George Barbarosie
-#                            <georgeb@intelinet.ro>: needs PGSQL=1
-# SASL                     - include SASL/AUTH support
-# TLS                      - include TLS support
-# TLSFIX                   - include TLS fix (apparently needed for rh6.2)
+# ldap                     - include LDAP support
+# mysql	                   - include www.mysql.com's MySQL rpms
+# redhatmysql              - include RedHat's MySQL rpms
+# pcre                     - include pcre support
+# pgsql                    - include Postgres database support
+# pgsql2                   - experimental postgres patches by George Barbarosie
+#                            <georgeb@intelinet.ro>: needs pgsql=1
+# sasl                     - include SASL/AUTH support
+# tls                      - include TLS support
+# tlsfix                   - include TLS fix (apparently needed for rh6.2)
 # REQUIRES_INIT_D          - Required by RedHat 7.x
 # REQUIRES_DB3             - used on RH 7.x and Mandrake 8.1
 # REQUIRES_DB4             - adding support for db4 (can be used on 7.2?)
 # SMTPD_MULTILINE_GREETING - my patch to allow multiline banner
-# POSTFIX_UID              - uid of postfix user
-# POSTFIX_GID              - gid of postfix group
-# POSTDROP_GID             - gid of postdrop group
 # VDA                      - add virtual delivery agent patch
 # DISABLE_CHROOT           - disable setup of chroot environment
 #
 %define distribution __DISTRIBUTION__
-%define LDAP __LDAP__
-%define MYSQL __MYSQL__
-%define REDHATMYSQL __REDHAT_MYSQL__
-%define PCRE __PCRE__
-%define PGSQL __PGSQL__
-%define PGSQL2 __PGSQL2__
-%define SASL __SASL__
-%define TLS __TLS__
-%define TLSFIX __TLSFIX__
+%define ldap __LDAP__
+%define mysql __MYSQL__
+%define redhatmysql __REDHAT_MYSQL__
+%define pcre __PCRE__
+%define pgsql __PGSQL__
+%define pgsql2 __PGSQL2__
+%define sasl __SASL__
+%define tls __TLS__
+%define tlsfix __TLSFIX__
 %define REQUIRES_DB3 __REQUIRES_DB3__
 %define REQUIRES_DB4 __REQUIRES_DB4__
 %define REQUIRES_INIT_D __REQUIRES_INIT_D__
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
-%define POSTFIX_UID __POSTFIX_UID__
-%define POSTFIX_GID __POSTFIX_GID__
-%define POSTDROP_GID __POSTDROP_GID__
 %define VDA __VDA__
 %define DISABLE_CHROOT __DISABLE_CHROOT__
+
+# start to support the conditional builds via rpm's
+# --with debug
+%define debug %{?_with_debug:1}{?!_with_debug:0}
 
 # Version information
 %define pflogno -1.0.4
@@ -62,7 +60,7 @@
 %define official 1 
 %define ver 1.1.7
 %define mail_release_date 20020115
-%define rel 2
+%define rel 2.101test
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -73,14 +71,12 @@
 %define ftp_dir experimental
 %endif
 
-# Postfix requires one exlusive uid/gid and a 2nd exclusive gid.
-%define postfix_uid    %{POSTFIX_UID}
-%define postfix_gid    %{POSTFIX_GID}
-%define maildrop_gid   %{POSTDROP_GID}
-
 %define config_dir %{_sysconfdir}/postfix
 %define daemon_dir %{_libexecdir}/postfix
 %define queue_dir %{_var}/spool/postfix
+
+%define sample_dir %{config_dir}/samples
+%define readme_dir %{config_dir}/README_FILES
 
 %define newaliases_path %{_bindir}/newaliases
 %define mailq_path %{_bindir}/mailq
@@ -94,10 +90,10 @@
 %define postfix_running %{daemon_dir}/master -t >/dev/null 2>&1; echo $?
 %define die_cmd die(){ %whinge "$*"; exit 1; }
 
-# link source file to destination directory if possible
-# if the link is a symbolic link, make a copy in the destination directory
-# otherwise copy the file
-%define copy_cmd copy() { file=`basename $1`; ln -f $1 $2/$file 2>/dev/null || { test -L $1 2>/dev/null && { dest=`ls -l $1| awk '{print $11}'`; ln -sf $dest $2/$file; } || cp -dpf $1 $2/$file; } }
+# Link source file to destination directory if possible. If the link is a
+# symbolic link, make a copy in the destination directory, otherwise copy
+# the file.  For the moment log to /var/log/maillog what we are doing.
+%define copy_cmd copy() { %{whinge} "copying $1 to $2"; file=`basename $1`; ln -f $1 $2/$file 2>/dev/null || { test -L $1 2>/dev/null && { dest=`ls -l $1| awk '{print $11}'`; ln -sf $dest $2/$file; } || cp -dpf $1 $2/$file; }; }
 
 Name: postfix
 Group: System Environment/Daemons
@@ -153,37 +149,37 @@ Requires: db4
 BuildRequires: db4-devel
 %endif
 
-%if %{LDAP}
+%if %{ldap}
 Requires: openldap >= 1.2.9
 BuildRequires: openldap-devel >= 1.2.9
 %endif
 
-%if %{PCRE}
+%if %{pcre}
 Requires: pcre
 BuildRequires: pcre, pcre-devel
 %endif
 
-%if %{REDHATMYSQL}
+%if %{redhatmysql}
 Requires: mysql, mysqlclient9
 BuildRequires: mysql, mysqlclient9, mysql-devel
 %endif
 
-%if %{MYSQL}
+%if %{mysql}
 Requires: MySQL-shared, zlib
 BuildRequires: MySQL-shared, MySQL-devel, zlib-devel
 %endif
 
-%if %{PGSQL}
+%if %{pgsql}
 Requires: postgresql, libpq.so
 BuildRequires: postgresql, libpq.so, postgresql-devel
 %endif
 
-%if %{SASL}
+%if %{sasl}
 Requires: cyrus-sasl
 BuildRequires: cyrus-sasl, cyrus-sasl-devel
 %endif
 
-%if %{TLS}
+%if %{tls}
 Requires: openssl
 BuildRequires: openssl-devel
 %endif
@@ -203,13 +199,13 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.26 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.27 $,
 with the following options:
 
-SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING},VDA=%{VDA},PGSQL=%{PGSQL}, PGSQL2=%{PGSQL2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
-LDAP=%{LDAP}, SASL=%{SASL}, PCRE=%{PCRE}, TLS=%{TLS}, TLSFIX=%{TLSFIX}, MYSQL=%{MYSQL}, REDHATMYSQL=%{REDHATMYSQL}
+SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, VDA=%{VDA}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
+ldap=%{ldap}, sasl=%{sasl}, pcre=%{pcre}, tls=%{tls}, tlsfix=%{tlsfix}, mysql=%{mysql}, redhatmysql=%{redhatmysql}
 REQUIRES_DB3=%{REQUIRES_DB3}, REQUIRES_DB4=%{REQUIRES_DB4}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}
-POSTFIX_UID=%{POSTFIX_UID}, POSTFIX_GID=%{POSTFIX_GID}, POSTDROP_GID=%{POSTDROP_GID}
+debug=%{?_with_debug:1}{?!_with_debug:0}
 
 To use postfix with alternative options download the source package and
 rebuild the binary package following the instructions in the source
@@ -261,7 +257,7 @@ fi
 %setup -q -n postfix-%{tarball_version} -a 9
 
 # Apply the TLS patch, must be at first, because the changes of master.cf
-%if %{TLS}
+%if %{tls}
 patch -p1 <%{pfixtls}/pfixtls.diff
 %endif
 
@@ -274,17 +270,17 @@ patch -p1 <%{pfixtls}/pfixtls.diff
 %patch4 -p1 -b .vda
 %endif
 # Apply the PostgreSQL patches only if required
-%if %{PGSQL}
+%if %{pgsql}
 %patch50 -p1 -b .pg
 %endif
-%if %{PGSQL2}
+%if %{pgsql2}
 %patch51 -p1 -b .pgraw
 %endif
 %if %{SMTPD_MULTILINE_GREETING}
 %patch99 -p1 -b .multiline
 %endif
 
-%if %{TLS}
+%if %{tls}
 # Move postfix/tls docs into TLS dir
 mkdir html/TLS
 mv %{pfixtls}/doc/* html/TLS
@@ -311,11 +307,11 @@ AUXLIBS=
 CCARGS="${CCARGS} -fsigned-char"
 %endif
 
-%if %{LDAP}
+%if %{ldap}
   CCARGS="${CCARGS} -DHAS_LDAP"
   AUXLIBS="${AUXLIBS} -L/usr/lib -lldap -llber"
 %endif
-%if %{PCRE}
+%if %{pcre}
   # -I option required for pcre 3.4 (and later?)
   CCARGS="${CCARGS} -DHAS_PCRE -I/usr/include/pcre"
   AUXLIBS="${AUXLIBS} -lpcre"
@@ -323,27 +319,27 @@ CCARGS="${CCARGS} -fsigned-char"
 # Careful:
 # - Redhat's mysql package doesn't seem to need zlib support (postfix compiles without it)
 # - MySQL's (www.mysql.com) package does need zlib support to compile correctly
-%if %{MYSQL}
+%if %{mysql}
   CCARGS="${CCARGS} -DHAS_MYSQL -I/usr/include/mysql"
   AUXLIBS="${AUXLIBS} -L/usr/lib/mysql -lmysqlclient -lz -lm"
 %endif
-%if %{REDHATMYSQL}
+%if %{redhatmysql}
   CCARGS="${CCARGS} -DHAS_MYSQL -I/usr/include/mysql"
   AUXLIBS="${AUXLIBS} -L/usr/lib/mysql -lmysqlclient -lm"
 %endif
-%if %{PGSQL}
+%if %{pgsql}
   CCARGS="${CCARGS} -DHAS_PGSQL -I/usr/include/pgsql"
   AUXLIBS="${AUXLIBS} -lpq -lcrypt"
 %endif
-%if %{SASL}
+%if %{sasl}
   CCARGS="${CCARGS} -DUSE_SASL_AUTH"
   AUXLIBS="${AUXLIBS} -lsasl"
 %endif
-%if %{TLS}
+%if %{tls}
 # See http://www.openldap.org/lists/openldap-devel/200105/msg00008.html
 # - it seems rh6.2 needs LIBS=-ldl to build correctly.
 # - reported by Jauder Ho <jauderho@carumba.com>
-  if [ "${TLSFIX}" = 1 ]; then
+  if [ "${tlsfix}" = 1 ]; then
     LIBS=-ldl
   else
     LIBS=
@@ -355,7 +351,7 @@ CCARGS="${CCARGS} -fsigned-char"
 export CCARGS AUXLIBS
 make -f Makefile.init makefiles
 unset CCARGS AUXLIBS
-make DEBUG="" OPT="$RPM_OPT_FLAGS"
+make DEBUG="%{?debug:-g}" OPT="$RPM_OPT_FLAGS"
 
 %pre
 umask 022
@@ -364,11 +360,8 @@ umask 022
 
 # return 0 if hostname is a FQDN
 check_hostname() {
-    if [ "`hostname | grep -c '\.'`" = "1" ]; then
-        ok=0
-    else
-        ok=1
-    fi
+    ok=1
+    test "`hostname | grep -c '\.'`" = "1" && ok=0
     return ${ok}
 }
 
@@ -408,32 +401,23 @@ END
 # the conditions are not met.
 check_myhostname || check_hostname || stop_install
 
-# create postfix user and group, and maildrop group on INSTALL machine if necessary
+# create postfix user and group, and maildrop group if necessary.
 # Use perl here rather than looking in /etc/passwd or /etc/group as this works
-# in a wider NIS environment
+# in a wider NIS or LDAP environment
 
 perl -e '$gid=getgrnam("postdrop"); exit 1 if ! defined( $gid )' || {
-    perl -e '$nam=getgrgid(%{maildrop_gid}); exit 1 if defined( $nam )' || die \
-            'gid collision, aborting install' \
-	    'either add "postdrop" group or delete the group using GID %{maildrop_gid}'
-    %whinge "Adding postdrop (gid=%{maildrop_gid}) to /etc/group."
-    %{_sbindir}/groupadd -g %{maildrop_gid} -r postdrop
+    %whinge "Adding postdrop group to system"
+    %{_sbindir}/groupadd -r postdrop
 }
 
 perl -e '$gid=getgrnam("postfix"); exit 1 if ! defined( $gid )' || {
-    perl -e '$nam=getgrgid(%{postfix_gid}); exit 1 if defined( $nam )' || die \
-            'gid collision, aborting install' \
-	    'either add "postfix" group or delete the group using GID %{postfix_gid}'
-    %whinge "Adding postfix (gid=%{postfix_gid}) to /etc/group."
-    %{_sbindir}/groupadd -g %{postfix_gid} -r postfix
+    %whinge "Adding postfix group to system"
+    %{_sbindir}/groupadd -r postfix
 }
 
 perl -e '$uid=getpwnam("postfix"); exit 1 if ! defined( $uid )' || {
-    perl -e '$nam=getpwuid(%{postfix_uid}); exit 1 if defined( $nam )' || die \
-          'uid collision, aborting install' \
-          'either add "postfix" user or delete the user using UID %{postfix_uid}'
-    %whinge "Adding postfix (uid=%{postfix_uid}) to /etc/passwd."
-    %{_sbindir}/useradd -d %{queue_dir} -s /bin/true -g postfix -M -r -u %{postfix_uid} postfix
+    %whinge "Adding postfix user to system"
+    %{_sbindir}/useradd -d %{queue_dir} -s /bin/true -g postfix -M -r postfix
 }
 
 %install
@@ -444,7 +428,7 @@ umask 022
     /bin/mkdir -p %{buildroot}
 }
 
-strip -R .comment --strip-unneeded bin/* libexec/*
+%{?!debug:strip -R .comment --strip-unneeded bin/* libexec/*}
 
 # install postfix into %{buildroot}
 sh postfix-install -non-interactive \
@@ -459,8 +443,8 @@ sh postfix-install -non-interactive \
        mail_owner=postfix \
        setgid_group=postdrop \
        manpage_directory=%{_mandir} \
-       sample_directory=%{config_dir}/samples \
-       readme_directory=%{config_dir}/README_FILES || exit 1
+       sample_directory=%{sample_dir} \
+       readme_directory=%{readme_dir} || exit 1
 
 # RPM compresses man pages automatically.
 # - Edit postfix-files to reflect this, so post-install won't get confused
@@ -485,12 +469,6 @@ install %{_sourcedir}/postfix-etc-init.d-postfix \
 # Copy the Linux chroot setup script to %{config_dir}, ready to use,
 # later, removing the 'postfix reload' call from this script
 %if ! %{DISABLE_CHROOT}
-sed '
-s;postfix reload;#postfix reload # - do not reenable - used by rpm;
-' examples/chroot-setup/LINUX2 \
-    > %{buildroot}%{config_dir}/chroot-setup-LINUX2
-chmod 0744 %{buildroot}%{config_dir}/chroot-setup-LINUX2
-
 # These set up the chroot directory structure
 mkdir -p %{buildroot}%{queue_dir}/etc
 mkdir -p %{buildroot}%{queue_dir}/lib
@@ -531,21 +509,6 @@ done
 %post
 umask 022
 
-# setup the chroot environment
-chroot_setup () {
-  # setup chroot basic structure, but do not fail if the script fails
-  %{config_dir}/chroot-setup-LINUX2 || true
-
-  %if %{LDAP}
-    # Setup ldap chroot
-    %{copy_cmd}
-
-    for i in /usr/lib/libldap*.so* /usr/lib/liblber.so*; do
-      [ -e $i ] && copy $i %{queue_dir}/usr/lib
-    done
-  %endif
-}
-
 /sbin/chkconfig --add postfix
 
 # upgrade configuration files if necessary
@@ -556,17 +519,13 @@ sh %{config_dir}/post-install upgrade-package \
 	mail_owner=postfix \
 	setgid_group=postdrop \
 	manpage_directory=%{_mandir} \
-	sample_directory=%{config_dir}/samples \
-	readme_directory=%{config_dir}/README_FILES \
+	sample_directory=%{sample_dir} \
+	readme_directory=%{readme_dir} \
 || :
 
 # build the aliases.db file on the INSTALL machine
 %{_sbindir}/postalias %{config_dir}/aliases
 %{_sbindir}/postfix check || :
-
-%if ! %{DISABLE_CHROOT}
-  chroot_setup
-%endif
 
 # Add submission to services if not found, required for rh <= 7.0
 if ! grep -q ^submission %{_sysconfdir}/services
@@ -585,13 +544,83 @@ smtps		465/tcp			# SMTP over SSL (TLS)
 EOF
 fi
 
+# Generate chroot jails on the fly when needed things are installed/upgraded
+%triggerin -- glibc
+%{copy_cmd}
+# kill off old versions
+rm -f %{queue_dir}/lib/libnss* %{queue_dir}/lib/libresolv*
+# determine glibc version
+LIBCVER=`ls -l /lib/libc.so.6* | sed "s/.*libc-\(.*\).so$/\1/g"`
+# copy the relevant parts in
+for i in compat dns files hesoid nis nisplus winbind wins; do
+  [ -e /lib/libnss_${i}-${LIBCVER}.so ] && copy /lib/libnss_${i}-${LIBCVER}.so %{queue_dir}/lib
+  [ -e /lib/libnss_${i}.so ]            && copy /lib/libnss_${i}.so            %{queue_dir}/lib
+done
+copy /lib/libresolv-${LIBCVER}.so %{queue_dir}/lib
+ldconfig -n %{queue_dir}/lib
+rm -f %{queue_dir}/etc/localtime && copy /etc/localtime %{queue_dir}/etc
+
+%if %{REQUIRES_DB3}
+%triggerin -- db3
+%{copy_cmd}
+for i in /lib/libdb-3.*so /lib/libdb.so; do
+  rm -f %{queue_dir}${i}
+  copy ${i} %{queue_dir}/lib
+done
+ldconfig -n %{queue_dir}/lib
+%endif
+
+%if %{REQUIRES_DB4}
+%triggerin -- db4
+%{copy_cmd}
+for i in /lib/libdb-4.*so /lib/libdb.so; do
+  rm -f %{queue_dir}${i}
+  copy ${i} %{queue_dir}/lib
+done
+ldconfig -n %{queue_dir}/lib
+%endif
+
+%if %{ldap}
+%triggerin -- openldap
+%{copy_cmd}
+rm -f %{queue_dir}%{_libdir}/libldap*.so*
+rm -f %{queue_dir}%{_libdir}/liblber.so*
+for i in %{_libdir}/libldap*.so* \
+         %{_libdir}/libldap_r.so* \
+         %{_libdir}/liblber.so*; do
+      [ -e $i ] && copy $i %{queue_dir}%{_libdir}
+done
+ldconfig -n %{queue_dir}%{_libdir}
+
+# remove ldap chroot environment
+%triggerun -- openldap
+[ $2 = 0 ] || exit 0
+/bin/rm -f %{queue_dir}%{_libdir}/libldap*.so*
+/bin/rm -f %{queue_dir}%{_libdir}/liblber.so*
+%endif
+
+%if %{pgsql}
+%triggerin -- postgresql-libs
+%{copy_cmd}
+rm -f %{queue_dir}%{_libdir}/libpq*
+copy %{_libdir}/libpq.so.2 %{queue_dir}%{_libdir}
+ldconfig -n %{queue_dir}%{_libdir}
+%endif
+
+%triggerin -- setup
+%{copy_cmd}
+rm -f %{queue_dir}%{_sysconfdir}/services
+copy %{_sysconfdir}/services %{queue_dir}%{_sysconfdir}
+
+# end of trigger scripts
+
 %preun
 umask 022
 
 stop_postfix () {
     echo "Stopping the Postfix mail system"
     if [ -f %{queue_dir}/pid/master.pid ]; then
-        kill `sed 1q %{queue_dir}/pid/master.pid` >/dev/null 2>&1 || true
+        kill `sed 1q %{queue_dir}/pid/master.pid` >/dev/null 2>&1 || :
     else
         echo "BUG: postfix.spec (preun) - please inform packager"
     fi
@@ -601,17 +630,22 @@ stop_postfix () {
 # WE MUST BE IN /var/spool/postfix before calling this routine
 
 chroot_remove () {
-  %if %{LDAP}
-    # remove ldap chroot environment
-    /bin/rm -f %{queue_dir}/usr/lib/libldap*.so* || true
-    /bin/rm -f %{queue_dir}/usr/lib/liblber.so*  || true
-  %endif
-    
+%if %{ldap}
+    /bin/rm -f %{queue_dir}%{_libdir}/libldap*.so*
+    /bin/rm -f %{queue_dir}%{_libdir}/liblber.so*
+%endif
+
     for i in etc/localtime usr/lib/zoneinfo/localtime \
             etc/host.conf etc/resolv.conf etc/nsswitch.conf \
 	    etc/hosts etc/passwd etc/services \
+%if %{REQUIRES_DB3}
+            lib/libdb-3.*so lib/libdb.so \
+%endif
+%if %{REQUIRES_DB4}
+            lib/libdb-4.*so lib/libdb.so \
+%endif
 	    lib/libnss_* lib/libresolv* lib/libdb*; do
-        test -f $i && /bin/rm -f $i
+        test -f %{queue_dir}/${i} && /bin/rm -f %{queue_dir}/${i}
     done
 
     for dir in usr/lib/zoneinfo usr/lib usr lib etc; do
@@ -673,7 +707,7 @@ fi
 SENDMAIL=/usr/lib/sendmail
 test -f ${SENDMAIL} && {
     rpm -qf ${SENDMAIL} >/dev/null 2>&1 || ln -sf %{sendmail_path} ${SENDMAIL}
-} || true
+} || :
 
 %postun
 umask 022
@@ -705,10 +739,10 @@ fi
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_dir}/transport
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_dir}/virtual
 
-%dir %attr(-, root, root) %{config_dir}/samples
-%attr(0644,   root, root) %{config_dir}/samples/*
-%dir %attr(-, root, root) %{config_dir}/README_FILES
-%attr(0644,   root, root) %{config_dir}/README_FILES/*
+%dir %attr(-, root, root) %{sample_dir}
+%attr(0644,   root, root) %{sample_dir}/*
+%dir %attr(-, root, root) %{readme_dir}
+%attr(0644,   root, root) %{readme_dir}/*
 
 %attr(0755, root, root) %config %{init_directory}/postfix
 
@@ -745,13 +779,13 @@ fi
 %doc PORTING
 %doc RELEASE_NOTES
 
-%if %{PGSQL}
+%if %{pgsql}
 %doc PGSQL_README
 %endif
 
 %doc postfix-new-RPM-packages
 
-%if %{TLS}
+%if %{tls}
 %doc ACKNOWLEDGEMENTS.TLS
 %doc CHANGES.TLS
 %doc README.TLS
@@ -761,10 +795,6 @@ fi
 %endif
 
 %doc html
-
-%if ! %{DISABLE_CHROOT}
-%attr(0744, root, root) %config %{config_dir}/chroot-setup-LINUX2
-%endif
 
 %dir %attr(0755, root, root) %verify(not md5 size mtime) %{daemon_dir}
 %{daemon_dir}/bounce
@@ -786,7 +816,7 @@ fi
 %{daemon_dir}/trivial-rewrite
 %{daemon_dir}/virtual
 
-%if %{TLS}
+%if %{tls}
 %{daemon_dir}/tlsmgr
 %endif
 
@@ -824,9 +854,20 @@ fi
 
 %changelog
 
-* Tue Apr 09 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-2
+* Wed Apr 10 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-3
   - changes to names and stuff in spec file (basic tidy-up)
   - add qmqp-source
+  - changes to use triggerin macros instead of chroot stuff
+    - mainly taken from Bero and Tuomo's Postfix spec files
+  - remove changelog entries for before 01-01-2002, they can still be recovered
+    from my CVS archives.
+  - useradd/groupadd of postfix/postdrop have been modified to not specify
+    a specific user/group id.  rpm uses the name when checking permissions and
+    postfix's main.cf also works with names so don't insist on specific ids.
+    the uid/gids created are system accounts.
+
+* Wed Apr 10 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-2
+  - bug fix to copy_cmd macro which was causing lots of grief
 
 * Mon Apr 01 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-1
   - update to 1.1.7
@@ -934,293 +975,3 @@ fi
 
 * Wed Jan 01 2002 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20011226-1, update to latest snapshot
-
-* Wed Dec 24 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20011217-1, update to latest snapshot
-
-* Wed Dec 12 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20011210-2
-  - update to latest TLS patch (pfixtls-0.7.13d-snap20011210-0.9.6b)
-
-* Tue Dec 11 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20011210-1
-  - update to latest snapshot
-
-* Wed Nov 28 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20011127-2
-  - add explicit test for non FQDN hostnames and abort the install, while
-    giving a warning to the user if this happens.
-  - update to latest TLS patch
-
-* Wed Nov 28 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20011127-1
-  - update to latest snapshot: Wietse fixes several bugs he's found
-
-* Wed Nov 27 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20011125-1
-  - update to latest snapshot
-
-* Wed Nov 21 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20011121-1
-  - update to latest snapshot
-
-* Mon Nov 19 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20011116-1
-  - update to latest snapshot
-
-* Mon Nov 19 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20011115-2
-  - update TLS patches to pfixtls-0.7.13-snap20011115-0.9.6b
-
-* Mon Nov 16 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20011115-1
-  - fixes smtpd command log memory exhaustion bug
-
-* Mon Nov 15 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20011114-1
-  - upgrade to latest snapshot
-
-* Mon Nov 05 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20011105-2
-  - add a little more support to make-postfix.spec for Mandrake Linux.
-
-* Mon Nov 05 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20011105-1
-  - update to snapshot 20011104
-  - update TLS patches to pfixtls-0.7.12-snap20011104-0.9.6b
-  - remove errors-to patch (incorporated into snapshot)
-  - remove cleanup_map1n patch (incorporated into snapshot)
-  - update to snapshot 2001105
-
-* Sat Nov 03 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20011008-5
-  - change pflogsumm.pl permissions so that it is group and world executable
-  - name change and updated text: postfix-new-RPMS -> postfix-new-RPM-packages
-  - changes to make-postfix.spec to ensure that we produce different package
-    suffices for rh7.0 and rh7.1 than rh7.2
-
-* Tue Oct 30 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20011008-4
-  - add chroot of openldap-2 libraries
-  - add Wietse's cleanup "recursive" patch
-
-* Thu Oct 18 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20011008-3
-  - update to latest TLS patch (0.7.11)
-  - enable building as non-root:
-    - patches provided by Dominik Mierzejewski <dmierzej@elka.pw.edu.pl>
-
-* Wed Oct 17 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20011008-2
-  - include Wietse's patch to cleanup to fix errors-to:
-    header processing
-
-* Tue Oct 09 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20011008-1
-  - update to latest snapshot
-  - update TLS patches
-  - remove bounce notify patch (which has been incorporated)
-
-* Sat Sep 08 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010808-5
-  - update to latest TLS patch (0.7.9)
-  - cosmetic modification to /etc/cron.daily/1postfix
-
-* Mon Sep 03 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010808-4, include patch by Chris Audley <Christopher.D.Audley@jhu.edu>
-  to allow the installation to see postfix accounts via pam and not exclusively
-  through the /etc/passwd and /etc/group files.
-
-* Fri Aug 31 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010808-3, include Wietse's bounce notify patch
-
-* Thu Aug 30 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010808-2, update to latest TLS patch (0.7.8)
-
-* Sun Aug 12 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010808-1, update to latest snapshot
-
-* Mon Jul 23 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010709-3, including missing documentation files (Daniel Roesen)
-
-* Sun Jul 08 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010709-2, update to pfixtls-0.7.4-snap20010709-0.9.6b
-
-* Sun Jul 08 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010709-1, update to latest snapshot, and remove smtp_addr.c patch
-
-* Sun Jul 08 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010610-3, apply Wietse's smtp_addr.c.patch
-
-* Mon Jun 11 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010610-2, minor changes to keep in line with release spec file
-
-* Mon Jun 11 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010610-1, update to latest snapshot version
-
-* Fri Jun 08 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010525-5, changes in macro usage to try and ensure there are no
-  redhat specific instructions or directories mentioned.  This should help
-  portability across different rpm distributions.
-
-* Wed May 30 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010525-4, remove a couple of files
-  - add postfix-new-RPMS
-  - include -I/usr/include/pcre as required with some versions of pcre-devel
-
-* Wed May 30 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010525-3, update TLS patch to 0.7.3a
-
-* Mon May 26 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010525-2, incorporate Wietse's sasl auth patch and make
-  adjustments to get it working
-
-* Mon May 26 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010525-1, incorporate Wietse's sasl auth patch, but don't
-  enable as it doesn't seem to work
-- update to snapshot 20010525
-
-* Mon May 25 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010502-6, update pflogsumm.pl to 1.0.3
-
-* Mon May 07 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010502-4, general tidyup of make-postfix.spec
-  - also add check if built from source on a different version of linux to
-    the one the spec file was originally created for.
-  - add postfix-build to ./SOURCES directory to simplify building.
-
-* Mon May 07 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010502-3
-  - configuration changes, used with make-postfix.spec
-  - remove changelog entries before 01-01-2001
-  - modifications to improve support with MySQL-3.23.36-1
-  - add warning if rebuilding and haven't updated spec file from .spec.in
-    in ./SOURCES
-
-* Mon May 07 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010502-2, add smptd_check.c.patch from Wietse
-
-* Fri May 04 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010502-1, change /etc/cron.daily/postfix and add support
-  for pflogsumm.pl
-- update TLS patch
-- remove temporary smtpd.c.patch
-
-* Fri Apr 06 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010329-3, minor changes
-  - remove TLS files from my cvs tree
-  - add %{branch} macro to fall in line with release spec file
-  - change rpm -qi information
-
-* Fri Apr 06 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010329-2
-- disable TLS support as the given patch doesn't work
-- change naming to add snapshot suffix.
-	Thus this package will be
-	- postfix-20010329snaphot-2
-
-* Tue Apr 03 2001 Simon Mudd <sjmudd@pobox.com>
-- update to snapshot-20010329
-- remove flush, and cleanup patches
-
-* Tue Apr 03 2001 Simon Mudd <sjmudd@pobox.com>
-- adjust the TLS patch, the previous patch version I had applied was incorrect.
-  (Peter Tuschy <peter@tuschy.com>)
-
-* Fri Mar 30 2001 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20010228-5, add patches
-	- flush.c
-	- cleanup.c
-- added support for TLS, information and patches to spec file
-  provided by Peter Tuschy <peter@tuschy.com>.
-
-* Sat Mar 24 2001 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20010228-4, add %{daemon_directory}/virtual, virtual transport
-  to %files list.  Pointed out to me by Daniel Buchmann <db@bibsys.no>.
-
-* Fri Mar 23 2001 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20010228-3, remove the support in the startup script for
-  multilanguage descriptions.  This doesn't work on RH6 boxes.
-
-* Tue Mar 07 2001 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20010228-2,  update to use postfix-filelist (in my CVS tree)
-  include BuildRequires tag
-  add die() to %prep, as it was missing, Ramiro Morales <rmrpms@usa.net>
-
-* Wed Mar 01 2001 Simon Mudd <sjmudd@pobox.com>
-- remove POSTFIX_SAFE_MYNETWORKS from make-postfix.spec
-- snapshot-20010228-1,  update to latest snapshot
-- include hashed incoming directory in chroot_remove
-
-* Mon Feb 26 2001 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20010225-1,  update to latest snapshot
-- remove references to POSTFIX_SAFE_MYNETWORKS optional patch as no longer
-  required.
-
-* Tue Feb 20 2001 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20010222-1,  update to latest snapshot
-                        further minor changes to /etc/rc.d/init.d/postfix
-
-* Tue Feb 20 2001 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20010204-4,  minor changes
-  - fix spelling mistake in changelog, droesen's name
-  - change -f check to -x in /etc/rc.d/init.d/postfix and
-                             /etc/cron.daily/postfix
-  - change /etc/rc.d/init.d/postfix to correctly show the [OK]
-    and [FAILED] tags on startup.  I think this is correct, but the
-    RedHat documentation is lacking here.
-
-* Wed Feb 07 2001 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20010204-3, avoid the /var/spool/postfix/maildrop - directory
-  not empty error message.
-
-* Wed Feb 07 2001 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20010204-2, various changes - suggestions from Ben Cross
-  - uninstall is not quite right.
-  - spec file had a few rpmlint problems
-  - one minor thing I can't find.  uninstalling gives a message
-	/var/spool/postfix/maildrop - directory not empty - why????
-	/etc/postfix not removed, but not too worried about this.
-
-* Mon Feb 05 2001 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20010204-1, upgrade to latest snapshot
-- fix problem when upgrading with postfix stopped
-  (due to chroot-setup-LINUX2 having a call to postfix reload)
-
-* Sun Feb 04 2001 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20010128-2, fix mysql build which had an error
-
-* Mon Jan 30 2001 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20010128-1, update for latest snapshot
-
-* Fri Jan 26 2001 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001217-13, Mysql support was incorrect - fixed
-  Ramiro Morales <rmrpms@usa.net>
-
-* Fri Jan 26 2001 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001217-12, include missing DB_README
-- include support for both mysql (RedHat MySQL packages) and
-  MySQL (www.mysql.com MySQL packages) as they use different
-  names.  Introduction of new define REDHATMYSQL for the first
-  case.  Suggestions by Ramiro Morales <rmrpms@usa.net>
-- fix make-postfix.spec (missing -z checks) <ilmis@compart.fi>
-- add Conflicts: for exim and qmail
-
-* Sun Jan 21 2001 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001217-11, following suggestion by Daniel Roesen
-  remove newaliases when calling /etc/init.d/postfix start
-- modify /etc/init.d/postfix to follow the newer rh7 style
-- include fallback_relay patch (Wietse)
-- update Daniel Roesen's broken auth patch
-
-* Fri Jan 19 2001 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001217-10, include LDAP chroot jail support
-
-* Fri Jan 12 2001 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001217-9, change description making it briefer and including
-  URL to Bennett Todd's packages.
-- Reduce dependency on postfix.spec.in, by using %if declarations
-
-* Thu Jan 04 2001 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001217-8, minor touches to build procedure
-

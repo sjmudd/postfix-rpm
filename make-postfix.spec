@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.35.2.7 2002/04/09 15:14:33 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.35.2.8 2002/04/15 11:24:43 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -27,10 +27,6 @@
 # The following external variables can be used to define the postfix
 # uid/gid and postdrop gid if the standard values I'm assigning are
 # not correct on your system.
-#
-# POSTFIX_UID  (default value 89)
-# POSTFIX_GID  (default value 89)
-# POSTFIX_POSTDROP_GID  (default value 90)
 #
 # Red Hat Linux 7.x (at the moment) specific requirements
 # (This is detected automatically when you rebuild the spec file)
@@ -199,9 +195,6 @@ esac
 [ -z "$POSTFIX_VDA" ]			   && POSTFIX_VDA=0
 [ -z "$TLSFIX" ]			   && TLSFIX=0
 [ -z "$POSTFIX_SMTPD_MULTILINE_GREETING" ] && POSTFIX_SMTPD_MULTILINE_GREETING=0
-[ -z "$POSTFIX_UID" ]              	   && POSTFIX_UID=89
-[ -z "$POSTFIX_GID" ]              	   && POSTFIX_GID=89
-[ -z "$POSTFIX_POSTDROP_GID" ]             && POSTFIX_POSTDROP_GID=90
 [ -z "$POSTFIX_DISABLE_CHROOT" ]	   && POSTFIX_DISABLE_CHROOT=0
 
 cat > `rpm --eval '%{_specdir}'`/postfix.spec <<EOF
@@ -231,9 +224,6 @@ s!__SASL__!$POSTFIX_SASL!g
 s!__TLS__!$POSTFIX_TLS!g
 s!__TLSFIX__!$TLSFIX!g
 s!__VDA__!$POSTFIX_VDA!g
-s!__POSTFIX_UID__!$POSTFIX_UID!g
-s!__POSTFIX_GID__!$POSTFIX_GID!g
-s!__POSTDROP_GID__!$POSTFIX_POSTDROP_GID!g
 s!__DISABLE_CHROOT__!$POSTFIX_DISABLE_CHROOT!g
 " postfix.spec.in >> `rpm --eval '%{_specdir}'`/postfix.spec
 
