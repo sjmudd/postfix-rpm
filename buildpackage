@@ -18,10 +18,12 @@ BACKUP_IFS="$IFS"
 build_output=build-output
 current_directory=`pwd`
 sign='--sign'
+test_tls=0
  
 USAGE="Usage: $0 [name=value] [option]
     --no_check              Do not check if the files have changed against the version stored in cvs.
     --no_sign               Do not sign the package.
+    --test_tls              Test the TLS patches apply cleanly before building the package
     name=value              Specify an installation parameter".
  
 # Process command-line options and parameter settings. Work around
@@ -31,10 +33,11 @@ USAGE="Usage: $0 [name=value] [option]
 for arg
 do
     case $arg in
-        *=*) IFS= eval $arg; IFS="$BACKUP_IFS";;
---no_check*) no_check=1;;
- --no_sign*) sign=;;
-          *) echo $0: Error: $USAGE 1>&2; exit 1;;
+         *=*) IFS= eval $arg; IFS="$BACKUP_IFS";;
+  --no_check) no_check=1;;
+   --no_sign) sign=;;
+  --test_tls) test_tls=1;;
+           *) echo $0: Error: $USAGE 1>&2; exit 1;;
     esac
     shift
 done
@@ -57,6 +60,30 @@ download_if_necessary() {
     fi
     echo "	${srcdir}/${file} exists"
     echo ""
+}
+
+# Test the rpm prep stage for TLS patches - do they apply cleanly?
+testtls () {
+    [ "${test_tls}" = 1 ] && {
+    echo "Testing TLS patches: ***"
+    ( cd ${srcdir} && \
+      POSTFIX_TLS=1 sh make-postfix.spec && \
+      cd ${specdir} && \
+      rpm -bp postfix.spec ) || ( echo "Testing TLS patches: ** FAILED **"; exit 1 )
+      echo "Testing TLS patches: ** OK **"
+    }
+}
+
+# Perform the package build
+build () {
+( cd ${srcdir} && \
+  sh make-postfix.spec && \
+  cd ${specdir} && \
+  sleep 2 && \
+  echo ""
+  echo "Invoking rpm to build the package (output goes to ${build_output})..." && \
+  if [ -z "$sign" ]; then echo "	NOT SIGNING PACKAGE"; fi && \
+  rpm -ba $sign postfix.spec ) 2>&1 | tee ${build_output}
 }
 
 # Check postfix tar ball has been download
@@ -138,18 +165,9 @@ else
 fi
 echo ""
 
-./makelinks
-( cd ${srcdir} && \
-  sh make-postfix.spec && \
-  cd ${specdir} && \
-  sleep 2 && \
-  echo ""
-  echo "Invoking rpm to build the package (output goes to ${build_output})..." && \
-  if [ -z "$sign" ]; then echo "	NOT SIGNING PACKAGE"; fi && \
-  rpm -ba $sign postfix.spec ) 2>&1 | tee ${build_output}
+sh removelinks --quiet
+sh makelinks
+testtls
+build
 echo ""
-
-./removelinks
-
-# this line should go after sleep 2, with the real buildroot in place
-#  LD_LIBRARY_PATH=/var/tmp/hpoj-root/usr/lib:$LD_LIBRARY_PATH 
+sh removelinks

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.35.2.3 2002/02/26 21:22:35 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.35.2.4 2002/03/01 19:28:19 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -13,6 +13,7 @@
 # POSTFIX_MYSQL		include support for MySQL's  MySQL packages
 # POSTFIX_LDAP		include support for openldap packages
 # POSTFIX_PCRE		include support for pcre maps
+# POSTFIX_PGSQL		include support for PostGres database
 # POSTFIX_SASL		include support for SASL
 # POSTFIX_TLS		include support for TLS
 # POSTFIX_VDA		include support for Virtual Delivery Agent
@@ -102,6 +103,10 @@ if [ "$POSTFIX_PCRE" = 1 ]; then
     echo "  adding PCRE  support to spec file"
     SUFFIX="${SUFFIX}.pcre"
 fi
+if [ "$POSTFIX_PGSQL" = 1 ]; then
+    echo "  adding PostGres support to spec file"
+    SUFFIX="${SUFFIX}.pgsql"
+fi
 if [ "$POSTFIX_MYSQL" = 1 ]; then
     POSTFIX_REDHAT_MYSQL=0
     echo "  adding MySQL support (www.mysql.com MySQL* packages) to spec file"
@@ -182,6 +187,7 @@ esac
 [ -z "$POSTFIX_MYSQL" ]			   && POSTFIX_MYSQL=0
 [ -z "$POSTFIX_REDHAT_MYSQL" ]		   && POSTFIX_REDHAT_MYSQL=0
 [ -z "$POSTFIX_PCRE" ]			   && POSTFIX_PCRE=0
+[ -z "$POSTFIX_PGSQL" ]		   && POSTFIX_PGSQL=0
 [ -z "$POSTFIX_SASL" ]			   && POSTFIX_SASL=0
 [ -z "$POSTFIX_TLS" ]			   && POSTFIX_TLS=0
 [ -z "$POSTFIX_VDA" ]			   && POSTFIX_VDA=0
@@ -210,6 +216,7 @@ s!__LDAP__!$POSTFIX_LDAP!g
 s!__MYSQL__!$POSTFIX_MYSQL!g
 s!__REDHAT_MYSQL__!$POSTFIX_REDHAT_MYSQL!g
 s!__PCRE__!$POSTFIX_PCRE!g
+s!__PGSQL__!$POSTFIX_PGSQL!g
 s!__SASL__!$POSTFIX_SASL!g
 s!__TLS__!$POSTFIX_TLS!g
 s!__TLSFIX__!$TLSFIX!g

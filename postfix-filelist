@@ -1,5 +1,5 @@
 make-postfix.spec
-pfixtls-0.8.1-1.1.1-0.9.6c.tar.gz
+pfixtls-0.8.4-1.1.4-0.9.6c.tar.gz
 pflogsumm-1.0.4.pl
 postfix-1.1.3_quota.patch
 postfix-aliases
@@ -12,6 +12,8 @@ postfix-etc-cron.daily-postfix
 postfix-etc-init.d-postfix
 postfix-makedefs.patch
 postfix-new-RPM-packages
+postfix-pg-raw.patch
+postfix-pg.snapshot-20011210.patch
 postfix-smtp_sasl_proto.c.patch
 postfix-smtpd_multiline_greeting.patch
 postfix.spec.in
