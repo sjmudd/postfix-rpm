@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.83 2003/08/09 17:05:26 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.84 2003/08/11 16:13:39 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -79,7 +79,7 @@
 %define official 1
 %define ver 2.0.13
 %define mail_release_date 20021219
-%define rel 4
+%define rel 5
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -127,6 +127,7 @@ Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_dir}/postfix-%{ta
 Source1: postfix-RPM-new-packages
 Source2: postfix-get-distribution
 Source3: postfix-etc-init.d-postfix
+Source4: postfix-chroot.sh
 Source5: postfix-aliases
 Source7: postfix.spec.in
 Source8: make-postfix.spec
@@ -221,7 +222,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.83 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.84 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -929,6 +930,11 @@ umask 022
 #
 
 %changelog
+
+* Mon Aug 11 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.13-5
+  - postfix-chroot.sh was missing a Source: line, and thus not included
+    in the source rpm.  Fixed.
+    - reported by Scott Sharkey <ssharkey@lanshark.com>
 
 * Sat Aug 09 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.13-4
   - Remove chroot from package:
