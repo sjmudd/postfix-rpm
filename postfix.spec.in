@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.50 2002/10/28 15:25:46 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.51 2002/11/04 10:11:59 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -68,7 +68,7 @@
 %define official 1 
 %define ver 1.1.11
 %define mail_release_date 20020115
-%define rel 11
+%define rel 12
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -218,7 +218,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.50 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.51 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -577,9 +577,10 @@ if [ -x %{_sbindir}/alternatives ]; then
         --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
         --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
         --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
-        --slave %{_mandir}/man1/mailq.1%{mps} mta-mailqman %{_mandir}/man1/mailq.postfix.1%{mps} \
+        --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
+        --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
         --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
-        --slave %{_mandir}/man5/aliases.5%{mps} mta-aliasesman %{_mandir}/man5/aliases.postfix.5%{mps} \
+        --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
         --initscript postfix
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
@@ -588,6 +589,7 @@ else
         ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
         ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
         ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
+        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps} 
         ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
         ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
         ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
@@ -606,9 +608,10 @@ if [ -x %{_sbindir}/alternatives ]; then
         --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
         --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
         --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
-        --slave %{_mandir}/man1/mailq.1%{mps} mta-mailqman %{_mandir}/man1/mailq.postfix.1%{mps} \
+        --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
+        --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
         --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
-        --slave %{_mandir}/man5/aliases.5%{mps} mta-aliasesman %{_mandir}/man5/aliases.postfix.5%{mps} \
+        --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
         --initscript postfix
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
@@ -617,6 +620,7 @@ else
         ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
         ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
         ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
+        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps} 
         ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
         ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
         ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
@@ -640,9 +644,10 @@ if [ -x %{_sbindir}/alternatives ]; then
         --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
         --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
         --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
-        --slave %{_mandir}/man1/mailq.1%{mps} mta-mailqman %{_mandir}/man1/mailq.postfix.1%{mps} \
+        --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
+        --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
         --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
-        --slave %{_mandir}/man5/aliases.5%{mps} mta-aliasesman %{_mandir}/man5/aliases.postfix.5%{mps} \
+        --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
         --initscript postfix
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
@@ -651,6 +656,7 @@ else
         ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
         ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
         ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
+        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps} 
         ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
         ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
         ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
@@ -806,7 +812,7 @@ if [ "$1" = 0 ]; then
             rm -f %{_bindir}/mailq
             rm -f %{_bindir}/newaliases
             rm -f %{_bindir}/rmail
-            rm -f %{_mandir}/sendmail
+            rm -f %{_mandir}/man1/sendmail.1%{mps}
             rm -f %{_mandir}/man1/mailq.1%{mps}
             rm -f %{_mandir}/man1/newaliases.1%{mps}
             rm -f %{_mandir}/man5/aliases.5%{mps}
@@ -984,6 +990,12 @@ fi
 #
 
 %changelog
+
+* Mon Oct 28 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-12
+  - The man page links when using /usr/sbin/alternatives didn't correctly
+    link the sendmail.postfix man page to the sendmail man page.
+    Consequently man sendmail/newaliases/mailq would fail.  This does not
+    affect users of rh before 7.3 where /usr/sbin/alternatives does not exist.
 
 * Mon Oct 28 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-11
   - add support for Constant Database, CDB, by Michael Tokarev
