@@ -60,11 +60,9 @@ case "$1" in
   start)
 	# Start daemons.
 	echo -n "Starting postfix: "
-# remove the comments if you want the chroot jail and aliases rebuilt
-# each time you start postfix.  I'm not sure this should be here,
-# others may disagree. SJM 23/11/00
-#	setup_chroot
-#	newaliases
+	# build chroot jail before starting postfix
+	setup_chroot
+	newaliases
 	/usr/sbin/postfix start
 	RETVAL=$?
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/postfix
