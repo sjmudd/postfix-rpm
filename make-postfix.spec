@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.35.2.23 2003/01/22 12:06:09 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.35.2.24 2003/08/04 19:15:46 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -39,7 +39,7 @@
 # uid/gid and postdrop gid if the standard values I'm assigning are
 # not correct on your system.
 #
-# Red Hat Linux 8.x requires
+# Red Hat Linux 8 and 9 require
 # REQUIRES_INIT_D	add /etc/init.d/ to requires list
 # POSTFIX_DB=4		add db4 package to requires list
 #
@@ -82,6 +82,7 @@ distribution=`sh ${tmpdir}/postfix-get-distribution`
 releasename=`echo $distribution | sed -e 's;-.*$;;'`
 major=`echo $distribution | sed -e 's;[a-z]*-;;' -e 's;\.[0-9]*$;;'`
 minor=`echo $distribution | sed -e 's;[a-z]*-;;' -e 's;[0-9]*\.;;'`
+
 echo "  Distribution is: ${distribution}"
 echo ""
 
@@ -106,7 +107,7 @@ EOF
 
 if [ "$POSTFIX_CDB" = 1 ]; then
     echo "  adding CDB support to spec file"
-#   SUFFIX="${SUFFIX}.cdb"
+    SUFFIX="${SUFFIX}.cdb"
 fi
 
 # LDAP support is provided by default on redhat >= 7.2, and yellowdog >= 2.3.
@@ -121,10 +122,12 @@ mandrake)
     # default.
     DEFAULT_LDAP=1
     ;;
+
 redhat)
     [ "${major}" -eq 7 -a "${minor}" -ge 2 ] && DEFAULT_LDAP=1
     [ "${major}" -ge 8 ] && DEFAULT_LDAP=1
     ;;
+
 yellowdog)
     [ "${major}" -eq 2 -a "${minor}" -ge 3 ] && DEFAULT_LDAP=1
     [ "${major}" -ge 3 ] && DEFAULT_LDAP=1
@@ -206,9 +209,16 @@ yellowdog)
 
 redhat)
     case ${major} in
+    9)
+	DEFAULT_DB=4
+	REQUIRES_INIT_D=1
+	DIST=".rh9" ;;
+	;;
+
     8)
 	DEFAULT_DB=4
 	REQUIRES_INIT_D=1
+	DIST=".rh8" ;;
 	;;
 
     7)
@@ -230,6 +240,13 @@ redhat)
 	[ -z "$POSTFIX_DB" ] && POSTFIX_DB=${DEFAULT_DB}
 	[ "${POSTFIX_DB}" != "${DEFAULT_DB}" ] && POSTFIX_INCLUDE_DB=1
 	DIST=".rh6x"
+	;;
+
+    5)
+	# Tested on an updated rh5.2
+	DEFAULT_DB=0
+	[ -z "$POSTFIX_DB" ] && POSTFIX_DB=${DEFAULT_DB}
+	DIST=".rh5x"
 	;;
 
     *)	;;
