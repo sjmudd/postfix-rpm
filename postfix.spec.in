@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.26 2000/12/13 21:48:22 root Exp $
+# $Id: postfix.spec.in,v 2.27 2000/12/13 22:51:53 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -267,10 +267,12 @@ install -c auxiliary/rmail/rmail ${RPM_BUILD_ROOT}%{rmail_path}
 gzip -9f ${RPM_BUILD_ROOT}%{_mandir}/man{1,5,8}/* ||:
 
 #
-# copy new aliases files and build the aliases.db file
+# copy new aliases files and generate a ghost aliases.db file
 #
 cp -f  ${RPM_SOURCE_DIR}/postfix-aliases ${RPM_BUILD_ROOT}%{config_directory}/aliases
 chmod 644 ${RPM_BUILD_ROOT}%{config_directory}/aliases
+
+touch ${RPM_BUILD_ROOT}/%{config_directory}/aliases.db
 
 
 ##############################################################################
