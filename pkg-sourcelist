@@ -18,4 +18,5 @@ postfix-sasl.conf
 postfix-saslauthd.conf
 postfix-smtp_sasl_proto.c.patch
 postfix.spec.in
+postfix.spec.cf
 tls+ipv6-1.25-pf-2.1.3.patch.gz

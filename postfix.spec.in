@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.2.2 2004/07/17 12:11:28 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.2.3 2004/07/17 12:52:54 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -84,7 +84,7 @@
 %define official 1
 %define ver 2.1.4
 %define mail_release_date RC4-20040418
-%define rel 1__SUFFIX__
+%define rel 0.1__SUFFIX__
 %if %{official}
 %define tarball_version %{ver}
 %define ftp_dir official
@@ -240,7 +240,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.2.2 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.2.3 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -643,53 +643,22 @@ Enjoy!
 Simon J Mudd, <sjmudd@pobox.com>
 EOF
 
-# generate postfix.spec.cf which can be used to build a newer version of the
-# rpm with the same parameters as the current package.
-cat <<EOF > ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/postfix.spec.cf
+# generate postfix.spec.cf
+# - used to build a newer version of the rpm with the same parameters
+#   as the current package.
+# - provides build instructions
+cat - %{_sourcedir}/postfix.spec.cf <<EOF > ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/postfix.spec.cf
 #
-# This file holds the configuration options used to build the postfix rpm
-# you are using. You can use it to build a newer version of the package from
-# the Source RPM with the same options.  It also gives intructions on how
-# to build an RPM with other options.
+# This file contains the following information:
 #
-# 1. BUILDING INSTRUCTIONS
+# - configuration options used to build the postfix rpm you are using
+#   - generated when the binary rpm was built
 #
-# To rebuild the rpm you MUST download and install the Postfix source RPM.
-# Once you have done this do the following:
+# - Postfix RPM build instructions
+#   - for upgrading the rpm you are using the same options
+#   - for building the rpm with other options
 #
-# 1.1 Upgrading the build with the same options as your running system
-#
-#	# Create some temporary variables for building
-#	SRC=`rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;'`
-#	SPEC=`rpm --eval '%{_specdir}' | sed 's;%{name};postfix;'`
-#
-#	# Create the spec file
-#	cd $SRC
-#	( . /etc/postfix/postfix.spec.cf; sh make-postfix.spec )
-#
-#	# Build the rpm
-#	cd $SPEC
-#	rpmbuild -ba postfix.spec
-#
-# 1.2 Building postfix with specific options
-#
-#	# Create some temporary variables for building
-#	SRC=`rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;'`
-#	SPEC=`rpm --eval '%{_specdir}' | sed 's;%{name};postfix;'`
-#
-#	# Set the appropriate environment variables for building the spec file
-#	export POSTFIX_TLS=1        # for example
-#	export POSTFIX_PCRE=1       # for example
-#
-#	# Create the spec file
-#	cd $SRC
-#	sh make-postfix.spec
-#
-#	# Build the rpm
-#	cd $SPEC
-#	rpmbuild -ba postfix.spec
-#
-# 2. CONFIGURATION OPTIONS OF BINARY RPM
+# 1. CONFIGURATION OPTIONS OF INSTALLED BINARY RPM
 #
 # Package built on: %{build_dist_full} (%{build_dist})
 
@@ -709,7 +678,7 @@ POSTFIX_DB=%{requires_db}
 POSTFIX_INCLUDE_DB=%{include_db}
 POSTFIX_CDB=%{cdb}
 
-# export values to child processes (make-postfix.spec)
+# export values to child processes
 export POSTFIX_MYSQL POSTFIX_MYSQL_PATHS POSTFIX_MYSQL_REDHAT \
  POSTFIX_MYSQL_QUERY POSTFIX_LDAP POSTFIX_PCRE POSTFIX_PGSQL \
  POSTFIX_SASL POSTFIX_TLS POSTFIX_IPV6 POSTFIX_VDA \
