@@ -19,7 +19,7 @@
 # - CentOS Linux (reports as RedHat Enterprise Linux for building)
 # - Mandrake Linux
 
-version=$(echo '$Revision: 1.11 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
+version=$(echo '$Revision: 1.12 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
 myname=$(basename $0)
 
 # Provide a usage message
@@ -117,7 +117,7 @@ elif [ $(check_release whitebox-release) = 0 ]; then
     rpmname=whitebox-release
     full=`get_release ${rpmname}`
     name=rhel	# compatibility with RedHat Enterprise Linux
-    release=`echo $full | sed -e "s;^${rpmname}-;;" -e 's;-[0-9.]*$;;'`
+    release=`echo $full | sed -e "s;^${rpmname}-;;" -e 's;-[0-9.a-z_]*$;;'`
 elif [ $(check_release centos-release) = 0 ]; then
     # CentOS SHOULD behave like rhel
     rpmname=centos-release
