@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.60 2001/02/05 21:09:54 root Exp $
+# $Id: postfix.spec.in,v 2.61 2001/02/05 22:27:50 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -319,8 +319,12 @@ install -c ${RPM_SOURCE_DIR}/postfix-etc-init.d-postfix \
 
 # Copy the Linux chroot setup script to %{config_directory} so
 # we can use it to build the chroot environment during the install
-cp examples/chroot-setup/LINUX2 \
-    ${RPM_BUILD_ROOT}%{config_directory}/chroot-setup-LINUX2
+#
+# NOTE: we remove the 'postfix reload' call from this script
+sed '
+s;postfix reload;#postfix reload # - do not reenable - used by rpm;
+' examples/chroot-setup/LINUX2 \
+    > ${RPM_BUILD_ROOT}%{config_directory}/chroot-setup-LINUX2
 
 chmod u=rx ${RPM_BUILD_ROOT}%{config_directory}/chroot-setup-LINUX2
 
@@ -346,6 +350,15 @@ touch ${RPM_BUILD_ROOT}/%{config_directory}/aliases.db
 %post
 umask 022
 
+ldap_chroot_setup() {
+    for i in usr/lib/libldap.so.1 usr/lib/liblber.so.1; do
+        if [ -e /$i ]; then
+            cmp -s /$i %{queue_directory}/$i 2>/dev/null || \
+                install -c /$i %{queue_directory}/$i
+        fi
+    done
+}
+
 /sbin/chkconfig --add postfix
 
 # setup missing directory structures
@@ -355,19 +368,13 @@ umask 022
 %{command_directory}/postalias %{config_directory}/aliases
 
 # setup chroot structure - basic structure
-# this script calls postfix reload which fails if postfix is
-# not running, hence the 'true' return value
-%{config_directory}/chroot-setup-LINUX2 >/dev/null 2>/dev/null || true
+# - do not fail if the script fails
+%{config_directory}/chroot-setup-LINUX2 || true
 
 # setup chroot structure - when using LDAP
 # Note: not entirely sure this is ok: missing .so and .so.1.0.0
 %if %{LDAP}
-for i in usr/lib/libldap.so.1 usr/lib/liblber.so.1; do
-    if [ -e /$i ]; then
-        cmp -s /$i %{queue_directory}/$i 2>/dev/null || \
-            install -c /$i %{queue_directory}/$i
-    fi
-done
+    ldap_chroot_setup
 %endif
 
 %preun
@@ -380,7 +387,7 @@ postfix_running () {
 stop_postfix () {
     echo "Stopping the Postfix mail system"
     if [ -f %{queue_directory}/pid/master.pid ]; then
-        kill `sed 1q %{queue_directory}/pid/master.pid` 2>/dev/null || true
+        kill `sed 1q %{queue_directory}/pid/master.pid` >/dev/null 2>&1 || true
     else
         echo "BUG: postfix.spec (preun) - please inform packager"
     fi
@@ -467,7 +474,7 @@ postfix_running () {
 restart_postfix () {
     echo "Stopping   the Postfix mail system"
     if [ -f %{queue_directory}/pid/master.pid ]; then
-        kill `sed 1q %{queue_directory}/pid/master.pid` 2>/dev/null
+        kill `sed 1q %{queue_directory}/pid/master.pid` >/dev/null 2>&1 || true
     else
         echo "BUG: postfix.spec (postun) - please inform packager"
     fi
