@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.69 2002/12/06 08:01:11 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.70 2002/12/07 21:39:53 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -66,7 +66,7 @@
 %define official 1 
 %define ver 1.1.12
 %define mail_release_date 20020115
-%define rel 2.2
+%define rel 2.3
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -208,7 +208,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.69 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.70 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -576,6 +576,14 @@ else
     fi
 fi
 
+# Request by Wietse: if there is a /usr/lib/sendmail file (ie not symbolic link), not owned by
+# a package then replace it with a symbolic link to /usr/sbin/sendmail.
+# - due to alternatives don't use %{sendmail_path}
+
+test -f /usr/lib/sendmail && {
+    rpm -qf /usr/lib/sendmail >/dev/null 2>&1 || ln -sf /usr/sbin/sendmail /usr/lib/sendmail
+} || :
+
 %triggerpostun -- sendmail
 
 # If removing sendmail and not using alternatives: replace with postfix equivalents
@@ -762,11 +770,13 @@ queue_directory_remove () {
     depth=`postconf -h hash_queue_depth`
     for dir in `postconf -h hash_queue_names| sed -e 's/,/\
 /g'`; do
+        echo "DEBUG: removing $dir ($depth)"
         queue_hash_depth_remove $dir $depth
     done
 
     # now remove the other directories
     for dir in corrupt hold maildrop pid private public saved; do
+        echo "DEBUG: removing $dir (0)"
         queue_hash_depth_remove $dir 0
     done
 }
@@ -803,16 +813,6 @@ if [ "$1" = 0 ]; then
         queue_directory_remove
     } || :
 fi
-
-# ---
-# Request by Wietse: if there is a /usr/lib/sendmail file (ie not symbolic link), not owned by
-# a package then replace it with a symbolic link to /usr/sbin/sendmail.
-# ---
-
-SENDMAIL=/usr/lib/sendmail
-test -f ${SENDMAIL} && {
-    rpm -qf ${SENDMAIL} >/dev/null 2>&1 || ln -sf %{sendmail_path} ${SENDMAIL}
-} || :
 
 %postun
 umask 022
@@ -958,6 +958,11 @@ fi
 #
 
 %changelog
+
+* Sat Dec 07 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-2.3
+  - /usr/lib/sendmail -> /usr/sbin/sendmail check needed fixing in light of
+    Postfix and sendmail existing on the machine at the same time.
+  - Move it's invocation which should have been in %post, not in %preun
 
 * Fri Dec 06 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-2.2
   - update TLS patches to 0.8.12-1.1.12-0.9.6h
