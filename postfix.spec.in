@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.11 2000/11/01 16:27:51 root Exp $
+# $Id: postfix.spec.in,v 2.12 2000/11/06 23:11:21 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -16,7 +16,7 @@ PreReq: /sbin/chkconfig
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
 Version: 20001030
-Release: 1
+Release: 2
 Packager: Simon J Mudd <sjmudd@pobox.com> but see description below
 Vendor: None -- see packager
 Distribution: Experimental
@@ -29,7 +29,7 @@ Source5: postfix-aliases
 Source6: postfix-chroot-setup.awk
 Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
-Patch3:  postfix-makedefs.patch
+Patch3:  postfix-makedefs.patch2
 #  ** Patch99 is applied only on builds on my machines **
 Patch99: postfix-smtpd_reply_multiline.patch
 BuildRoot: /var/tmp/%{name}-%{version}-root
@@ -88,9 +88,7 @@ mv conf/master.cf conf/master.cf-nochroot
 awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > conf/master.cf
 %patch1 -p1 -b .config
 %patch2 -p1 -b .chk
-## the previous patch, provided with 20001005 doesn't work
-## check whether Wietse's current version works with RH7
-#patch3 -p1 -b .old
+%patch3 -p1 -b .old
 
 # apply this patch ONLY if built on my machines
 if [ `hostname`="phoenix.ea4els.ampr.org" -o \
@@ -333,6 +331,11 @@ rm -rf ${RPM_BUILD_ROOT}
 #	Bennett Todd <bet@mordor.net>
 
 %changelog
+* Tue Nov 07 2000 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001030-2, add chkconfig postfix to /etc/cron.daily/postfix
+  fix Wietse's makedefs so this builds on rh6.x and rh7.
+  checked with Patrick Reich <dminor@adelade.org>
+
 * Wed Nov 01 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001030-1, need to refix patch for RedHat 7 which 
   I don't yet have installed on my machine.
