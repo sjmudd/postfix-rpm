@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.91 2001/04/04 20:02:15 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.92 2001/04/04 20:03:57 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -78,7 +78,6 @@ Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
 # required to install smtp-sink and smtp-source
 Patch3:  postfix-INSTALL.sh.patch
-Patch5:  postfix-flush.patch
 #
 # Optional patches - set the appropriate environment variables to include
 #                    them when building the package/spec file
@@ -141,7 +140,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.91 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.92 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -209,7 +208,6 @@ awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > co
 %patch1 -p1 -b .config
 %patch2 -p1 -b .chk
 %patch3 -p1 -b .install
-%patch5 -p1 -b .flush
 
 # APPLY OPTIONAL PATCHES
 
@@ -646,6 +644,10 @@ fi
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Tue Apr 03 2001 Simon Mudd <sjmudd@pobox.com>
+- update to snapshot-20010329
+- remove flush, and cleanup patches
+
 * Tue Apr 03 2001 Simon Mudd <sjmudd@pobox.com>
 - adjust the TLS patch, the previous patch version I had applied was incorrect.
   (Peter Tuschy <peter@tuschy.com>)
