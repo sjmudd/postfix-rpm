@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.234 2002/12/31 09:57:20 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.235 2002/12/31 10:17:28 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -70,7 +70,7 @@
 %define official 0
 %define ver 2.0.0
 %define mail_release_date 20021223
-%define rel 0.4
+%define rel 1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -210,7 +210,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.234 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.235 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -967,13 +967,14 @@ fi
 
 %changelog
 
-* Tue Dec 31 2002 Simon J Mudd <sjmudd@pobox.com> 2.0.0-20021223-0.4
+* Tue Dec 31 2002 Simon J Mudd <sjmudd@pobox.com> 2.0.0-20021223-1
   - update to latest snapshot
   - add IPv6 support (ported from POSTFIX_2 branch), and update patche to
     tls+ipv6-1.10-pf-2.0.0-20021223
   - add missing verify daemon
   - add RELEASE_NOTES for 1.1 and 2.0 for reference
   - modify postfix-files.patch to include SENDER_VERIFICATION_README
+  - Note: TLS patches unavailable for this snapshot
 
 * Fri Dec 20 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021219-1
   - update to latest snapshot
