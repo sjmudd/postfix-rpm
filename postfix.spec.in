@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.39 2002/07/04 21:17:52 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.40 2002/07/05 15:10:40 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -62,7 +62,7 @@
 %define official 1 
 %define ver 1.1.11
 %define mail_release_date 20020115
-%define rel 2pre6
+%define rel 2
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -204,7 +204,7 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.39 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.40 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, VDA=%{VDA}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -944,7 +944,7 @@ fi
 
 %changelog
 
-* Tue Jun 25 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-2
+* Fri Jul 05 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-2
   - Add support for alternatives (needed on RH 7.3)
     - based on patch provided by Christopher D. Audley
       <Christopher.D.Audley@jhu.edu>.
