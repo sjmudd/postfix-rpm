@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# # $Id: postfix-chroot.sh,v 1.1.2.4 2003/07/29 20:58:37 sjmudd Exp $
+# # $Id: postfix-chroot.sh,v 1.1.2.5 2003/08/06 21:21:35 sjmudd Exp $
 #
 # postfix-chroot.sh - enable or disable Postfix chroot
 #
@@ -123,6 +123,7 @@ remove_chroot () {
         # remove system files
         info $verbose "remove system files from chroot"
         for i in etc/localtime usr/lib/zoneinfo/localtime \
+        	usr/share/zoneinfo/localtime \
                 etc/host.conf etc/resolv.conf etc/nsswitch.conf \
                 etc/hosts etc/passwd etc/services \
                 lib/libdb-*so* \
@@ -133,7 +134,7 @@ remove_chroot () {
         done
 
         info $verbose "remove system directories from chroot"
-        for dir in usr/lib/zoneinfo usr/lib usr lib etc; do
+        for dir in usr/share/zoneinfo usr/lib/zoneinfo usr/share usr/lib usr lib etc; do
             [ -d ${chroot}/${dir} ] && \
                 info $verbose "  ${chroot}/${dir}" && \
                 rmdir ${chroot}/${dir}
@@ -171,7 +172,7 @@ setup_chroot() {
 
     # setup the chroot directory structure
     info $verbose "setup chroot directory structure"
-    for i in /etc /lib /usr/lib/zoneinfo; do
+    for i in /etc /lib /usr/lib/zoneinfo /usr/share/zoneinfo; do
         info $verbose "  ${chroot}${i}"
         mkdir -p ${chroot}${i}
     done
@@ -179,6 +180,7 @@ setup_chroot() {
     # copy system files into chroot environment
     info $verbose "copy system files into chroot"
     for i in /etc/localtime /usr/lib/zoneinfo/localtime \
+	    /usr/share/zoneinfo/localtime \
             /etc/host.conf /etc/resolv.conf /etc/nsswitch.conf \
             /etc/hosts /etc/services; do
         [ -e ${i} ] && copy ${i} `/usr/bin/dirname ${chroot}${i}`
