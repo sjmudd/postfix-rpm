@@ -1,0 +1,716 @@
+diff -u --recursive --new-file postfix-1.1.3.orig/README_FILES/VIRTUAL_README postfix-1.1.3/README_FILES/VIRTUAL_README
+--- postfix-1.1.3.orig/README_FILES/VIRTUAL_README	Tue Jan 22 15:42:32 2002
++++ postfix-1.1.3/README_FILES/VIRTUAL_README	Mon Feb  4 18:09:07 2002
+@@ -81,6 +81,8 @@
+     Specifies a minimum uid that will be accepted as a return from
+     a virtual_uid_maps lookup. Returned values less than this will
+     be rejected, and the message will be deferred.
++    Note that this value is not checked when virtual_static_uidgid is
++    set to on.
+ 
+ virtual_uid_maps
+ 
+@@ -96,6 +98,11 @@
+ 
+ 	virtual_uid_maps = static:5000
+ 
++    Recipients may be specified by full address (user@domain),
++    user name (user - not recommended however) or domain name only
++    (@domain). The latter format is very useful for user per virtual
++    domain configurations.
++    
+ virtual_gid_maps
+ 
+     Recipients are looked up in this map to determine the GID (group
+@@ -110,6 +117,11 @@
+ 
+ 	virtual_gid_maps = static:5000
+ 
++    Recipients may be specified by full address (user@domain),
++    user name (user - not recommended however) or domain name only
++    (@domain). The latter format is very useful for group per virtual
++    domain configurations.
++
+ virtual_mailbox_lock
+ 
+     This setting is ignored in case of maildir delivery.
+@@ -120,12 +132,54 @@
+     requires that the recipient UID or GID has write access to the
+     parent directory of the mailbox file.
+ 
+-    Use the "postconf -m" command to find out what locking methods
++    Use the "postconf -l" command to find out what locking methods
+     Postfix supports on your system.
+ 
+ virtual_mailbox_size
+ 
+     An upper limit on the size of a mailbox file or maildir file.
++
++virtual_mailbox_limit_maps
++
++    Recipients are looked up in this map to determine the upper limit
++    on the size of a mailbox file or a maildir directory (and subdirectories)
++    in bytes.
++    
++    Recipients may be specified by full address (user@domain),
++    user name (user - not recommended however) or domain name only
++    (@domain). The latter format is very useful for one limit per
++    virtual domain configurations.
++
++virtual_maildir_limit_message
++
++    Error message to display when Mailbox/Maildir limit has been reached.
++    The message size is limited to 80 characters.
++    (NOTE: only used on Maildir delivery for now).
++
++virtual_mailbox_limit_inbox
++
++    Boolean and checked only when Maildir delivery is used. If set to
++    yes (default no), only INBOX is checked not all subfolders that has been
++    created by IMAP access to Maildir.
++    If virtual_maildir_extended is set, then the diskquota calculation will
++    be computed using Maildir++ filaname instead of using stat().
++
++virtual_mailbox_limit_override
++
++    Boolean. If set this will override message_size_limit even if the
++    virtual_mailbox_limit_size value or if the value given by the maps
++    virtual_mailbox_limit_maps is smaller than message_size_limit.
++
++virtual_maildir_extended
++
++    Boolean and used only on Maildir delivery. If set to yes (default no), 
++    then the size of the mail will be appened to the filename to follow the
++    specification of Maildir++ (used with courier-imap softquota options).
++
++virtual_maildir_suffix
++  
++    String to add to existing Maildir Path. Must have a "/" trailler to
++    have a directory maked.
+ 
+ Example 1: using the virtual delivery agent for all local mail
+ ==============================================================
+diff -u --recursive --new-file postfix-1.1.3.orig/src/global/mail_params.h postfix-1.1.3/src/global/mail_params.h
+--- postfix-1.1.3.orig/src/global/mail_params.h	Fri Feb  1 14:59:51 2002
++++ postfix-1.1.3/src/global/mail_params.h	Mon Feb  4 18:09:07 2002
+@@ -1289,6 +1289,30 @@
+ #define DEF_VIRT_GID_MAPS		""
+ extern char *var_virt_gid_maps;
+ 
++#define VAR_VIRT_MAILBOX_LIMIT_MAPS	"virtual_mailbox_limit_maps"
++#define DEF_VIRT_MAILBOX_LIMIT_MAPS	""
++extern char *var_virt_mailbox_limit_maps;
++
++#define VAR_VIRT_MAILDIR_LIMIT_MESSAGE	"virtual_maildir_limit_message"
++#define DEF_VIRT_MAILDIR_LIMIT_MESSAGE	"Sorry, the user's maildir has overdrawn his diskspace quota, please try again later."
++extern char *var_virt_maildir_limit_message;
++
++#define VAR_VIRT_MAILBOX_LIMIT_INBOX	"virtual_mailbox_limit_inbox"
++#define DEF_VIRT_MAILBOX_LIMIT_INBOX	0
++extern bool var_virt_mailbox_limit_inbox;
++
++#define VAR_VIRT_MAILBOX_LIMIT_OVERRIDE	"virtual_mailbox_limit_override"
++#define DEF_VIRT_MAILBOX_LIMIT_OVERRIDE	0
++extern bool var_virt_mailbox_limit_override;
++
++#define VAR_VIRT_MAILDIR_EXTENDED	"virtual_maildir_extended"
++#define	DEF_VIRT_MAILDIR_EXTENDED	0
++extern bool var_virt_maildir_extended;
++
++#define VAR_VIRT_MAILDIR_SUFFIX		"virtual_maildir_suffix"
++#define DEF_VIRT_MAILDIR_SUFFIX		""
++extern char *var_virt_maildir_suffix;
++
+ #define VAR_VIRT_MINUID			"virtual_minimum_uid"
+ #define DEF_VIRT_MINUID			100
+ extern int var_virt_minimum_uid;
+diff -u --recursive --new-file postfix-1.1.3.orig/src/util/file_limit.c postfix-1.1.3/src/util/file_limit.c
+--- postfix-1.1.3.orig/src/util/file_limit.c	Tue Aug 22 23:44:44 2000
++++ postfix-1.1.3/src/util/file_limit.c	Mon Feb  4 18:09:07 2002
+@@ -85,7 +85,11 @@
+ #else
+     struct rlimit rlim;
+ 
+-    rlim.rlim_cur = rlim.rlim_max = limit;
++    /* rlim_max can be changed only by a root */
++    if (getrlimit(RLIMIT_FSIZE, &rlim) < 0)
++	msg_fatal("getrlimit: %m");
++    
++    rlim.rlim_cur = limit;
+     if (setrlimit(RLIMIT_FSIZE, &rlim) < 0)
+ 	msg_fatal("setrlimit: %m");
+ #ifdef SIGXFSZ
+diff -u --recursive --new-file postfix-1.1.3.orig/src/virtual/mailbox.c postfix-1.1.3/src/virtual/mailbox.c
+--- postfix-1.1.3.orig/src/virtual/mailbox.c	Sun Jan 13 00:44:02 2002
++++ postfix-1.1.3/src/virtual/mailbox.c	Mon Feb  4 18:09:07 2002
+@@ -56,6 +56,7 @@
+ /* Global library. */
+ 
+ #include <mail_copy.h>
++#include <mail_addr_find.h>
+ #include <mbox_open.h>
+ #include <defer.h>
+ #include <sent.h>
+@@ -72,6 +73,40 @@
+ #define YES	1
+ #define NO	0
+ 
++/* change_mailbox_limit - change limit for mailbox file */
++
++static int change_mailbox_limit(LOCAL_STATE state, USER_ATTR usr_attr)
++{
++    char   *myname = "change_mailbox_limit";
++    const char *limit_res;
++    long    n;
++    int     status = NO;
++    
++    /*
++     * Look up the mailbox limit size. Fall back to virtual_mailbox_limit in
++     * case limit is smaller than message_size_limit.
++     */
++    if (limit_res = mail_addr_find(virtual_mailbox_limit_maps,
++				   state.msg_attr.user, (char **) 0)) {
++	n = atol(limit_res);
++	if ((n > 0) && (n < var_message_limit) && (!var_virt_mailbox_limit_override)) {
++	    msg_warn("recipient %s: mailbox limit is smaller than %s "
++		     "in %s - falling back to %s",
++		     state.msg_attr.user, VAR_MESSAGE_LIMIT,
++		     virtual_mailbox_limit_maps->title,
++		     VAR_VIRT_MAILBOX_LIMIT);
++	} else {
++	    set_file_limit(n);
++	    status = YES;
++	    if (msg_verbose)
++	        msg_info("%s[%d]: set maximum mailbox size %s to %ld",
++			 myname, state.level, usr_attr.mailbox, n);
++	}
++    }
++
++    return (status);
++}
++
+ /* deliver_mailbox_file - deliver to recipient mailbox */
+ 
+ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
+@@ -187,40 +222,51 @@
+ 				   mailbox_res, (char *) 0);
+ 
+ #define RETURN(res) { myfree(usr_attr.mailbox); return (res); }
+-
+     /*
+      * Look up the mailbox owner rights. Defer in case of trouble.
+      */
+-    if ((uid_res = maps_find(virtual_uid_maps, state.msg_attr.user,
+-			     DICT_FLAG_FIXED)) == 0) {
+-	*statusp = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
+-				"recipient %s: uid not found in %s",
+-			      state.msg_attr.user, virtual_uid_maps->title);
+-	RETURN(YES);
++    if ((uid_res = mail_addr_find(virtual_uid_maps, state.msg_attr.user,
++ 				     (char **) 0)) == 0) {
++	if ((uid_res = maps_find(virtual_uid_maps,
++				 strchr(state.msg_attr.user, '@'),
++				 DICT_FLAG_FIXED)) == 0) {
++	    *statusp = defer_append(BOUNCE_FLAG_KEEP,
++				    BOUNCE_ATTR(state.msg_attr),
++				    "recipient %s: uid not found in %s",
++				    state.msg_attr.user,
++				    virtual_uid_maps->title);
++	    RETURN(YES);
++	}
+     }
+     if ((n = atol(uid_res)) < var_virt_minimum_uid) {
+-	*statusp = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
+-				"recipient %s: bad uid %s in %s",
+-		     state.msg_attr.user, uid_res, virtual_uid_maps->title);
+-	RETURN(YES);
++      *statusp = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
++		"recipient %s: bad uid %s in %s",
++      		state.msg_attr.user, uid_res, virtual_uid_maps->title);
++      RETURN(YES);
+     }
+     usr_attr.uid = (uid_t) n;
+ 
+     /*
+      * Look up the mailbox group rights. Defer in case of trouble.
+      */
+-    if ((gid_res = maps_find(virtual_gid_maps, state.msg_attr.user,
+-			     DICT_FLAG_FIXED)) == 0) {
+-	*statusp = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
+-				"recipient %s: gid not found in %s",
+-			      state.msg_attr.user, virtual_gid_maps->title);
+-	RETURN(YES);
++    if ((gid_res = mail_addr_find(virtual_gid_maps, state.msg_attr.user,
++				     (char **) 0)) == 0) {
++	if ((gid_res = maps_find(virtual_gid_maps,
++				 strchr(state.msg_attr.user, '@'),
++				 DICT_FLAG_FIXED)) == 0) {
++	    *statusp = defer_append(BOUNCE_FLAG_KEEP,
++				    BOUNCE_ATTR(state.msg_attr),
++				    "recipient %s: gid not found in %s",
++				    state.msg_attr.user,
++				    virtual_gid_maps->title);
++	    RETURN(YES);
++	}
+     }
+     if ((n = atol(gid_res)) <= 0) {
+-	*statusp = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
+-				"recipient %s: bad gid %s in %s",
+-		     state.msg_attr.user, gid_res, virtual_gid_maps->title);
+-	RETURN(YES);
++      *statusp = defer_append(BOUNCE_FLAG_KEEP, BOUNCE_ATTR(state.msg_attr),
++		"recipient %s: bad gid %s in %s",
++	        state.msg_attr.user, gid_res, virtual_gid_maps->title);
++      RETURN(YES);
+     }
+     usr_attr.gid = (gid_t) n;
+ 
+@@ -236,9 +282,15 @@
+ 
+     if (LAST_CHAR(usr_attr.mailbox) == '/')
+ 	*statusp = deliver_maildir(state, usr_attr);
+-    else
++    else {
++	int changed_limit;
++	
++	changed_limit = change_mailbox_limit(state, usr_attr);
+ 	*statusp = deliver_mailbox_file(state, usr_attr);
+-
++	if (changed_limit)
++	    set_file_limit(var_virt_mailbox_limit);
++    }
++    
+     /*
+      * Cleanup.
+      */
+diff -u --recursive --new-file postfix-1.1.3.orig/src/virtual/maildir.c postfix-1.1.3/src/virtual/maildir.c
+--- postfix-1.1.3.orig/src/virtual/maildir.c	Tue Nov 27 16:44:24 2001
++++ postfix-1.1.3/src/virtual/maildir.c	Mon Feb  4 18:09:07 2002
+@@ -36,6 +36,11 @@
+ 
+ #include "sys_defs.h"
+ #include <errno.h>
++#include <sys/types.h>	/* opendir(3), stat(2) */
++#include <sys/stat.h>	/* stat(2) */
++#include <dirent.h>	/* opendir(3) */
++#include <unistd.h>	/* stat(2) */
++#include <stdlib.h>	/* atol(3) */
+ 
+ #ifndef EDQUOT
+ #define EDQUOT EFBIG
+@@ -56,6 +61,7 @@
+ /* Global library. */
+ 
+ #include <mail_copy.h>
++#include <mail_addr_find.h>
+ #include <bounce.h>
+ #include <defer.h>
+ #include <sent.h>
+@@ -65,6 +71,125 @@
+ 
+ #include "virtual.h"
+ 
++/*
++ * Gives the size of the file according of the Maildir++ extensions
++ * (code taken from courier-imap).
++ *
++ * Arguments :
++ *  n : filename
++ *  
++ * Return the size given in ",S=size" in the filename,
++ *    zero if it cannot find ",S=size" in the filename...
++ *
++ */
++static long maildir_parsequota(const char *n)
++{
++const char *o;
++int	yes;
++long	s;
++
++	if ((o=strrchr(n, '/')) == 0)	o=n;
++
++	for (; *o; o++)
++		if (*o == ':')	break;
++	yes=0;
++	for ( ; o >= n; --o)
++	{
++		if (*o == '/')	break;
++
++		if (*o == ',' && o[1] == 'S' && o[2] == '=')
++		{
++			yes=1;
++			o += 3;
++			break;
++		}
++	}
++	if (yes)
++	{
++		s=0;
++		while (*o >= '0' && *o <= '9')
++			s= s*10 + (*o++ - '0');
++		return s;
++	}
++	return 0;
++}
++
++/*
++ * Checks directory files for quota (taken from exim)
++ *
++ * This function is called if quota is set for a virtual Maildir box.
++ * It scans the directory and stats all the files in order to get a total
++ * size and count. This is an expensive thing to do. But in this way no
++ * write access is needed in a single file that can be erased or metled
++ * because a lock problem.
++ *
++ * Arguments :
++ *  dirname : the name of the directory
++ *  countptr: where to add the file count (because this function recurses)
++ *  mailplus: is check will look at Maildir++ functionality if configured
++ *
++ * Returns the sum of the sizes of stattable files
++ *    zero if the directory cannot be opened.
++ */
++static long check_dir_size(char *dirname, long *countptr, bool mailplus) 
++{
++   DIR    *dir;
++   long   count = *countptr;
++   long   sum = 0;
++   struct dirent *ent;
++   struct stat   statbuf;
++
++   dir = opendir(dirname);
++   if (dir == NULL) {
++     if (make_dirs(dirname,0700) == 0) {	/* Try to create dirs */
++       dir = opendir(dirname);			/* Reopen the dir */
++       if (dir == NULL) {
++	  msg_warn("check_dir_size: cannot open directory : %s, try twice", dirname);
++	  return 0;
++       }
++     } else {
++       msg_warn("check_dir_size: cannot open directory : %s", dirname);
++       return 0;
++     }
++   }
++
++   while ((ent = readdir(dir)) != NULL) {
++     char *name = ent->d_name;
++     VSTRING *buffer;
++
++     if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0) continue;
++     count++;
++   
++     if (var_virt_maildir_extended && mailplus) {
++       /*
++        * Using Maildir++ size computation and check only the 
++        * directory we've has been asked to
++        */
++       sum += maildir_parsequota(name);
++
++     } else {
++
++       buffer = vstring_alloc(1024);
++    
++       vstring_sprintf(buffer,"%s/%s",dirname,name);
++       if (stat(vstring_str(buffer), &statbuf) < 0) {
++	  vstring_free(buffer);
++	  continue;
++       }
++       if ((statbuf.st_mode & S_IFREG) != 0)
++	  sum += statbuf.st_size;
++       else if ((statbuf.st_mode & S_IFDIR) != 0)
++	       sum += check_dir_size(vstring_str(buffer), &count, mailplus);
++       vstring_free(buffer);
++     }
++   }
++   closedir(dir);
++   if (msg_verbose)
++      msg_info("check_dir_size: dir=%s sum=%ld count=%ld", dirname, sum, count);
++   *countptr = count;
++   return sum;
++}
++	
+ /* deliver_maildir - delivery to maildir-style mailbox */
+ 
+ int     deliver_maildir(LOCAL_STATE state, USER_ATTR usr_attr)
+@@ -82,6 +207,12 @@
+     int     deliver_status;
+     int     copy_flags;
+     static int count;
++    /* Maildir Quota */
++    const char *limit_res;	/* Limit from map */
++    long    n;			/* Limit in integer format */
++    long    cur_quota;		/* Current quota */
++    long    saved_size;		/* The quota of the Maildir at all */
++    struct stat statbuf;	/* To check the size of the mail written */
+ 
+     /*
+      * Make verbose logging easier to understand.
+@@ -103,11 +234,79 @@
+ 
+     copy_flags = MAIL_COPY_TOFILE | MAIL_COPY_RETURN_PATH | MAIL_COPY_DELIVERED;
+ 
+-    newdir = concatenate(usr_attr.mailbox, "new/", (char *) 0);
+-    tmpdir = concatenate(usr_attr.mailbox, "tmp/", (char *) 0);
+-    curdir = concatenate(usr_attr.mailbox, "cur/", (char *) 0);
++    /*
++     * Concat the maildir suffix if it is set.
++     */
++    if (*var_virt_maildir_suffix == 0) {
++	newdir = concatenate(usr_attr.mailbox, "new/", (char *) 0);
++        tmpdir = concatenate(usr_attr.mailbox, "tmp/", (char *) 0);
++        curdir = concatenate(usr_attr.mailbox, "cur/", (char *) 0);
++    } else {
++        newdir = concatenate(usr_attr.mailbox, var_virt_maildir_suffix, (char *) 0);
++        tmpdir = concatenate(usr_attr.mailbox, var_virt_maildir_suffix, (char *) 0);
++        curdir = concatenate(usr_attr.mailbox, var_virt_maildir_suffix, (char *) 0);
++        newdir = concatenate(newdir, "new/", (char *) 0);
++        tmpdir = concatenate(tmpdir, "tmp/", (char *) 0);
++        curdir = concatenate(curdir, "cur/", (char *) 0);
++    }
+ 
+     /*
++     * Find the Maildir limit in the maps. Fall back virtual_mailbox_limit in
++     * case limit is smaller than message_size_limit.
++     */
++    if (limit_res = mail_addr_find(virtual_mailbox_limit_maps,
++			          state.msg_attr.user, (char **) 0)) {
++       n = atol(limit_res);
++       if(!var_virt_mailbox_limit_override) {
++        if ((n > 0) && (n < var_message_limit)) {
++            msg_warn("(2)recipient %s: maildir limit is smaller then %s "
++	             "in %s - falling back to %s.",
++		     state.msg_attr.user, VAR_MESSAGE_LIMIT,
++		     virtual_mailbox_limit_maps->title,
++		     VAR_VIRT_MAILBOX_LIMIT);
++        } else {
++	    if (msg_verbose)
++	        msg_info("%s[%d]: set maximum mailbox size %s to %ld.",
++			 myname, state.level, usr_attr.mailbox,n);
++        }
++       }
++    } else {
++       /*
++	* There is no limit there... then set n to 0
++	*/
++       n = 0;
++    }
++    
++    /*
++     * Checking quota before delivering the mail
++     */
++    cur_quota = 0;	/* sanity */
++    saved_size = 0;	/* sanity */
++    if ( n != 0 ) {
++            set_eugid(usr_attr.uid, usr_attr.gid);
++	    if (var_virt_mailbox_limit_inbox) {
++		    /*
++		     * Check only inbox
++		     */
++		    saved_size = check_dir_size(newdir, &cur_quota, 1);
++		    cur_quota = 0;
++		    saved_size += check_dir_size(curdir, &cur_quota, 1);
++		    cur_quota = 0;
++		    /* Checked without Maildir++ file format */
++		    saved_size += check_dir_size(tmpdir, &cur_quota, 0);
++	    } else {
++		    /*
++		     * Check all boxes. 
++		     * This will user "old" stat() call instead of fast
++		     * Maildir++ support because we cannot afford the
++		     * time to test all filename types...
++		     */
++		    saved_size = check_dir_size(usr_attr.mailbox, &cur_quota, 0);
++	    }
++            set_eugid(var_owner_uid, var_owner_gid);
++    }
++    
++    /*
+      * Create and write the file as the recipient, so that file quota work.
+      * Create any missing directories on the fly. The file name is chosen
+      * according to ftp://koobera.math.uic.edu/www/proto/maildir.html:
+@@ -136,12 +335,43 @@
+     } else {
+ 	if ((mail_copy_status = mail_copy(COPY_ATTR(state.msg_attr),
+ 					dst, copy_flags, "\n", why)) == 0) {
+-	    if (sane_link(tmpfile, newfile) < 0
+-		&& (errno != ENOENT
+-		    || (make_dirs(curdir, 0700), make_dirs(newdir, 0700)) < 0
+-		    || sane_link(tmpfile, newfile) < 0)) {
+-		vstring_sprintf(why, "link to %s: %m", newfile);
+-		mail_copy_status = MAIL_COPY_STAT_WRITE;
++ 	    /*
++ 	     * Add a ",S=<sizeoffile>" to the file newly written according to
++ 	     * Maildir++ specifications : http://www.inter7.com/courierimap/README.maildirquota.html
++ 	     * This needs a stat(2) of the tempfile and modification of the
++ 	     * name of the file.
++ 	     */
++ 	    if (var_virt_maildir_extended) {
++ 		/* Check size of the new mail created */
++ 		if (stat(tmpfile, &statbuf) == 0) {
++ 		   /* We can stat it then append the size of the file to newfile */
++ 		   vstring_sprintf(buf,",S=%ld", (long) statbuf.st_size);
++ 		   newfile = concatenate(newfile, STR(buf), (char *) 0);
++ 		   if ( n != 0 )
++ 		     saved_size += (long) statbuf.st_size;	/* Adding to th current quota */
++ 		}
++ 	    } else {
++ 	      if ( n != 0 ) {
++ 		 if (stat(tmpfile, &statbuf) == 0) saved_size += (long) statbuf.st_size;
++	      }
++	    }
++ 	    /*
++ 	     * Now we have the maildir size in saved_file, compare to the value
++ 	     * and evenualy issue a message that we overdrawn the max size
++ 	     */
++ 	    if (saved_size > n) {
++		    mail_copy_status = MAIL_COPY_STAT_WRITE;
++ 		    vstring_sprintf(why,"%s",var_virt_maildir_limit_message);
++ 		    errno = EFBIG;
++  	    } else {
++ 	      /* Deliver to curdir */
++ 	      if (sane_link(tmpfile, newfile) < 0
++ 	 	  && (errno != ENOENT
++ 		      || (make_dirs(curdir, 0700), make_dirs(newdir, 0700)) < 0
++ 		      || sane_link(tmpfile, newfile) < 0)) {
++ 		  vstring_sprintf(why, "link to %s: %m", newfile);
++		  mail_copy_status = MAIL_COPY_STAT_WRITE;
++	      }
+ 	    }
+ 	}
+ 	if (unlink(tmpfile) < 0)
+diff -u --recursive --new-file postfix-1.1.3.orig/src/virtual/virtual.c postfix-1.1.3/src/virtual/virtual.c
+--- postfix-1.1.3.orig/src/virtual/virtual.c	Tue Nov  6 15:52:42 2001
++++ postfix-1.1.3/src/virtual/virtual.c	Mon Feb  4 18:09:07 2002
+@@ -63,8 +63,10 @@
+ /* .fi
+ /*	Mailbox ownership is controlled by the \fBvirtual_uid_maps\fR
+ /*	and \fBvirtual_gid_maps\fR lookup tables, which are indexed
+-/*	with the full recipient address. Each table provides
+-/*	a string with the numerical user and group ID, respectively.
++/*	with the full recipient address (\fIuser@domain\fR),
++/*	user name (\fIuser\fR) or domain name (\fI@domain\fR).
++/*	Each table provides a string with the numerical user and group ID,
++/*	respectively.
+ /*
+ /*	The \fBvirtual_minimum_uid\fR parameter imposes a lower bound on
+ /*	numerical user ID values that may be specified in any
+@@ -122,12 +124,16 @@
+ /*	a \fBvirtual_owner_maps\fR or \fBvirtual_uid_maps\fR lookup.
+ /*	Returned values less than this will be rejected, and the message
+ /*	will be deferred.
++/*	Note that this value is not checked when \fBvirtual_static_uidgif\fR
++/*	is set to on.
+ /* .IP "\fBvirtual_uid_maps\fR (regexp maps disallowed)"
+ /*	Recipients are looked up in these maps to determine the user ID to be
+ /*	used when writing to the target mailbox.
+ /* .IP "\fBvirtual_gid_maps\fR (regexp maps disallowed)"
+ /*	Recipients are looked up in these maps to determine the group ID to be
+ /*	used when writing to the target mailbox.
++/* .IP \fBvirtual_maildir_suffix\fR
++/*      String to add to existing Maildir Path (default Maildir/).
+ /* .SH "Locking controls"
+ /* .ad
+ /* .fi
+@@ -170,6 +176,27 @@
+ /* .IP \fBvirtual_mailbox_limit\fR
+ /*	The maximal size in bytes of a mailbox or maildir file.
+ /*	Set to zero to disable the limit.
++/* .IP "\fBvirtual_mailbox_limit_maps\fR (regexp maps disallowed)"
++/*	Recipients are looked up in these maps to determine the maximal size
++/*	in bytes of the target mailbox or maildir.
++/* .IP \fBvirtual_mailbox_limit_message\fR
++/*      Error message to display when Mailbox/Maildir limit has been reached.
++/*	The message size is limited to 80 characters.
++/*	(NOTE: only used on Maildir delivery for now).
++/* .IP \fBvirtual_mailbox_limit_inbox\fR
++/*	Boolean and checked only when Maildir delivery is used. If set to 
++/*	yes (default no), only INBOX is checked not all subfolders that has
++/*	created by IMAP access to Maildir.o
++/* .IP \fBvirtual_mailboc_limit_override\fR
++/*      Boolean. If ser this will override \fBmessage_size_limit\fR even if
++/*	the \fBvirtual_mailbox_limit\fR value or if the value given by
++/*	the map \fBvirtual_mailbox\limit_maps\fR is smaller than 
++/*	\fBmessage_size_limit\fR.
++/* .IP \fBvirtual_maildir_extended\fR
++/*	Boolean and used only on Maildir delivery. If set to yes (default
++/*	no), then the size of the mail will be appened to the filename to
++/*	follow the specification of Maildir++ (used with courier-imap
++/*	softquota options).
+ /* HISTORY
+ /* .ad
+ /* .fi
+@@ -242,10 +269,16 @@
+ char   *var_virt_mailbox_maps;
+ char   *var_virt_uid_maps;
+ char   *var_virt_gid_maps;
++char   *var_virt_mailbox_limit_maps;
+ int     var_virt_minimum_uid;
+ char   *var_virt_mailbox_base;
+ char   *var_virt_mailbox_lock;
+ int     var_virt_mailbox_limit;
++char   *var_virt_maildir_limit_message;
++bool	var_virt_mailbox_limit_inbox;
++bool	var_virt_mailbox_limit_override;
++bool	var_virt_maildir_extended;
++char   *var_virt_maildir_suffix;
+ 
+  /*
+   * Mappings.
+@@ -253,6 +286,7 @@
+ MAPS   *virtual_mailbox_maps;
+ MAPS   *virtual_uid_maps;
+ MAPS   *virtual_gid_maps;
++MAPS   *virtual_mailbox_limit_maps;
+ 
+  /*
+   * Bit masks.
+@@ -361,6 +395,9 @@
+ 
+     virtual_gid_maps =
+ 	maps_create(VAR_VIRT_GID_MAPS, var_virt_gid_maps, DICT_FLAG_LOCK);
++    
++    virtual_mailbox_limit_maps =
++	maps_create(VAR_VIRT_MAILBOX_LIMIT_MAPS, var_virt_mailbox_limit_maps, DICT_FLAG_LOCK);
+ 
+     virtual_mbox_lock_mask = mbox_lock_mask(var_virt_mailbox_lock);
+ }
+@@ -395,12 +432,21 @@
+ 	VAR_VIRT_MAILBOX_LIMIT, DEF_VIRT_MAILBOX_LIMIT, &var_virt_mailbox_limit, 0, 0,
+ 	0,
+     };
++    static CONFIG_BOOL_TABLE bool_table[] = {
++	VAR_VIRT_MAILBOX_LIMIT_INBOX, DEF_VIRT_MAILBOX_LIMIT_INBOX, &var_virt_mailbox_limit_inbox,
++	VAR_VIRT_MAILBOX_LIMIT_OVERRIDE, DEF_VIRT_MAILBOX_LIMIT_OVERRIDE, &var_virt_mailbox_limit_override,
++	VAR_VIRT_MAILDIR_EXTENDED, DEF_VIRT_MAILDIR_EXTENDED, &var_virt_maildir_extended,
++	0,
++    };
+     static CONFIG_STR_TABLE str_table[] = {
+ 	VAR_VIRT_MAILBOX_MAPS, DEF_VIRT_MAILBOX_MAPS, &var_virt_mailbox_maps, 0, 0,
+ 	VAR_VIRT_UID_MAPS, DEF_VIRT_UID_MAPS, &var_virt_uid_maps, 0, 0,
+ 	VAR_VIRT_GID_MAPS, DEF_VIRT_GID_MAPS, &var_virt_gid_maps, 0, 0,
++	VAR_VIRT_MAILBOX_LIMIT_MAPS, DEF_VIRT_MAILBOX_LIMIT_MAPS, &var_virt_mailbox_limit_maps, 0, 0,
+ 	VAR_VIRT_MAILBOX_BASE, DEF_VIRT_MAILBOX_BASE, &var_virt_mailbox_base, 0, 0,
+ 	VAR_VIRT_MAILBOX_LOCK, DEF_VIRT_MAILBOX_LOCK, &var_virt_mailbox_lock, 1, 0,
++	VAR_VIRT_MAILDIR_LIMIT_MESSAGE, DEF_VIRT_MAILDIR_LIMIT_MESSAGE, &var_virt_maildir_limit_message, 1, 0,
++	VAR_VIRT_MAILDIR_SUFFIX, DEF_VIRT_MAILDIR_SUFFIX, &var_virt_maildir_suffix, 0, 0,
+ 	0,
+     };
+ 
+@@ -410,5 +456,6 @@
+ 		       MAIL_SERVER_PRE_INIT, pre_init,
+ 		       MAIL_SERVER_POST_INIT, post_init,
+ 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
++		       MAIL_SERVER_BOOL_TABLE, bool_table,
+ 		       0);
+ }
+diff -u --recursive --new-file postfix-1.1.3.orig/src/virtual/virtual.h postfix-1.1.3/src/virtual/virtual.h
+--- postfix-1.1.3.orig/src/virtual/virtual.h	Fri Dec 22 02:04:58 2000
++++ postfix-1.1.3/src/virtual/virtual.h	Mon Feb  4 18:09:07 2002
+@@ -32,6 +32,7 @@
+ extern MAPS *virtual_mailbox_maps;
+ extern MAPS *virtual_uid_maps;
+ extern MAPS *virtual_gid_maps;
++extern MAPS *virtual_mailbox_limit_maps;
+ 
+  /*
+   * User attributes: these control the privileges for delivery to external
