@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.225 2002/12/13 11:54:37 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.226 2002/12/15 22:30:32 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -43,9 +43,7 @@
 %define pgsql2 __PGSQL2__
 %define sasl __SASL__
 %define sasl_library __SASL_LIBRARY__
-# TLS patches don't currently work, 20021213
 %define tls __TLS__
-%define tls 0
 %define tlsfix __TLSFIX__
 %define include_db __INCLUDE_DB__
 %define requires_db __REQUIRES_DB__
@@ -62,14 +60,14 @@
 
 # Version information
 %define vdaver 1.1.11-20020822
-%define pfixtls pfixtls-0.8.12-1.1.12-20021203-0.9.6h
+%define pfixtls pfixtls-0.8.12-1.1.12-20021214-0.9.6h
 %define pgver 1.1.4
 
 # If set to 1 if official version, 0 if snapshot
 %define official 0
 %define ver 1.1.12
-%define mail_release_date 20021212
-%define rel 0.1
+%define mail_release_date 20021214
+%define rel 1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -208,7 +206,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.225 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.226 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -954,16 +952,13 @@ fi
 
 %changelog
 
-* Fri Dec 13 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021212-0.1
-  - update to latest snapshot
+* Sun Dec 15 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021214-1
+  - rename macro: DISABLE_CHROOT -> disable_chroot
+  - remove (duplicate) LICENSE from %doc directory
   - remove RELEASE_NOTES from %doc directory, it is now installed in
     the %readme_dir ( /etc/postfix/README_FILES )
-
-* Wed Dec 11 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021209-1.2
-  - remove (duplicate) LICENSE from %doc directory
-
-* Wed Dec 11 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021209-1.1
-  - rename macro: DISABLE_CHROOT -> disable_chroot
+  - update to latest snapshot
+  - update TLS patches to 0.8.12-1.1.12-20021214-0.9.6h
 
 * Tue Dec 10 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021209-1
   - update to 1.1.12-20021209
