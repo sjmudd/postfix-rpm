@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.12 2000/11/06 23:11:21 root Exp $
+# $Id: postfix.spec.in,v 2.13 2000/11/25 11:23:47 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -15,21 +15,21 @@ Copyright: IBM Public License -- see LICENSE for details
 PreReq: /sbin/chkconfig
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
-Version: 20001030
-Release: 2
+Version: 20001121
+Release: 1
 Packager: Simon J Mudd <sjmudd@pobox.com> but see description below
 Vendor: None -- see packager
 Distribution: Experimental
-Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-20001030.tar.gz
+Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-20001121.tar.gz
 Source1: postfix-README_rpm.txt
 Source2: postfix-README_maildrop_security.txt
-Source3: postfix-init_script.sh
+Source3: postfix-etc-rc.d-init.d-postfix
 Source4: postfix-cron.daily.sh
 Source5: postfix-aliases
 Source6: postfix-chroot-setup.awk
 Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
-Patch3:  postfix-makedefs.patch2
+###Patch3:  postfix-makedefs.patch2  ### shouldn't be necessary any more
 #  ** Patch99 is applied only on builds on my machines **
 Patch99: postfix-smtpd_reply_multiline.patch
 BuildRoot: /var/tmp/%{name}-%{version}-root
@@ -68,8 +68,9 @@ related to these platforms.
 
 %define mailq_path /usr/bin/mailq
 %define rmail_path /usr/bin/rmail
+# We need a uid and gid for postfix's exclusive use
+# Redhat's mail group isn't unique!
 %define uid 89
-# The gid needs to be unique for postfix use: RedHat's mail group isn't!
 %define gid 89
 
 %define init_directory /etc/rc.d/init.d
@@ -88,7 +89,7 @@ mv conf/master.cf conf/master.cf-nochroot
 awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > conf/master.cf
 %patch1 -p1 -b .config
 %patch2 -p1 -b .chk
-%patch3 -p1 -b .old
+###patch3 -p1 -b .old     shouldn't be needed
 
 # apply this patch ONLY if built on my machines
 if [ `hostname`="phoenix.ea4els.ampr.org" -o \
@@ -105,6 +106,14 @@ cp ${RPM_SOURCE_DIR}/postfix-README_maildrop_security.txt \
 %build
 
 umask 022
+make tidy # shouldn't be necessary
+########################################################
+#                CHOOSE ONE BUILD OPTION HERE          #
+########################################################
+# This is to build with AUTH support : see SASL_README
+# make DEBUG="" OPT="$RPM_OPT_FLAGS" CCARGS=-DSASL
+#
+############# plain vanilla postfix build ##############
 make DEBUG="" OPT="$RPM_OPT_FLAGS"
 
 
@@ -141,7 +150,7 @@ strip -R .comment bin/* libexec/*
 
 # WARNING: don't change the number of blank lines below - INSTALL.sh depends
 # on it to work correctly
-sh INSTALL.sh <<EOF
+sh INSTALL.sh <<EOF 
 ${RPM_BUILD_ROOT}
 
 %{config_directory}
@@ -165,7 +174,8 @@ bin/postconf -c ${RPM_BUILD_ROOT}%{config_directory} -e \
 
 # This installs into the /etc/rc.d/init.d directory
 mkdir -p ${RPM_BUILD_ROOT}%{init_directory}
-install -c ${RPM_SOURCE_DIR}/postfix-init_script.sh ${RPM_BUILD_ROOT}%{init_directory}/postfix
+install -c ${RPM_SOURCE_DIR}/postfix-etc-rc.d-init.d-postfix \
+                  ${RPM_BUILD_ROOT}%{init_directory}/postfix
 
 # These set up the chroot directory structure
 mkdir -p ${RPM_BUILD_ROOT}%{queue_directory}/etc
@@ -197,19 +207,6 @@ ${RPM_BUILD_ROOT}/%{command_directory}/postalias -c ${RPM_BUILD_ROOT}/%{config_d
 umask 022
 
 /sbin/chkconfig --add postfix
-install -c -m 644 /etc/localtime /etc/services /etc/resolv.conf %{queue_directory}/etc
-ln -sf /etc/localtime %{queue_directory}/usr/lib/zoneinfo
-
-if [ -e /lib/libnss_dns.so.2 ]; then
-    cmp -s /lib/libnss_dns.so.2 %{queue_directory}/lib/libnss_dns.so.2 2>/dev/null || \
-        install -c /lib/libnss_dns.so.2 %{queue_directory}/lib
-else
-    if [ -e /lib/libnss_dns.so.1 ]; then
-        cmp -s /lib/libnss_dns.so.1 %{queue_directory}/lib/libnss_dns.so.1 2>/dev/null || \
-        install -c /lib/libnss_dns.so.1 %{queue_directory}/lib
-    fi
-fi
-
 %{command_directory}/postfix check
 
 %preun
@@ -221,13 +218,13 @@ if [ "$1" = 0 ]; then
 
     userdel postfix || : %whinge "WARNING: failed to remove user postfix"
     groupdel postfix || : %whinge "WARNING: failed to remove group postfix"
-
-    rm -f %{queue_directory}/etc/localtime
-    rm -f %{queue_directory}/etc/services
-    rm -f %{queue_directory}/etc/resolv.conf
-    rm -f %{queue_directory}/usr/lib/zoneinfo/localtime
-    rm -f %{queue_directory}/lib/libnss_dns.so.1
-    rm -f %{queue_directory}/lib/libnss_dns.so.2
+    # remove chroot jail when uninstalling the package
+    for i in /etc/localtime /usr/lib/zoneinfo/localtime \
+		/etc/host.conf /etc/resolv.conf /etc/nsswitch.conf \
+		/etc/hosts /etc/passwd /etc/services \
+		/lib/libnss_* /lib/libresolv*; do
+        test -f %{queue_directory}$i && rm -f %{queue_directory}$i
+    done
 fi
 
 %postun
@@ -331,6 +328,11 @@ rm -rf ${RPM_BUILD_ROOT}
 #	Bennett Todd <bet@mordor.net>
 
 %changelog
+* Thu Nov 23 2000 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001121-1, makedefs should be fixed (but can't check)
+  chroot jail now built on postfix start (from /etc/rc.d/init.d/postfix)
+  change invocation of INSTALL.sh when installing into ${BUILD_ROOT}
+
 * Tue Nov 07 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001030-2, add chkconfig postfix to /etc/cron.daily/postfix
   fix Wietse's makedefs so this builds on rh6.x and rh7.
