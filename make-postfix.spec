@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.3 2002/11/22 15:00:08 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.4 2002/11/25 09:19:24 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -31,7 +31,6 @@
 #			later.
 #
 # POSTFIX_DISABLE_CHROOT	disable creation of chroot environment
-# POSTFIX_RBL_MAPS	LaMont Jones' RBL REPLY Maps patch
 # POSTFIX_CDB		support for Constant Database, CDB, by Michael Tokarev
 #			<mjt@corpit.ru>, as originally devised by djb.
 #
@@ -160,6 +159,16 @@ if [ "$POSTFIX_REDHAT_MYSQL" = 1 ]; then
     echo "  adding MySQL support (RedHat mysql* packages) to spec file"
     SUFFIX="${SUFFIX}.mysql"
 fi
+
+# which is the "-devel" library used for SASL?
+case ${releasename} in
+mandrake)
+    POSTFIX_SASL_LIBRARY=libsasl-devel
+    ;;
+*)
+    POSTFIX_SASL_LIBRARY=cyrus-sasl-devel
+    ;;
+esac
 if [ "$POSTFIX_SASL" = 1 ]; then
     echo "  adding SASL  support to spec file"
     SUFFIX="${SUFFIX}.sasl"
@@ -179,10 +188,6 @@ fi
 if [ "$POSTFIX_DISABLE_CHROOT" = 1 ]; then
     echo "  disabling chroot environment in spec file"
     SUFFIX="${SUFFIX}.nochroot"
-fi
-if [ "$POSTFIX_RBL_MAPS" = 1 ]; then
-    echo "  enabling RBL reply maps patch in spec file"
-    SUFFIX="${SUFFIX}.rbl"
 fi
 
 DIST=
@@ -279,7 +284,6 @@ esac
 [ -z "$TLSFIX" ]			   && TLSFIX=0
 [ -z "$POSTFIX_SMTPD_MULTILINE_GREETING" ] && POSTFIX_SMTPD_MULTILINE_GREETING=0
 [ -z "$POSTFIX_DISABLE_CHROOT" ]	   && POSTFIX_DISABLE_CHROOT=0
-[ -z "$POSTFIX_RBL_MAPS" ]	           && POSTFIX_RBL_MAPS=0
 [ -z "$POSTFIX_CDB" ]	                   && POSTFIX_CDB=0
 
 cat > `rpm --eval '%{_specdir}'`/postfix.spec <<EOF
@@ -306,11 +310,11 @@ s!__PCRE__!$POSTFIX_PCRE!g
 s!__PGSQL__!$POSTFIX_PGSQL!g
 s!__PGSQL2__!$POSTFIX_PGSQL2!g
 s!__SASL__!$POSTFIX_SASL!g
+s!__SASL_LIBRARY__!$POSTFIX_SASL_LIBRARY!g
 s!__TLS__!$POSTFIX_TLS!g
 s!__TLSFIX__!$TLSFIX!g
 s!__VDA__!$POSTFIX_VDA!g
 s!__DISABLE_CHROOT__!$POSTFIX_DISABLE_CHROOT!g
-s!__RBL_MAPS__!$POSTFIX_RBL_MAPS!g
 s!__CDB__!$POSTFIX_CDB!g
 s!__MANPAGE_SUFFIX__!$MANPAGE_SUFFIX!g
 " `rpm --eval '%{_sourcedir}'`/postfix.spec.in >> `rpm --eval '%{_specdir}'`/postfix.spec

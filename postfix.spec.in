@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.199 2002/11/22 15:00:08 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.200 2002/11/25 09:19:24 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -42,6 +42,7 @@
 %define pgsql __PGSQL__
 %define pgsql2 __PGSQL2__
 %define sasl __SASL__
+%define sasl_library __SASL_LIBRARY__
 %define tls __TLS__
 %define tlsfix __TLSFIX__
 %define include_db __INCLUDE_DB__
@@ -52,7 +53,6 @@
 %define vda __VDA__
 %define vda 0
 %define DISABLE_CHROOT __DISABLE_CHROOT__
-%define RBL_MAPS __RBL_MAPS__
 
 # start to support the conditional builds via rpm's
 # --with debug
@@ -68,7 +68,7 @@
 %define official 0
 %define ver 1.1.11
 %define mail_release_date 20021115
-%define rel 1
+%define rel 1.99
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -143,7 +143,6 @@ Patch3: postfix-files.patch
 
 # Optional patches
 Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}_quota.patch.gz
-Patch5: postfix-rbl_reply_maps.patch
 # Adapted from http://www.stahl.bau.tu-bs.de/~hildeb/postfix/duchovni/log_recipient.gz
 Patch7: postfix-log_recipient
 Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pgver}.patch
@@ -188,7 +187,7 @@ BuildRequires: postgresql, libpq.so, postgresql-devel
 
 %if %{sasl}
 Requires: cyrus-sasl
-BuildRequires: cyrus-sasl, cyrus-sasl-devel
+BuildRequires: cyrus-sasl, %{sasl_library}
 %endif
 
 %if %{tls}
@@ -211,12 +210,12 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.199 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.200 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
 ldap=%{ldap}, sasl=%{sasl}, pcre=%{pcre}, tls=%{tls}, tlsfix=%{tlsfix}, mysql=%{mysql}, redhatmysql=%{redhatmysql}
-include_db=%{include_db}, requires_db=%{requires_db}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}, RBL_MAPS=%{RBL_MAPS}, cdb=%{cdb}
+include_db=%{include_db}, requires_db=%{requires_db}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}, cdb=%{cdb}
 debug=%{?_with_debug:1}%{?!_with_debug:0}
 
 To use postfix with alternative options download the source package and
@@ -287,10 +286,6 @@ sh dict_cdb.sh
 %endif
 %if %{vda}
 gunzip < %{_sourcedir}/postfix-%{vdaver}_quota.patch.gz | patch -p1 -b --suffix .vda -s
-%endif
-# Apply RBL Reply maps
-%if %{RBL_MAPS}
-%patch5 -p0 -b .rbl
 %endif
 # Apply the PostgreSQL patches only if required
 %if %{pgsql}
@@ -504,7 +499,7 @@ touch %{buildroot}/%{config_dir}/aliases.db
 for i in active bounce corrupt defer deferred flush incoming private saved; do
     mkdir -p %{buildroot}%{queue_dir}/$i
 done
-for i in maildrop public pid; do
+for i in hold maildrop public pid; do
     mkdir -p %{buildroot}%{queue_dir}/$i
 done
 
@@ -767,7 +762,7 @@ queue_directory_remove () {
     done
 
     # now remove the other directories
-    for dir in corrupt maildrop pid private public saved; do
+    for dir in corrupt hold maildrop pid private public saved; do
         test -d $dir && {
             /bin/rm -f $dir/*
             /bin/rmdir $dir || echo "WARNING: preun - unable to remove directory %{queue_dir}/$dir"
@@ -868,6 +863,7 @@ fi
 %dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_dir}/defer
 %dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_dir}/deferred
 %dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_dir}/flush
+%dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_dir}/hold
 %dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_dir}/incoming
 %dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_dir}/private
 %dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_dir}/saved
@@ -967,7 +963,13 @@ fi
 
 %changelog
 
+* Fri Nov 22 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-20021115-2
+  - add missing hold queue
+  - remove unneeded RBL patch, now included in the standard sources
+  - fix cyrus-sasl-devel which in mandrake is libsasl-devel
+
 * Fri Nov 22 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-20021115-1
+  - first build for a while on a snapshot.
 
 * Fri Nov 22 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-13
   - modify make-postfix.spec and postfix.spec.in to work correctly with RH 8
