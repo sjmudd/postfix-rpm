@@ -1,16 +1,17 @@
 #!/bin/sh
 #
-# /etc/cron.daily/postfix
+# /etc/cron.daily/1postfix
 #
-# This file is run on a daily basis to perform basic checks on your postfix
-# configuration.
+# This file is run on a daily basis to perform checks on your postfix
+# configuration and to analyse your mail logs.
 #
-# This file is flagged by rpm as a configuration file.
+# The file is named "1postfix" to ensure that it is run before logrotate
+# when the /var/log/maillog files are rotated.
 #
-# If you modify this file, further upgrades to postfix will not overwrite
-# the file.
+# The file is also flagged by rpm as a configuration file, so if you modify
+# it, further upgrades to postfix will not be overwriten.
 #
-# uncomment this line to disable the daily cronjob
+# uncomment the next line to completely disable the daily cronjob
 # exit 0
 
 [ -x /usr/sbin/postfix ] || exit 0

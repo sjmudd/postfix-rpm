@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.30 2001/05/01 08:37:58 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.31 2001/05/01 08:50:09 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -136,7 +136,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.30 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.31 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -363,7 +363,8 @@ chmod 0744 ${RPM_BUILD_ROOT}%{config_directory}/chroot-setup-LINUX2
 # This is the /etc/cron.daily directory
 /bin/mkdir -p ${RPM_BUILD_ROOT}%{cron_directory}
 
-install -c ${RPM_SOURCE_DIR}/postfix-etc-cron.daily-postfix ${RPM_BUILD_ROOT}%{cron_directory}/postfix
+# This file is named 1postfix to ensure it is run _before_ logrotate
+install -c ${RPM_SOURCE_DIR}/postfix-etc-cron.daily-postfix ${RPM_BUILD_ROOT}%{cron_directory}/1postfix
 
 # install pflogsumm.pl into %{command_directory} used by cron daily
 #
@@ -552,7 +553,7 @@ fi
 
 %attr(0755, root, root) %config %{init_directory}/postfix
 %attr(-, postfix, root) %verify(not md5 size mtime) %{queue_directory}
-%attr(0755, root, root) %verify(not md5 size mtime) %config(noreplace) %{cron_directory}/postfix
+%attr(0755, root, root) %verify(not md5 size mtime) %config(noreplace) %{cron_directory}/1postfix
 
 %doc 0README
 %doc COMPATIBILITY
@@ -641,19 +642,12 @@ fi
 #
 # Old changelog from Tue Dec 15 1998 - Dec 31 1999 has been removed.
 #
-# This included changes and suggestions from:
-#
-#	Lars Hecking <lhecking@nmrc.ucc.ie> 
-#	John A. Martin <jam@jamux.com>
-#	Chuck Mead <chuck@moongroup.com>
-#	Simon J Mudd <sjmudd@pobox.com>
-#	Matt Shibla <mshibla@iname.com>
-#	Bennett Todd <bet@mordor.net>
-#       Tim Powers <timp@redhat.com>
 
 %changelog
 * Tue May 01 2001 Simon Mudd <sjmudd@pobox.com>
 - postfix-20010228_pl02release-1, update for postfix-20010228-pl02
+  - rename %{cron_directory}/postfix to 1postfix to ensure that it is 
+  run before logrotate. 
 
 * Mon Apr 30 2001 Simon Mudd <sjmudd@pobox.com>
 - postfix-20010228_pl01release-6, include support for pflogsumm.pl
