@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.50 2001/06/09 10:43:35 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.51 2001/06/29 23:05:03 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -46,7 +46,7 @@
 %define patchlevel pl03
 %define version1 %{vers}-%{patchlevel}
 %define version2 %{vers}_%{patchlevel}
-%define rel  4
+%define rel  5
 
 %define tlsno pfixtls-0.7.3-20010228-pl03-0.9.6a
 %define pflogno -0.9.0
@@ -144,7 +144,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.50 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.51 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -153,8 +153,9 @@ PCRE=%{PCRE}		TLS=%{TLS}
 MYSQL=%{MYSQL}		REDHATMYSQL=%{REDHATMYSQL}
 REQUIRES_DB3 %{REQUIRES_DB3}	REQUIRES_INIT_D %{REQUIRES_INIT_D}
 
-The source package contains information about rebuilding with alternative
-options.
+If you need to use postfix with alternative options you will need to
+download the source package and rebuild the required binary package.
+Information on how to do this is included with the source package.
 
 
 %define config_directory /etc/postfix
@@ -686,6 +687,11 @@ fi
 #
 
 %changelog
+$Log: postfix.spec.in,v $
+Revision 2.73.2.51  2001/06/29 23:05:03  sjmudd
+- postfix-20010228-pl03-5
+  Use CVS Log function to log changes.
+
 
 * Fri Jun 08 2001 Simon J Mudd <sjmudd@pobox.com>
 - postfix-20010228_pl03release-4, changes in macro usage to try and ensure
