@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.214 2002/12/09 12:49:43 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.215 2002/12/09 13:27:55 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -147,9 +147,6 @@ Patch99: ftp://ftp.wl0.org/SOURCES/postfix-1.1.12-20021124-multiline-greeting.pa
 
 BuildRoot: %{_tmppath}/postfix-%{package_version}-buildroot
 
-# Avoid Date::Calc dependencies on rh8
-AutoReq: no
-
 # Determine packaging requirements
 BuildRequires: gawk, perl, sed, ed, patch, rpm >= 4
 Requires: gawk, perl, sed, ed
@@ -209,7 +206,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.214 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.215 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -764,12 +761,12 @@ queue_hash_depth_remove () {
 queue_directory_remove () {
     # remove the hashed directories
     depth=`postconf -h hash_queue_depth`
-    for dir in `postconf -h hash_queue_names| sed -e 's/,/\\
+    for dir in `postconf -h hash_queue_names | sed -e 's/,/\\
 /g'`; do
         queue_hash_depth_remove $dir $depth
     done
 
-    # remove the other directories
+    # now remove the other directories
     for dir in corrupt hold maildrop pid private public saved; do
         queue_hash_depth_remove $dir 0
     done
