@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.16 2001/01/19 20:59:23 root Exp $
+#  $Id: make-postfix.spec,v 1.17 2001/01/26 18:09:02 root Exp $
 #
 
 SUFFIX=
@@ -23,8 +23,14 @@ if [ "$POSTFIX_PCRE" = 1 ]; then
     SUFFIX="${SUFFIX}+pcre"
 fi
 if [ "$POSTFIX_MYSQL" = 1 ]; then
-    echo "  adding MySQL support to spec file"
-    SUFFIX="${SUFFIX}+mysql"
+        echo -n "  adding MySQL support "
+    if [ "$POSTFIX_REDHATMYSQL" = 1]; then
+        echo "(RedHat mysql* packages) to spec file"
+        SUFFIX="${SUFFIX}+mysql"
+    else
+        echo "(www.mysql.com MySQL* packages) to spec file"
+        SUFFIX="${SUFFIX}+MySQL"
+    endif
 fi
 if [ "$POSTFIX_SASL" = 1 ]; then
     echo "  adding SASL  support to spec file"
@@ -50,12 +56,25 @@ if [ -z "$POSTFIX_LDAP" ]; then
 fi
 if [ -z "$POSTFIX_MYSQL" ]; then
     POSTFIX_MYSQL=0
+    POSTFIX_REDHAT_MYSQL=0
+fi
+if [ -z "$POSTFIX_REDHAT_MYSQL" ]; then
+    POSTFIX_REDHAT_MYSQL=0
 fi
 if [ -z "$POSTFIX_PCRE" ]; then
     POSTFIX_PCRE=0
 fi
 if [ -z "$POSTFIX_SASL" ]; then
     POSTFIX_SASL=0
+fi
+if [ -z "$POSTFIX_SMTPD_MULTILINE_GREETING" ]; then
+    POSTFIX_SMTPD_MULTILINE_GREETING=0
+fi
+if [ -z "$POSTFIX_SAFE_MYNETWORKS" ]; then
+    POSTFIX_SAFE_MYNETWORKS=0
+fi
+if [ -z "$POSTFIX_BROKEN_AUTH" ]; then
+    POSTFIX_BROKEN_AUTH=0
 fi
 
 # Remove leading '+' from package suffix (if exists)
@@ -84,6 +103,7 @@ s!__SUFFIX__!$SUFFIX!g
 
 s!__LDAP__!$POSTFIX_LDAP!g
 s!__MYSQL__!$POSTFIX_MYSQL!g
+s!__REDHAT_MYSQL__!$POSTFIX_REDHAT_MYSQL!g
 s!__PCRE__!$POSTFIX_PCRE!g
 s!__SASL__!$POSTFIX_SASL!g
 " postfix.spec.in >> ../SPECS/postfix.spec

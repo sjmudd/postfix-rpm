@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.50 2001/01/21 19:37:17 root Exp $
+# $Id: postfix.spec.in,v 2.51 2001/01/26 18:09:02 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -23,9 +23,18 @@
 #
 ##############################################################################
 
-# defines according to our taste
+# defines according to our taste - values should be 0 (NO) or 1 (YES)
+#
+# LDAP	- include LDAP support
+# MYSQL	- include MySQL database support
+#         REDHATMYSQL = 1 use RedHat 7 - mysql* packages
+#                     = 0 use www.mysql.com MySQL* packages
+# PCRE	- include pcre support
+# SASL	- include SASL/AUTH support
+
 %define LDAP __LDAP__
 %define MYSQL __MYSQL__
+%define REDHATMYSQL __REDHAT_MYSQL__
 %define PCRE __PCRE__
 %define SASL __SASL__
 
@@ -42,7 +51,7 @@ PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
 Version: 20001217
-Release: 11__SUFFIX__
+Release: 12__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Vendor: Built under __DISTRIBUTION__
 Distribution: Experimental
@@ -89,8 +98,13 @@ BuildRequires: pcre, pcre-devel
 %endif
 
 %if %{MYSQL}
+%if %{REDHATMYSQL}
 Requires: mysql, mysqlclient9
 BuildRequires: mysql, mysqlclient9, mysql-devel
+%else
+Requires: MySQL, MySQL-client, zlib
+BuildRequires: MySQL, mysqlclient, MySQL-devel, zlib-devel
+%endif
 %endif
 
 %if %{SASL}
@@ -232,9 +246,19 @@ AUXLIBS=
   CCARGS="${CCARGS} -DHAS_PCRE"
   AUXLIBS="${AUXLIBS} -lpcre"
 %endif
+# Careful:
+# - mysql (redhat) doesn't seem to need zlib support (postfix compiles
+#   without it)
+# - MySQL (www.mysql.com) does need zlib support to compile correctly
 %if %{MYSQL}
   CCARGS="${CCARGS} -DHAS_MYSQL -I/usr/include/mysql"
-  AUXLIBS="${AUXLIBS} -L/usr/lib/mysql -lmysqlclient -lm"
+  AUXLIBS="${AUXLIBS} -L/usr/lib/mysql -lmysqlclient
+%if %{REDHATMYSQL}
+  :
+%else
+  AUXLIBS="${AUXLIBS} -lz"
+%endif
+  AUXLIBS="${AUXLIBS} -lm"
 %endif
 %if %{SASL}
   CCARGS="${CCARGS} -DUSE_SASL_AUTH"
@@ -467,6 +491,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %doc 0README
 %doc BEWARE
 %doc COMPATIBILITY
+%doc DB_README
 %doc DEBUG_README
 %doc ETRN_README
 %doc FILTER_README
@@ -548,6 +573,14 @@ rm -rf ${RPM_BUILD_ROOT}
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Fri Jan 26 2001 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001217-12, include missing DB_README
+- include support for both mysql (RedHat MySQL packages) and
+  MySQL (www.mysql.com MySQL packages) as they use different
+  names.  Introduction of new define REDHATMYSQL for the first
+  case.  Suggestions by Ramiro Morales <rmrpms@usa.net>
+- fix make-postfix.spec (missing -z checks) <ilmis@compart.fi>
+
 * Sun Jan 21 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001217-11, following suggestion by Daniel Roesen
   remove newaliases when calling /etc/init.d/postfix start
