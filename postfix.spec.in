@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.13 2003/01/16 15:06:39 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.14 2003/01/26 22:43:23 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -68,9 +68,9 @@
 
 # If set to 1 if official version, 0 if snapshot
 %define official 1
-%define ver 2.0.2
+%define ver 2.0.3
 %define mail_release_date 20021219
-%define rel 2
+%define rel 1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -213,7 +213,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.13 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.14 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -962,6 +962,9 @@ fi
 #
 
 %changelog
+
+*Mon Jan 27 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.3-1
+  - update Postfix
 
 * Thu Jan 16 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.2-2
   - update CDB patches as the old ones no longer applied cleanly.
