@@ -121,8 +121,8 @@ version=`grep '^%define ver ' postfix.spec.in | awk '{ print $3 } '`
 mail_release_date=`grep '^%define mail_release_date' postfix.spec.in | awk '{ print $3 } '`
 rpm_release=`grep '^%define rel ' postfix.spec.in | awk '{ print $3 } '`
 
-RC=`grep -q '%define official 1' postfix.spec.in; echo $?`
-if [ ${RC} = "0" ]; then
+if grep -q '%define official 1' postfix.spec.in
+then
     ftpdir=official
 else
     version="${version}-${mail_release_date}"
@@ -193,12 +193,12 @@ download_if_necessary . ${base} ${file}
 
 echo "===> checking CVS Status"
 if [ $no_check ]; then
-    echo "	NOT checking cvs repository."
+    echo "	NOT checking repository."
 else
-    echo "	checking files with cvs repository..."
+    echo "	checking files in repository..."
     cvs diff 2>&1 >/dev/null || {
 	echo ""
-	echo "WARNING please commit changes before building";
+	echo "WARNING Commit changes before building, or use the --no-check option"
 	exit 1;
     }
 fi
@@ -206,8 +206,7 @@ echo ""
 
 sh removelinks --quiet
 sh makelinks
-testtls
-testvda
+test_patches	# Just check the patches here
 build
 echo ""
 sh removelinks
