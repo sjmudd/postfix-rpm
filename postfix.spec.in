@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.71 2001/02/26 20:55:36 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.72 2001/03/01 22:44:13 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -48,7 +48,7 @@ Copyright: IBM Public License
 PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail, exim, qmail, smail
-Version: 20010225
+Version: 20010228
 Release: 1__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Vendor: Built under __DISTRIBUTION__
@@ -120,7 +120,7 @@ packages in this FAQ may still be incorrect.]
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.71 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.72 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -409,7 +409,7 @@ chroot_remove () {
 # selectively remove the rest of the queue directory structure
 # first remove the "queues" (and assume the hash depth is still 2)
 queue_directory_remove () {
-    for dir in active bounce defer flush; do
+    for dir in incoming active bounce defer flush; do
         for a in 0 1 2 3 4 5 6 7 8 9 A B C D E F; do
    	    test -d $dir/$a && {
 	        for b in 0 1 2 3 4 5 6 7 8 9 A B C D E F; do
@@ -425,8 +425,7 @@ queue_directory_remove () {
     done
 
     # now remove the other directories
-#    for dir in corrupt deferred incoming maildrop pid private public saved; do
-    for dir in corrupt deferred incoming pid private public saved; do
+    for dir in corrupt deferred pid private public saved; do
         test -d $dir && {
             /bin/rm -f $dir/*
             /bin/rmdir $dir || echo "WARNING: preun - unable to remove directory %{queue_directory}/$dir"
@@ -592,6 +591,9 @@ fi
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* XXX XXX XX 2001 Simon Mudd <sjmudd@pobox.com>
+- remove POSTFIX_SAFE_MYNETWORKS from make-postfix.spec
+
 * Mon Feb 26 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20010225-1,  update to latest snapshot
 - remove references to POSTFIX_SAFE_MYNETWORKS optional patch as no longer
