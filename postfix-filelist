@@ -3,7 +3,6 @@ pfixtls-0.7.11-20010228-pl05-0.9.6b.tar.gz
 pflogsumm-1.0.3.pl
 postfix-INSTALL.sh.non-root.patch
 postfix-INSTALL.sh.patch
-postfix-INSTALL.sh.patch2
 postfix-README_maildrop_security.txt
 postfix-aliases
 postfix-build
@@ -11,12 +10,11 @@ postfix-chroot-setup.awk
 postfix-chroot_chk.patch
 postfix-chroot_setup.patch
 postfix-config.patch
-postfix-errors-to.patch
 postfix-etc-cron.daily-postfix
 postfix-etc-init.d-postfix
 postfix-fallback_relay.patch
 postfix-makedefs.patch
-postfix-new-RPMS
+postfix-new-RPM-packages
 postfix-smtp_addr.c.patch
 postfix-smtpd_multiline_greeting.patch
 postfix.spec.in
