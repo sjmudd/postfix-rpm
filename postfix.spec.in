@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.55 2001/01/28 12:19:16 root Exp $
+# $Id: postfix.spec.in,v 2.56 2001/01/29 22:07:17 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -40,7 +40,6 @@
 
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
 %define SAFE_MYNETWORKS __SAFE_MYNETWORKS__
-%define BROKEN_AUTH __BROKEN_AUTH__
 
 Name: postfix
 Summary: Postfix Mail Transport Agent
@@ -50,8 +49,8 @@ Copyright: IBM Public License
 PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail, exim, qmail
-Version: 20001217
-Release: 13__SUFFIX__
+Version: 20010128
+Release: 1__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Vendor: Built under __DISTRIBUTION__
 Distribution: Experimental
@@ -68,13 +67,10 @@ Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
 # required to install smtp-sink and smtp-source
 Patch3:  postfix-INSTALL.sh.patch
-Patch4:  postfix-fallback_relay.patch
 #
 # Optional patches - set the appropriate environment variables to include
 #                    them when building the package/spec file
 #
-# applied if %BROKEN_AUTH=1
-Patch97: postfix-broken_auth.patch
 # applied if %SAFE_MYNETWORKS=1
 Patch98: postfix-safe_mynetworks.patch
 # applied if %SMTPD_MULTILINE_GREETING=1
@@ -131,7 +127,6 @@ This package/specfile was built with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
 SAFE_MYNETWORKS=__SAFE_MYNETWORKS__
-BROKEN_AUTH=__BROKEN_AUTH__
 LDAP=__LDAP__
 PCRE=__PCRE__
 MYSQL=__MYSQL__
@@ -188,14 +183,8 @@ awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > co
 %patch1 -p1 -b .config
 %patch2 -p1 -b .chk
 %patch3 -p1 -b .install
-%patch4 -p1 -b .fallback
 
 # APPLY OPTIONAL PATCHES
-
-# Apply Daniel Roesen's support patch for 250-AUTH= ESMTP banner
-%if %{BROKEN_AUTH}
-%patch97 -p1 -b .brokenauth
-%endif
 
 # Apply Daniel Roesen's safe mynetworks patch
 %if %{SAFE_MYNETWORKS}
@@ -302,22 +291,18 @@ mkdir -p ${RPM_BUILD_ROOT}
 
 strip -R .comment bin/* libexec/*
 
-# WARNING: don't change the number of blank lines below - INSTALL.sh depends
-# on it to work correctly
-sh INSTALL.sh <<EOF 
-${RPM_BUILD_ROOT}
+# now install postfix into buildroot
 
-%{config_directory}
-%{daemon_directory}
-%{command_directory}
-%{queue_directory}
-%{sendmail_path}
-%{newaliases_path}
-%{mailq_path}
-
-
-%{_mandir}
-EOF
+export install_root=${RPM_BUILD_ROOT} \
+       config_directory=%{config_directory} \
+       daemon_directory=%{daemon_directory} \
+       command_directory=%{command_directory} \
+       queue_directory=%{queue_directory} \
+       sendmail_path=%{sendmail_path} \
+       newaliases_path=%{newaliases_path} \
+       mailq_path=%{mailq_path} \
+       manpages=%{_mandir}
+sh INSTALL.sh < /dev/null
 
 # Change the default directory for alias_maps and alias_database
 # to %{config_directory}

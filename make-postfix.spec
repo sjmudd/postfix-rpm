@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.20 2001/01/26 19:55:00 root Exp $
+#  $Id: make-postfix.spec,v 1.21 2001/01/29 22:07:34 root Exp $
 #
 
 SUFFIX=
@@ -67,6 +67,11 @@ if [ `rpm -q redhat-release` ]; then
         DISTRIBUTION_PREREQ=', /etc/init.d, /sbin/service'
     fi
     DISTRIBUTION=`rpm -q redhat-release` 
+    # check for RedHat 6 and change SUFFIX to avoid package name conflicts
+    A=`rpm -q redhat-release | grep -q 6; echo $?`
+    if [ "$A" = 0 ]; then
+        SUFFIX="rh6${SUFFIX}"
+    fi
 fi
 
 # ensure if undefined the value is 0
@@ -91,9 +96,6 @@ fi
 if [ -z "$POSTFIX_SAFE_MYNETWORKS" ]; then
     POSTFIX_SAFE_MYNETWORKS=0
 fi
-if [ -z "$POSTFIX_BROKEN_AUTH" ]; then
-    POSTFIX_BROKEN_AUTH=0
-fi
 
 # Remove leading '+' from package suffix (if exists)
 SUFFIX=`echo "${SUFFIX}" | sed -e 's;^\+;;'`
@@ -112,7 +114,6 @@ s!__DISTRIBUTION__!$DISTRIBUTION!g
 
 s!__SMTPD_MULTILINE_GREETING__!$POSTFIX_SMTPD_MULTILINE_GREETING!g
 s!__SAFE_MYNETWORKS__!$POSTFIX_SAFE_MYNETWORKS!g
-s!__BROKEN_AUTH__!$POSTFIX_BROKEN_AUTH!g
 
 s!__REQUIRES__!$REQUIRES!g
 s!__BUILDREQUIRES__!$BUILDREQUIRES!g
