@@ -15,9 +15,19 @@ elif [ `rpm -q yellowdog-release >/dev/null 2>&1; echo $?` = 0 ]; then
     release=`rpm -q yellowdog-release | sed -e 's;^yellowdog-release-;;' -e 's;-[0-9]*$;;'`
 else
     releasename=unknown
-    release=0.0
+    release=0
 fi
-major=`echo $release | sed -e 's;\.[0-9]*$;;'`
-minor=`echo $release | sed -e 's;^[0-9]*\.;;'`
+
+if [ `echo $release | grep -q '\.'` ]; then
+    major=`echo $release | sed -e 's;\.[0-9]*$;;'`	# strip off trailing minor
+    minor=`echo $release | sed -e 's;^[0-9]*\.;.;'`	# strip off leading major
+else
+    major=$release
+    minor=
+fi
+
+#echo release=$release
+#echo major=$major
+#echo minor=$minor
  
-echo ${releasename}-${major}.${minor}
+echo ${releasename}-${major}${minor}
