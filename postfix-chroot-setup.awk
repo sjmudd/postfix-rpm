@@ -6,5 +6,5 @@
 BEGIN			{ OFS="\t"; }
 /^#/			{ print; next; }
 /^ /			{ print; next; }
-$8 ~ /(local|pipe)/	{ print; next; }
+$8 ~ /(local|pipe|virtual)/	{ print; next; }
 			{ $5="y"; print $0; }

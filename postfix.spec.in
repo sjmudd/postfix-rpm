@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.78 2002/12/12 17:43:19 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.79 2003/01/07 08:57:35 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -66,7 +66,7 @@
 %define official 1 
 %define ver 1.1.12
 %define mail_release_date 20020115
-%define rel 4.1
+%define rel 5
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -207,7 +207,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.78 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.79 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -284,7 +284,7 @@ cp $RPM_SOURCE_DIR/README.CDB .
 sh dict_cdb.sh
 %endif
 %if %{vda}
-gunzip < %{_sourcedir}/postfix-%{vdaver}_quota_maildirsize.patch.gz | patch -p1 -b --suffix .vda -s
+  gzip -dc %{_sourcedir}/postfix-%{vdaver}_quota_maildirsize.patch.gz | patch -p1 -b --suffix .vda -s
 %endif
 # Apply RBL Reply maps
 %if %{RBL_MAPS}
@@ -959,8 +959,10 @@ fi
 
 %changelog
 
-* Wed Dec 11 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-4.1
+* Tue Jan 07 2003 S J Mudd <sjmudd@pobox.com> 1.1.12-5
   - remove LICENSE from %doc directory, already in /etc/postfix
+  - fix master.cf: virtual should not be chrooted
+    - problem reported by Alex Kramarov <alex@incredimail.com>
 
 * Wed Dec 11 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-4
   - remove postfix-etc-cron.daily-postfix from pkg-sourcelist
