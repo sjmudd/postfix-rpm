@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.108 2004/03/09 22:53:18 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.109 2004/03/09 22:55:51 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -235,7 +235,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.108 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.109 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -304,9 +304,9 @@ fi
 %patch3 -p1 -b .alternatives
 %patch7 -p1 -b .logrcpt
 # apply verisign/blacklist patch
-test -e  %{SOURCE6} && \
-  gzip -dc %{SOURCE6} | patch -p1 -b --suffix .blacklist || \
-    die "%{SOURCE6} not found or patch failed"
+test -e  %{PATCH6} && \
+  gzip -dc %{PATCH6} | patch -p1 -b --suffix .blacklist || \
+    die "%{PATCH6} not found or patch failed"
 
 # Apply optional patches
 %if %{cdb}
