@@ -1,5 +1,5 @@
 make-postfix.spec
-pfixtls-0.8.12-1.1.12-20021219-0.9.6h.tar.gz
+pfixtls-0.8.12-2.0.0.1-0.9.6h.tar.gz
 postfix-1.1.11-20020822_quota.patch.gz
 postfix-1.1.12-20021124-multiline-greeting.patch
 postfix-aliases
@@ -19,4 +19,5 @@ postfix-pg-raw.patch
 postfix-rbl_reply_maps.patch
 postfix-smtp_sasl_proto.c.patch
 postfix.spec.in
+tls+ipv6-1.10-pf-2.0.0-20021223.patch.gz
 README.CDB
