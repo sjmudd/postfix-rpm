@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.5 2000/10/08 17:29:40 root Exp $
+# $Id: postfix.spec.in,v 2.6 2000/10/12 16:06:41 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -16,7 +16,7 @@ PreReq: /sbin/chkconfig
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
 Version: 20001005
-Release: 2
+Release: 3
 Packager: Simon J Mudd <sjmudd@pobox.com> but see description below
 Vendor: None -- see packager
 Distribution: Experimental
@@ -50,7 +50,7 @@ covers steps which should be taken prior to and after the installation
 of Postfix.  Note this faq this is rather out of date.
 
 The binary and source rpms I produce are currently stored on
-	http://web5.dialin.co.uk/~sjmudd/postfix
+	http://www.pobox.com/~sjmudd/postfix
 
 Binary RPMS for alpha and S/390-Linux architectures were built by
 Klaus Jaehne <klaus.jaehne@to.com>.  Please contact him for information
@@ -325,6 +325,9 @@ rm -rf ${RPM_BUILD_ROOT}
 #	Bennett Todd <bet@mordor.net>
 
 %changelog
+* Thu Oct 12 2000 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001005-3, changes url shown for my packages.
+
 * Sun Oct 08 2000 Simon Mudd <sjmudd@pobox.com>
 - built for snapshot-20001005-2, tidying up and taking in _some_
   of the stuff I've seen on one of redhat's postfix spec files.
