@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.48 2003/05/09 07:20:57 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.49 2003/05/12 15:13:12 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -214,7 +214,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.48 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.49 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -241,26 +241,26 @@ distribution=`sh ${tmpdir}/postfix-get-distribution`
 
 if [ "${distribution}" != "%{distribution}" ]; then
     cat <<ENDTEXT
-*** ERROR ***
+ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR
 
 This postfix.spec file was built for %{distribution}, while you are
-running ${distribution}.
-
-Rebuild the postfix.spec file for your distribution by performing the
-following steps:
+running ${distribution}.  It may not work correctly.  Rebuild postfix.spec
+for your distribution as follows:
 
 	cd `rpm --eval '%{_sourcedir}'`
 	# define the POSTFIX_XXX variables according to your requirements
+	# see make-postfix.spec for more information
 	sh make-postfix.spec
 
-Once you have rebuilt the spec file, you can build the RPM files as
-follows:
+Once you have rebuilt postfix.spec, you build the RPMs as follows:
 
 	cd `rpm --eval '%{_specdir}'`
 	rpmbuild -ba postfix.spec
 
 If this procedure does not allow you to produce a working package, please
 let me know.
+
+ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR
 ENDTEXT
 	exit 1
 fi
@@ -273,7 +273,9 @@ fi
   patch -p1 <%{pfixtls}/pfixtls.diff
 %endif
 %if %{ipv6}
-  gzip -dc %{SOURCE14} | patch -p1 -b --suffix .ipv6
+  test -e  %{SOURCE14} && \
+  gzip -dc %{SOURCE14} | patch -p1 -b --suffix .ipv6 || \
+    die "%{SOURCE14} not found or patch failed"
 %endif
 
 # Apply obligatory patches
@@ -288,7 +290,9 @@ sh dict_cdb.sh
 %endif
 
 %if %{vda}
-  gzip -dc %{_sourcedir}/postfix-%{vdaver}.patch.gz | patch -p1 -b --suffix .vda -s
+  test -e  %{_sourcedir}/postfix-%{vdaver}.patch.gz && \ 
+  gzip -dc %{_sourcedir}/postfix-%{vdaver}.patch.gz | patch -p1 -b --suffix .vda -s || \
+    die "%{_sourcedir}/postfix-%{vdaver}.patch.gz not found or patch failed"
 %endif
 
 %if %{mysqlquery}
@@ -420,8 +424,6 @@ make DEBUG="%{?_with_debug:-g}" OPT="$RPM_OPT_FLAGS"
 %pre
 umask 022
 
-%{die_cmd}
-
 # create postfix user and group, and maildrop group if necessary.
 # Use perl rather than looking in /etc/passwd or /etc/group as this works
 # in a wider NIS or LDAP environment
@@ -451,8 +453,8 @@ test -z "${GROUP}" && usermod -G mail postfix || :
 umask 022
 
 [ -n "${RPM_BUILD_ROOT}" -a "${RPM_BUILD_ROOT}" != "/" ] && {
-    /bin/rm -rf   ${RPM_BUILD_ROOT}
-    /bin/mkdir -p ${RPM_BUILD_ROOT}
+    rm -rf   ${RPM_BUILD_ROOT}
+    mkdir -p ${RPM_BUILD_ROOT}
 }
 
 %{?!debug:strip -R .comment --strip-unneeded bin/* libexec/*}
@@ -496,7 +498,7 @@ bin/postconf -c ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix -e \
 || exit 1
 
 # This installs into the "init" directory
-/bin/mkdir -p ${RPM_BUILD_ROOT}%{init_directory}
+mkdir -p ${RPM_BUILD_ROOT}%{init_directory}
 install -c %{_sourcedir}/postfix-etc-init.d-postfix \
                   ${RPM_BUILD_ROOT}%{init_directory}/postfix
 
@@ -537,7 +539,7 @@ perl -pi -e "s,/usr/local/bin/perl,/usr/bin/perl,g" html/TLS/loadCAcert.pl
 %post
 umask 022
 
-/sbin/chkconfig --add postfix
+chkconfig --add postfix
 
 # upgrade configuration files if necessary
 sh %{_sysconfdir}/postfix/post-install upgrade-package \
@@ -753,8 +755,8 @@ ldconfig -n %{_var}/spool/postfix%{_libdir}
 # remove ldap chroot environment
 %triggerun -- openldap
 [ $2 = 0 ] || exit 0
-/bin/rm -f %{_var}/spool/postfix%{_libdir}/libldap*.so*
-/bin/rm -f %{_var}/spool/postfix%{_libdir}/liblber.so*
+rm -f %{_var}/spool/postfix%{_libdir}/libldap*.so*
+rm -f %{_var}/spool/postfix%{_libdir}/liblber.so*
 %endif
 
 %if %{pgsql} && ! %{disable_chroot}
@@ -780,8 +782,8 @@ umask 022
 
 chroot_remove () {
 %if %{ldap}
-    /bin/rm -f %{_var}/spool/postfix%{_libdir}/libldap*.so*
-    /bin/rm -f %{_var}/spool/postfix%{_libdir}/liblber.so*
+    rm -f %{_var}/spool/postfix%{_libdir}/libldap*.so*
+    rm -f %{_var}/spool/postfix%{_libdir}/liblber.so*
 %endif
 
     for i in etc/localtime usr/lib/zoneinfo/localtime \
@@ -791,11 +793,11 @@ chroot_remove () {
             lib/libdb-%{requires_db}.*so \
 %endif
 	    lib/libnss_* lib/libresolv*; do
-	test -f %{_var}/spool/postfix/${i} -o -L %{_var}/spool/postfix/${i} && /bin/rm -f %{_var}/spool/postfix/${i}
+	test -f %{_var}/spool/postfix/${i} -o -L %{_var}/spool/postfix/${i} && rm -f %{_var}/spool/postfix/${i}
     done
 
     for dir in usr/lib/zoneinfo usr/lib usr lib etc; do
-        test -d $dir && /bin/rmdir $dir || \
+        test -d $dir && rmdir $dir || \
 	    %whinge "WARNING: preun - unable to remove directory %{_var}/spool/postfix/$dir"
     done
 }
@@ -814,8 +816,8 @@ queue_hash_depth_remove () {
                 test -d $dir/$a && queue_hash_depth_remove $dir/$a $new_depth
             done
         fi
-        /bin/rm -f $dir/*
-        /bin/rmdir $dir || %whinge "WARNING: preun - unable to remove directory %{_var}/spool/postfix/$dir"
+        rm -f $dir/*
+        rmdir $dir || %whinge "WARNING: preun - unable to remove directory %{_var}/spool/postfix/$dir"
     }
 }
 
@@ -835,8 +837,8 @@ queue_directory_remove () {
 }
 
 if [ "$1" = 0 ]; then
-    /sbin/service postfix stop >/dev/null 2>&1
-    /sbin/chkconfig --del postfix
+    service postfix stop >/dev/null 2>&1
+    chkconfig --del postfix
 
     if [ -x %{_sbindir}/alternatives ]; then
         %{_sbindir}/alternatives --remove mta %{_sbindir}/sendmail.postfix
@@ -871,13 +873,13 @@ fi
 %postun
 umask 022
 if [ "$1" -ge 1 ]; then
-    /sbin/service postfix condrestart 
+    service postfix condrestart 
 fi
 
 %clean
 umask 022
 [ -n "${RPM_BUILD_ROOT}" && "${RPM_BUILD_ROOT}" != "/" ] && {
-    /bin/rm -rf ${RPM_BUILD_ROOT}
+    rm -rf ${RPM_BUILD_ROOT}
 }
 
 %files
@@ -1022,6 +1024,8 @@ umask 022
   - change %{buildroot} macro back to ${RPM_BUILD_ROOT} as this is RH's
     preferred method for defining the buildroot.
   - for maximum compatibility add back install -c option
+  - failed application of gzipped patches might not be seen by rpm - fixed
+  - tidyup pathnames, removing for commands in /sbin and /bin
 
 * Wed Apr 30 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.9-2
   - TLS patch failed due to typo in change between 2.0.8-1 and 2.0.9-1
