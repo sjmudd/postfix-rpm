@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.191 2002/01/17 13:36:53 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.192 2002/01/17 16:23:29 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -174,7 +174,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.191 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.192 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -509,9 +509,6 @@ for i in smtp-sink smtp-source; do
   install -c -m 755 bin/$i %{buildroot}%{command_directory}/
 done
 
-# add a symbolic link in the config directory to the html files.
-ln -s ../../usr/share/doc/%{name}-%{version}/html %{buildroot}%{config_directory}/html
-
 ##############################################################################
 # The post script executes after the package has been installed.  Here
 # we put things that invoke files we just installed, and populate the
@@ -699,9 +696,6 @@ fi
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/relocated
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/transport
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/virtual
-
-# This is a symbolic link
-%attr(0644, root, root) %{config_directory}/html
 
 %dir %attr(-, root, root) %{config_directory}/samples
 %attr(0644,   root, root) %{config_directory}/samples/*
