@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.72 2001/11/19 09:23:50 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.73 2001/11/19 09:25:50 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -83,7 +83,7 @@ Patch1: postfix-config.patch
 Patch2: postfix-chroot_chk.patch
 Patch3: postfix-INSTALL.sh.patch
 Patch4: postfix-smtp_addr.c.patch
-Patch6: postfix-INSTALL.sh.non-root.patch
+Patch5: postfix-INSTALL.sh.non-root.patch
 
 # Optional patches - set the appropriate environment variables to include
 #                    them when building the package/spec file
@@ -145,7 +145,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.72 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.73 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -243,7 +243,7 @@ patch -p1 <%{tlsno}/pfixtls.diff
 %patch2 -p1 -b .chk
 %patch3 -p1 -b .install
 %patch4 -p1 -b .smtp
-%patch6 -p1 -b .inistall-non-root
+%patch5 -p1 -b .inistall-non-root
 
 # Apply optional patches
 
