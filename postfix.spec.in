@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.54 2001/01/26 19:54:55 root Exp $
+# $Id: postfix.spec.in,v 2.55 2001/01/28 12:19:16 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -51,7 +51,7 @@ PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail, exim, qmail
 Version: 20001217
-Release: 12__SUFFIX__
+Release: 13__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Vendor: Built under __DISTRIBUTION__
 Distribution: Experimental
@@ -97,13 +97,13 @@ Requires: pcre
 BuildRequires: pcre, pcre-devel
 %endif
 
-%if %{MYSQL}
+%if %{REDHATMYSQL}
 Requires: mysql, mysqlclient9
 BuildRequires: mysql, mysqlclient9, mysql-devel
 %endif
-%if %{REDHATMYSQL}
+%if %{MYSQL}
 Requires: MySQL, MySQL-client, zlib
-BuildRequires: MySQL, mysqlclient, MySQL-devel, zlib-devel
+BuildRequires: MySQL, MySQL-client, MySQL-devel, zlib-devel
 %endif
 
 %if %{SASL}
@@ -571,6 +571,10 @@ rm -rf ${RPM_BUILD_ROOT}
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Fri Jan 26 2001 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001217-13, Mysql support was incorrect - fixed
+  Ramiro Morales <rmrpms@usa.net>
+
 * Fri Jan 26 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001217-12, include missing DB_README
 - include support for both mysql (RedHat MySQL packages) and
