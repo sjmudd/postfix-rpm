@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.43 2002/07/12 21:03:08 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.44 2002/07/15 13:41:59 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -29,8 +29,10 @@
 # SMTPD_MULTILINE_GREETING - my patch to allow multiline banner
 # VDA                      - add virtual delivery agent patch
 # DISABLE_CHROOT           - disable setup of chroot environment
+# MANPAGE_SUFFIX	   - man page suffix, .gz except Mandrake 8 which uses .bz2
 #
 %define distribution __DISTRIBUTION__
+%define mps __MANPAGE_SUFFIX__
 %define ldap __LDAP__
 %define mysql __MYSQL__
 %define redhatmysql __REDHAT_MYSQL__
@@ -54,7 +56,7 @@
 
 # Version information
 %define pflogno -1.0.4
-%define vdaver 1.1.6
+%define vdaver 1.1.7
 %define pfixtls pfixtls-0.8.10-1.1.10-0.9.6d
 %define pgver 1.1.4
 
@@ -62,7 +64,7 @@
 %define official 1 
 %define ver 1.1.11
 %define mail_release_date 20020115
-%define rel 5
+%define rel 6
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -142,8 +144,8 @@ Patch99: postfix-smtpd_multiline_greeting.patch
 BuildRoot: %{_tmppath}/postfix-%{package_version}-buildroot
 
 # Determine packaging requirements
+BuildRequires: gawk, perl, sed, ed, patch, rpm >= 4
 Requires: gawk, perl, sed, ed
-BuildRequires: gawk, perl, sed, ed, patch
 
 %if %{REQUIRES_DB3}
 Requires: db3
@@ -205,7 +207,7 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.43 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.44 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, VDA=%{VDA}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -440,7 +442,7 @@ sh postfix-install -non-interactive \
 # RPM compresses man pages automatically.  Edit postfix-files to reflect this,
 # so post-install won't get confused.
 ed %{buildroot}%{config_dir}/postfix-files <<EOF || exit 1
-%s/\(\/man[158]\/.*\.[158]\):/\1.gz:/
+%s/\(\/man[158]\/.*\.[158]\):/\1%{mps}:/
 w
 q
 EOF
@@ -547,9 +549,9 @@ if [ -x %{_sbindir}/alternatives ]; then
         --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
         --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
         --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
-        --slave %{_mandir}/man1/mailq.1.gz mta-mailqman %{_mandir}/man1/mailq.postfix.1.gz \
-        --slave %{_mandir}/man1/newaliases.1.gz mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1.gz \
-        --slave %{_mandir}/man5/aliases.5.gz mta-aliasesman %{_mandir}/man5/aliases.postfix.5.gz \
+        --slave %{_mandir}/man1/mailq.1%{mps} mta-mailqman %{_mandir}/man1/mailq.postfix.1%{mps} \
+        --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
+        --slave %{_mandir}/man5/aliases.5%{mps} mta-aliasesman %{_mandir}/man5/aliases.postfix.5%{mps} \
         --initscript postfix
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
@@ -558,9 +560,9 @@ else
         ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
         ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
         ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
-        ln -sf %{_mandir}/man1/mailq.postfix.1.gz      %{_mandir}/man1/mailq.1.gz 
-        ln -sf %{_mandir}/man1/newaliases.postfix.1.gz %{_mandir}/man1/newaliases.1.gz 
-        ln -sf %{_mandir}/man5/aliases.postfix.5.gz    %{_mandir}/man5/aliases.5.gz
+        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
+        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
+        ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
     fi
 fi
 
@@ -576,9 +578,9 @@ if [ -x %{_sbindir}/alternatives ]; then
         --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
         --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
         --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
-        --slave %{_mandir}/man1/mailq.1.gz mta-mailqman %{_mandir}/man1/mailq.postfix.1.gz \
-        --slave %{_mandir}/man1/newaliases.1.gz mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1.gz \
-        --slave %{_mandir}/man5/aliases.5.gz mta-aliasesman %{_mandir}/man5/aliases.postfix.5.gz \
+        --slave %{_mandir}/man1/mailq.1%{mps} mta-mailqman %{_mandir}/man1/mailq.postfix.1%{mps} \
+        --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
+        --slave %{_mandir}/man5/aliases.5%{mps} mta-aliasesman %{_mandir}/man5/aliases.postfix.5%{mps} \
         --initscript postfix
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
@@ -587,9 +589,9 @@ else
         ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
         ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
         ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
-        ln -sf %{_mandir}/man1/mailq.postfix.1.gz      %{_mandir}/man1/mailq.1.gz 
-        ln -sf %{_mandir}/man1/newaliases.postfix.1.gz %{_mandir}/man1/newaliases.1.gz 
-        ln -sf %{_mandir}/man5/aliases.postfix.5.gz    %{_mandir}/man5/aliases.5.gz
+        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
+        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
+        ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
     fi
 fi
 
@@ -610,9 +612,9 @@ if [ -x %{_sbindir}/alternatives ]; then
         --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
         --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
         --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
-        --slave %{_mandir}/man1/mailq.1.gz mta-mailqman %{_mandir}/man1/mailq.postfix.1.gz \
-        --slave %{_mandir}/man1/newaliases.1.gz mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1.gz \
-        --slave %{_mandir}/man5/aliases.5.gz mta-aliasesman %{_mandir}/man5/aliases.postfix.5.gz \
+        --slave %{_mandir}/man1/mailq.1%{mps} mta-mailqman %{_mandir}/man1/mailq.postfix.1%{mps} \
+        --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
+        --slave %{_mandir}/man5/aliases.5%{mps} mta-aliasesman %{_mandir}/man5/aliases.postfix.5%{mps} \
         --initscript postfix
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
@@ -621,9 +623,9 @@ else
         ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
         ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
         ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
-        ln -sf %{_mandir}/man1/mailq.postfix.1.gz      %{_mandir}/man1/mailq.1.gz 
-        ln -sf %{_mandir}/man1/newaliases.postfix.1.gz %{_mandir}/man1/newaliases.1.gz 
-        ln -sf %{_mandir}/man5/aliases.postfix.5.gz    %{_mandir}/man5/aliases.5.gz
+        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
+        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
+        ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
     fi
 fi
 
@@ -777,9 +779,9 @@ if [ "$1" = 0 ]; then
             rm -f %{_bindir}/newaliases
             rm -f %{_bindir}/rmail
             rm -f %{_mandir}/sendmail
-            rm -f %{_mandir}/man1/mailq.1.gz
-            rm -f %{_mandir}/man1/newaliases.1.gz
-            rm -f %{_mandir}/man5/aliases.5.gz
+            rm -f %{_mandir}/man1/mailq.1%{mps}
+            rm -f %{_mandir}/man1/newaliases.1%{mps}
+            rm -f %{_mandir}/man5/aliases.5%{mps}
         fi
     fi
 
@@ -950,6 +952,13 @@ fi
 #
 
 %changelog
+
+* Mon Jul 15 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-6
+  - add MANPAGE_SUFFIX in make-postfix.spec and %{mps} in spec file
+    to allow Mandrake 8's .bz2 man page suffix to be used.
+    - Erin Schnabel <erin@haaser.com>
+  - add BuildRequires: rpm >= 4 to ensure that the spec file is used correctly.
+    RH6.1 builds failed due to rpm v3 not processing the %if macros correctly.
 
 * Fri Jul 12 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-5
   - remove debugging which was enabled when it shouldn't have been

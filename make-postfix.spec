@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.35.2.10 2002/06/30 22:20:09 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.35.2.11 2002/07/15 13:41:59 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -51,6 +51,8 @@ REQUIRES_DB3=
 REQUIRES_DB4=
 REQUIRES_INIT_D=
 TLSFIX=
+# This appears to be .gz, except for Mandrake 8 which uses .bz2
+MANPAGE_SUFFIX=".gz"
 
 echo ""
 echo "Creating Postfix spec file: `rpm --eval '%{_specdir}'`/postfix.spec"
@@ -197,11 +199,12 @@ mandrake)
     # Mandrake 8.1
     # - appears to use db3 in the same way as rh7
     case ${major} in
-    7) SUFFIX="${SUFFIX}mdk7x" ;;
+    7) SUFFIX="${SUFFIX}.mdk7x" ;;
     8) test -z "$REQUIRES_DB4" && REQUIRES_DB3=1
-       SUFFIX="${SUFFIX}mdk"
+       MANPAGE_SUFFIX=".bz2"
+       SUFFIX="${SUFFIX}.mdk"
        ;;
-    *) SUFFIX="${SUFFIX}mdk"
+    *) SUFFIX="${SUFFIX}.mdk"
     esac
     ;;
 
@@ -256,6 +259,7 @@ s!__TLS__!$POSTFIX_TLS!g
 s!__TLSFIX__!$TLSFIX!g
 s!__VDA__!$POSTFIX_VDA!g
 s!__DISABLE_CHROOT__!$POSTFIX_DISABLE_CHROOT!g
+s!__MANPAGE_SUFFIX__!$MANPAGE_SUFFIX!g
 " `rpm --eval '%{_sourcedir}'`/postfix.spec.in >> `rpm --eval '%{_specdir}'`/postfix.spec
 
 # end of make-postfix.spec
