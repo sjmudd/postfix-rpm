@@ -3,8 +3,8 @@ eval 'exec perl -S $0 "$@"'
     if 0;
 #
 # pflogsumm.pl - Produce summaries of Postfix/VMailer MTA in logfile -
-#	Copyright (C) 1998-99 by James S. Seymour (jseymour@jimsun.LinxNet.com)
-#	(See "License", below.)  Version 20000925-01
+#	Copyright (C) 1998-2001 by James S. Seymour (jseymour@LinxNet.com)
+#	(See "License", below.)  Release 1.0.3.
 #
 # Usage:
 #    pflogsumm.pl -[eq] [-d <today|yesterday>] [-h <cnt>] [-u <cnt>]
@@ -103,7 +103,7 @@ eval 'exec perl -S $0 "$@"'
 #                   munging is more "aggressive", converting the address
 #                   to something like:
 #
-#			"list@host.sender.dom"
+#			"list-return@host.sender.dom"
 #
 #                   (Actually: specifying anything less than 2 does the
 #		    "simple" munging and anything greater than 1 results
@@ -243,6 +243,7 @@ my (
     $msgsDfrdCnt, $msgsDfrd, %msgDfrdFlgs,
     %connTime, %smtpPerDay, %smtpPerDom, $smtpConnCnt, $smtpTotTime
 );
+$dayCnt = $smtpConnCnt = $smtpTotTime = 0;
 
 # Messages received and delivered per hour
 my @rcvPerHr = qw(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0);
@@ -331,21 +332,20 @@ while(<>) {
 	++$dayCnt;
     }
 
-    if($qid eq 'warning') {
-	# regexp rejects happen in "cleanup"
-	if(my($rejTyp, $rejReas, $rejRmdr) =
-	    /^.*\/(cleanup)\[.*reject: ([^\s]+) (.*)$/o)
-	{
-	    $rejRmdr = string_trimmer($rejRmdr, 64, $opts{'verbMsgDetail'});
-	    ++$rejects{$rejTyp}{$rejReas}{$rejRmdr};
-	    ++$msgsRjctd;
-	    ++$rejPerHr[$msgHr];
-	    ++${$msgsPerDay{$revMsgDateStr}}[4];
-	} else {
-	    (my $warnReas = $_) =~ s/^.*warning: //o;
-	    $warnReas = string_trimmer($warnReas, 66, $opts{'verbMsgDetail'});
-	    ++$warnings{$cmd}{$warnReas};
-	}
+    # regexp rejects happen in "cleanup"
+    if(my($rejTyp, $rejReas, $rejRmdr) =
+	/^.*\/(cleanup)\[.*reject: ([^\s]+) (.*)$/o)
+    {
+	$rejRmdr =~ s/; from=<.*$//o unless($opts{'verbMsgDetail'});
+	$rejRmdr = string_trimmer($rejRmdr, 64, $opts{'verbMsgDetail'});
+	++$rejects{$rejTyp}{$rejReas}{$rejRmdr};
+	++$msgsRjctd;
+	++$rejPerHr[$msgHr];
+	++${$msgsPerDay{$revMsgDateStr}}[4];
+    } elsif($qid eq 'warning') {
+	(my $warnReas = $_) =~ s/^.*warning: //o;
+	$warnReas = string_trimmer($warnReas, 66, $opts{'verbMsgDetail'});
+	++$warnings{$cmd}{$warnReas};
     } elsif($qid eq 'fatal') {
 	(my $fatalReas = $_) =~ s/^.*fatal: //o;
 	$fatalReas = string_trimmer($fatalReas, 66, $opts{'verbMsgDetail'});
@@ -357,35 +357,35 @@ while(<>) {
     } elsif($qid eq 'reject') {
 	# This could get real ugly!
 	# First: get everything following the "reject: " token
-	my ($rejTyp, $rejFrom, $rejRmdr) =
+	my $rejFrom;
+	($rejTyp, $rejFrom, $rejRmdr) =
 	    /^.* reject: ([^ ]+) from ([^:]+): (.*)$/o;
 	# Next: get the reject "reason"
-	my $rejReas = $rejRmdr;
+	$rejReas = $rejRmdr;
 	unless(defined($opts{'verbMsgDetail'})) {
 	    if($rejTyp eq "RCPT") {	# special treatment :-(
-#		$rejReas = (split(/[;:] /, $rejReas))[-2];
-#		$rejReas =~ s/\[[0-9\.]+\]//o;
-		$rejReas =~ s/^(?:.*?[:;] )(?:\[[^\]]+\] )?([^;]+);.*$/$1/oi;
-#		$rejReas =~ s/^(?:.*?[:;] )(?:\[.* blocked using )?([^;]+);.*$/$1/oi;
-#		$rejReas =~ s/^(?:.*?[:;] )([^;]+);.*$/$1/oi;
+		$rejReas =~ s/^(?:.*?[:;] )(?:\[[^\]]+\] )?([^;,]+)[;,].*$/$1/oi;
 	    } else {
 		$rejReas =~ s/^(?:.*[:;] )?([^,]+).*$/$1/o;
 	    }
 	}
 	# stash in "triple-subscripted-array"
 
-	if($rejReas =~ m/^Client host rejected: Access denied/) {
+	if($rejReas =~ m/^Client host rejected: Access denied/o) {
 	    ++$rejects{$rejTyp}{$rejReas}{gimme_domain($rejFrom)};
-	} elsif($rejReas =~ m/^Sender address rejected:/) {
+	} elsif($rejReas =~ m/^Sender address rejected:/o) {
 	    # Sender address rejected: Domain not found
 	    # Sender address rejected: need fully-qualified address
 	    my ($from, $to) = $rejRmdr =~ m/from=<([^>]*)>\s+to=<([^>]*)>/;
 	    ++$rejects{$rejTyp}{$rejReas}{$from};
-	} elsif($rejReas =~ m/^Recipient address rejected:/) {
+	} elsif($rejReas =~ m/^Recipient address rejected:/o) {
 	    # Recipient address rejected: Domain not found
 	    # Recipient address rejected: need fully-qualified address
 	    my ($from, $to) = $rejRmdr =~ m/from=<(.*)>\s+to=<(.*)>$/;
 	    ++$rejects{$rejTyp}{$rejReas}{$to};
+	} elsif($rejReas =~ s/^.*?\d{3} (Improper use of SMTP command pipelining);.*$/$1/o) {
+	    my ($src) = /^.+? from ([^:]+):.*$/o;
+	    ++$rejects{$rejTyp}{$rejReas}{$src};
 	} else {
 #	    print STDERR "dbg: unknown reject reason $rejReas !\n\n";
 	    ++$rejects{$rejTyp}{$rejReas}{gimme_domain($rejFrom)};
@@ -463,12 +463,16 @@ while(<>) {
 		# "list-return-36-someuser=someplace.com@lists.domain.com"
 		# to "list-return-ID-someuser=someplace.com@lists.domain.com"
 		# to prevent per-user listing "pollution."  More aggressive
-		# munging converts to something like "list@lists.domain.com"
+		# munging converts to something like
+		# "list-return@lists.domain.com"  (Instead of "return," there
+		# may be numeric list name/id, "warn", "error", etc.?)
 		if(defined($opts{'verpMung'})) {
 		    if($opts{'verpMung'} > 1) {
-			$addr =~ s/^(.+)-return-\d+-[^\@]+(\@.+)$/$1$2/o;
+#			$addr =~ s/^(.+)-return-\d+-[^\@]+(\@.+)$/$1$2/o;
+			$addr =~ s/-(\d+-)?[^=-]+=[^\@]+\@/\@/o;
 		    } else {
-			$addr =~ s/-return-\d+-/-return-ID-/o;
+#			$addr =~ s/-return-\d+-/-return-ID-/o;
+			$addr =~ s/-(return|\d+)-\d+-/-$1-ID-/o;
 		    }
 		}
 	    } else {

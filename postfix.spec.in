@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.115 2001/05/23 21:38:21 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.116 2001/05/25 15:39:23 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -52,9 +52,9 @@
 #Used when we have patchlevels, as can't include '-' in the package name
 #define version1 %{vers}-%{patchlevel}
 #define version2 %{vers}_%{patchlevel}
-%define rel  5
+%define rel  6
 %define tlsno pfixtls-0.7.2-snap20010502-0.9.6a
-%define pflogno -0.9.0
+%define pflogno -1.0.3
 
 Name: postfix
 Summary: Postfix Mail Transport Agent
@@ -151,7 +151,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.115 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.116 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -695,10 +695,14 @@ fi
 ##############################################################################
 # List of changes made to this package.
 #
-# Old changelog from Tue Dec 15 1998 - Dec 31 2000 has been removed.
+# Although old entries from the changelog have been removed most of them
+# are available from my CVS repository of changes made to this file.
 #
 
 %changelog
+* Mon May 25 2001 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20010502-6, update pflogsumm.pl to 1.0.3
+
 * Mon May 07 2001 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20010502-4, general tidyup of make-postfix.spec
   - also add check if built from source on a different version of linux to
