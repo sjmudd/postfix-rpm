@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.182 2002/01/11 19:25:33 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.183 2002/01/11 19:46:34 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -48,14 +48,14 @@
 %define POSTDROP_GID __POSTDROP_GID__
 
 %define branch snapshot
-%define vers 20020110
+%define vers 20020111
 %define patchlevel pl01
 %define version1 %{vers}
 %define version2 %{vers}
 #Used when we have patchlevels, as can't include '-' in the package name
 #define version1 %{vers}-%{patchlevel}
 #define version2 %{vers}_%{patchlevel}
-%define rel 0.1
+%define rel 1
 
 %define tlsno pfixtls-0.7.14-snap20020107-0.9.6c
 %define pflogno -1.0.3
@@ -113,7 +113,6 @@ Source10: http://jimsun.linxnet.com/downloads/pflogsumm%{pflogno}.pl
 Source11: postfix-build
 Patch1: postfix-config.patch
 Patch2: postfix-smtp_sasl_proto.c.patch
-Patch3: postfix-install.patch
 
 # Optional patches - set the appropriate environment variables to include
 #                    them when building the package/spec file
@@ -175,7 +174,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.182 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.183 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -248,7 +247,6 @@ patch -p1 <%{tlsno}/pfixtls.diff
 # Apply obligatory patches
 %patch1 -p1 -b .config
 %patch2 -p1 -b .auth
-%patch3 -p1 -b .install
 
 # Apply optional patches
 
@@ -527,7 +525,9 @@ ldap_chroot_setup() {
 }
 
 # upgrade configuration files if necessary
-%{config_directory}/post-install -upgrade_package config_directory=%{config_directory}
+%{config_directory}/post-install \
+	config_directory=%{config_directory} \
+	upgrade_package
 
 # build the aliases.db file on the INSTALL machine
 %{command_directory}/postalias %{config_directory}/aliases
@@ -778,6 +778,9 @@ fi
 #
 
 %changelog
+
+* Fri Jan 11 2002 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20020111-1, update to latest snapshot
 
 * Fri Jan 11 2002 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20020110-1, update to latest snapshot
