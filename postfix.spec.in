@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.87 2003/08/21 16:32:27 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.88 2003/08/26 16:14:11 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -222,7 +222,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.87 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.88 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -379,7 +379,7 @@ CCARGS="${CCARGS} -fsigned-char"
 %endif
 
 # Postfix compiles without needing zlib on RedHat's mysql package, but
-# requires zlib when using MySQL's package or if using a locally installed 
+# requires zlib when using MySQL's package or if using a locally installed
 # MySQL binary.
 %if %{mysql}
   CCARGS="${CCARGS} -DHAS_MYSQL -I/usr/include/mysql"
