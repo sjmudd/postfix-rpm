@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.53 2003/05/24 15:47:33 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.54 2003/05/24 15:53:39 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -82,7 +82,7 @@
 %define official 1
 %define ver 2.0.10
 %define mail_release_date 20021219
-%define rel 1
+%define rel 2
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -230,7 +230,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.53 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.54 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
