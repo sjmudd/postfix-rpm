@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.2.24 2004/12/08 18:39:24 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.2.25 2004/12/08 22:33:55 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -253,7 +253,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.2.24 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.2.25 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -1108,6 +1108,7 @@ umask 022
 
 * Wed Dec 08 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.5-4
   - minor change including TLSFIX=2 for RHEL3
+    suggested by ML <ops@klez.it>
 
 * Wed Sep 22 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.5-3
   - update ipv6 patch
