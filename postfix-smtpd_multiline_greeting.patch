@@ -1,43 +1,40 @@
-diff -uNr snapshot-20000531-orig/smtpd/smtpd.c snapshot-20000531/smtpd/smtpd.c
---- snapshot-20000531-orig/src/smtpd/smtpd.c	Sun Aug 27 13:59:22 2000
-+++ snapshot-20000531/src/smtpd/smtpd.c		Sun Aug 27 19:21:57 2000
-@@ -1291,7 +1291,7 @@
- 	&& (state.access_denied = smtpd_check_client(&state)) != 0) {
- 	smtpd_chat_reply(&state, "%s", state.access_denied);
-     } else {
--	smtpd_chat_reply(&state, "220 %s", var_smtpd_banner);
-+	smtpd_chat_reply_multiline(&state, 220, var_smtpd_banner);
- 	msg_info("connect from %s[%s]", state.name, state.addr);
-     }
+--- snapshot-20010222/src/smtpd/smtpd_chat.h.orig	Fri Feb 23 17:48:16 2001
++++ snapshot-20010222/src/smtpd/smtpd_chat.h	Fri Feb 23 17:49:08 2001
+@@ -15,6 +15,7 @@
+ extern void smtpd_chat_reset(SMTPD_STATE *);
+ extern void smtpd_chat_query(SMTPD_STATE *);
+ extern void PRINTFLIKE(2, 3) smtpd_chat_reply(SMTPD_STATE *, char *, ...);
++extern void smtpd_chat_reply_multiline(SMTPD_STATE *, int, char *, ...);
+ extern void smtpd_chat_notify(SMTPD_STATE *);
  
-diff -uNr snapshot-20000531-orig/smtpd/smtpd_chat.c snapshot-20000531/smtpd/smtpd_chat.c
---- snapshot-20000531-orig/src/smtpd/smtpd_chat.c	Sun Aug 27 14:00:12 2000
-+++ snapshot-20000531/src/smtpd/smtpd_chat.c	Mon Aug 28 00:04:54 2000
+ /* LICENSE
+--- snapshot-20010222/src/smtpd/smtpd_chat.c.orig	Sat Nov 18 15:38:11 2000
++++ snapshot-20010222/src/smtpd/smtpd_chat.c	Fri Feb 23 17:45:01 2001
 @@ -14,6 +14,11 @@
  /*	SMTPD_STATE *state;
  /*	char	*format;
  /*
 +/*	void	smtpd_chat_reply_multiline(state, smtp_reply_code, format, ...)
-+/*      int     smtp_reply_code;
 +/*	SMTPD_STATE *state;
++/*	int     smtp_reply_code;
 +/*	char	*format;
 +/*
  /*	void	smtpd_chat_notify(state)
  /*	SMTPD_STATE *state;
  /*
-@@ -29,6 +34,11 @@
- /*	smtpd_chat_reply() formats a server reply, sends it to the
- /*	client, and appends a copy to the SMTP transaction log.
+@@ -31,6 +36,11 @@
+ /*	When soft_bounce is enabled, all 5xx (reject) reponses are
+ /*	replaced by 4xx (try again).
  /*
 +/*	smtpd_chat_reply_multiline() formats a server reply, sends it to
-+/*      the client, and appends a copy to the SMTP transaction log.
-+/*      The reply can contain embedded "\n"s which will be treated as
-+/*      separators in a multiline reply.
++/*	the client, and appends a copy to the SMTP transaction log.
++/*	The reply can contain embedded "\n"s which will be treated as
++/*	separators in a multiline reply.
 +/*
  /*	smtpd_chat_notify() sends a copy of the SMTP transaction log
  /*	to the postmaster for review. The postmaster notice is sent only
  /*	when delivery is possible immediately. It is an error to call
-@@ -59,6 +69,8 @@
+@@ -61,6 +71,8 @@
  #include <time.h>
  #include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
  #include <stdarg.h>
@@ -46,7 +43,7 @@ diff -uNr snapshot-20000531-orig/smtpd/smtpd_chat.c snapshot-20000531/smtpd/smtp
  
  /* Utility library. */
  
-@@ -163,6 +175,59 @@
+@@ -167,6 +179,59 @@
       */
      if (time((time_t *) 0) - vstream_ftime(state->client) > 10)
  	vstream_fflush(state->client);
@@ -106,3 +103,14 @@ diff -uNr snapshot-20000531-orig/smtpd/smtpd_chat.c snapshot-20000531/smtpd/smtp
  }
  
  /* print_line - line_wrap callback */
+--- snapshot-20010222/src/smtpd/smtpd.c.orig	Thu Feb 22 21:53:23 2001
++++ snapshot-20010222/src/smtpd/smtpd.c	Fri Feb 23 17:45:01 2001
+@@ -1335,7 +1335,7 @@
+ 	&& (state.access_denied = smtpd_check_client(&state)) != 0) {
+ 	smtpd_chat_reply(&state, "%s", state.access_denied);
+     } else {
+-	smtpd_chat_reply(&state, "220 %s", var_smtpd_banner);
++	smtpd_chat_reply_multiline(&state, 220, var_smtpd_banner);
+ 	msg_info("connect from %s[%s]", state.name, state.addr);
+     }
+ 

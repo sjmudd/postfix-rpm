@@ -5,15 +5,20 @@
 # chkconfig: 2345 80 30
 # description: Postfix is a Mail Transport Agent, which is the program \
 #              that moves mail from one machine to another.
+# description[es]: Postfix es un servidor de correo, el programa que \
+#              transporta el correo desde una maquina a otra.
 # processname: master
 # pidfile: /var/spool/postfix/pid/master.pid
 # config: /etc/postfix/main.cf
 # config: /etc/postfix/master.cf
-
+#
+# $Revision: 1.11 $
+#
 # Written by Package Author: Simon J Mudd <sjmudd@pobox.com>
 # 25/02/99: Mostly s/sendmail/postfix/g by John A. Martin <jam@jamux.com>
 # 23/11/00: Changes & suggestions by Ajay Ramaswamy <ajayr@bigfoot.com>
 # 20/01/01: Changes to fall in line with RedHat 7.0 style
+# 23/02/01: Fix a few untidy problems with help from Daniel Roesen.
 
 # Source function library.
 . /etc/rc.d/init.d/functions
@@ -31,6 +36,7 @@
 RETVAL=0
 
 start() {
+	# Start daemons.
 	echo -n "Starting postfix: "
 	/usr/sbin/postfix start 2>/dev/null 1>&2 && success || failure
 	RETVAL=$?
@@ -40,6 +46,7 @@ start() {
 }
 
 stop() {
+        # Stop daemons.
 	echo -n "Shutting down postfix: "
 	/usr/sbin/postfix stop 2>/dev/null 1>&2 && success || failure
 	RETVAL=$?
@@ -58,20 +65,17 @@ reload() {
 
 abort() {
 	/usr/sbin/postfix abort 2>/dev/null 1>&2 && success || failure
-	RETVAL=$?
-	return $RETVAL
+	return $?
 }
 
 flush() {
 	/usr/sbin/postfix flush 2>/dev/null 1>&2 && success || failure
-	RETVAL=$?
-	return $RETVAL
+	return $?
 }
 
 check() {
 	/usr/sbin/postfix check 2>/dev/null 1>&2 && success || failure
-	RETVAL=$?
-	return $RETVAL
+	return $?
 }
 
 # See how we were called.
@@ -100,16 +104,13 @@ case "$1" in
 	;;
   status)
   	status master
-        RETVAL=$?
 	;;
   condrestart)
-	if [ -f /var/lock/subsys/postfix ]; then
-		restart
-	fi
+	[ -f /var/lock/subsys/postfix ] && restart || :
 	;;
   *)
 	echo "Usage: postfix {start|stop|restart|reload|abort|flush|check|status|condrestart}"
 	exit 1
 esac
 
-exit $RETVAL
+exit $?
