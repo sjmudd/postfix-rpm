@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.254 2003/09/11 20:09:45 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.255 2003/09/11 20:16:28 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -143,7 +143,6 @@ Source15: postfix-RPM-TODO
 Source16: http://postfix.wl0.org/ftp/postfinger/%{postfinger}
 
 # Obligatory Patches
-Patch1: postfix-dict_ldap.c.patch
 Patch2: postfix-smtp_sasl_proto.c.patch
 Patch3: postfix-files.patch
 
@@ -227,7 +226,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.254 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.255 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -291,7 +290,6 @@ fi
 %endif
 
 # Apply obligatory patches
-%patch1 -p1 -b .ldapcache
 %patch2 -p1 -b .auth
 %patch3 -p1 -b .alternatives
 %patch7 -p1 -b .logrcpt
@@ -941,7 +939,6 @@ umask 022
 * Thu Sep 11 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.14-20030812-2
   - various updates:
     - support for sasl/pcre libraries on Mandrake
-    - ldap patch.
 
 * Fri Aug 29 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.14-20030812-1
   - update with help from Rob Hutton <rob.hutton@comcast.net>
