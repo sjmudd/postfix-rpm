@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.18 2004/02/01 14:43:04 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.19 2004/04/01 18:28:44 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -108,15 +108,16 @@ echo "  Checking rpm database for distribution information..."
 echo "  - if the script gets stuck here:"
 echo "    check and remove /var/lib/rpm/__db.00? files"
 
-# Determine the distribution (is there a better way of doing this)
+# Determine the distribution (is there a better way of doing this?)
 
 tmpdir=`rpm --eval '%{_sourcedir}'`
-distribution=`sh ${tmpdir}/postfix-get-distribution`
-releasename=`sh ${tmpdir}/postfix-get-distribution --distribution`
-major=`sh ${tmpdir}/postfix-get-distribution --major`
-minor=`sh ${tmpdir}/postfix-get-distribution --minor`
+fullname=`sh ${tmpdir}/postfix-get-distribution --full`		# redhat-release-9.0-3
+distribution=`sh ${tmpdir}/postfix-get-distribution`		# redhat-9.0
+releasename=`sh ${tmpdir}/postfix-get-distribution --name`	# redhat
+major=`sh ${tmpdir}/postfix-get-distribution --major`		# 9
+minor=`sh ${tmpdir}/postfix-get-distribution --minor`		# 0
 
-echo "  Distribution is: ${distribution}"
+echo "  Distribution is: ${fullname} (${distribution})"
 echo ""
 
 # --- REQUIRES_INIT_D --- do we require /etc/init.d?
