@@ -18,3 +18,4 @@ postfix-rbl_reply_maps.patch
 postfix-smtp_sasl_proto.c.patch
 postfix.spec.in
 tls+ipv6-1.21-pf-2.0.18.patch.gz
+README-Postfix-SASL-RedHat.txt
