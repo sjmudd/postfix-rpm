@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.57 2001/02/04 22:48:45 root Exp $
+# $Id: postfix.spec.in,v 2.58 2001/02/05 20:43:32 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -320,7 +320,8 @@ install -c ${RPM_SOURCE_DIR}/postfix-etc-init.d-postfix \
 # Copy the Linux chroot setup script to %{config_directory} so
 # we can use it to build the chroot environment during the install
 cp examples/chroot-setup/LINUX2 \
-		${RPM_BUILD_ROOT}%{config_directory}/chroot-setup-LINUX2
+    ${RPM_BUILD_ROOT}%{config_directory}/chroot-setup-LINUX2
+
 chmod u=rx ${RPM_BUILD_ROOT}%{config_directory}/chroot-setup-LINUX2
 
 # This is the /etc/cron.daily directory
@@ -354,7 +355,9 @@ umask 022
 %{command_directory}/postalias %{config_directory}/aliases
 
 # setup chroot structure - basic structure
-%{config_directory}/chroot-setup-LINUX2
+# this script calls postfix reload which fails if postfix is
+# not running, hence the 'true' return value
+%{config_directory}/chroot-setup-LINUX2 >/dev/null 2>/dev/null || true
 
 # setup chroot structure - when using LDAP
 # Note: not entirely sure this is ok: missing .so and .so.1.0.0
@@ -370,16 +373,71 @@ done
 %preun
 umask 022
 
+postfix_running () {
+    %{daemon_directory}/master -t 2>/dev/null
+} 
+
+stop_postfix () {
+    echo "Stopping the Postfix mail system"
+    if [ -f %{queue_directory}/pid/master.pid ]; then
+        kill `sed 1q %{queue_directory}/pid/master.pid`
+    else
+        echo "BUG: postfix.spec (preun) - please inform packager" 2>/dev/null
+    fi
+}
+
+ldap_chroot_remove () {
+    for i in usr/lib/libldap.so.1 usr/lib/liblber.so.1; do
+        test -f %{queue_directory}/$i && \
+            rm -f %{queue_directory}/$i
+    done
+}
+
+# remove chroot jail when uninstalling the package
+# WE MUST BE IN /var/spool/postfix before calling this routine
+
+chroot_remove () {
+    for i in etc/localtime usr/lib/zoneinfo/localtime \
+            etc/host.conf etc/resolv.conf etc/nsswitch.conf \
+	    etc/hosts etc/passwd etc/services \
+	    lib/libnss_* lib/libresolv*; do
+        test -f $i && rm -f $i
+    done
+
+    for dir in usr/lib/zoneinfo usr/lib usr lib etc; do
+        test -d $i && rmdir $i
+    done
+
+    # selectively remove the rest of the queue directory structure
+    # first remove the "queues" (and assume the hash depth is still 2)
+    for dir in active bounce defer flush; do
+        for a in 0 1 2 3 4 5 6 7 8 9 A B C D E F; do
+   	    test -d $dir/$a && {
+	        for b in 0 1 2 3 4 5 6 7 8 9 A B C D E F; do
+		    test -d $dir/$a/$b && (
+		        rm -f $dir/$a/$b/*
+		        rmdir $dir/$a/$b
+		    )
+		done
+		rmdir $dir/$a || echo "unable to remove directory %{queue_directory}/$dir/$a"
+	    }
+        done
+    done
+
+    # now remove the other directories
+    for dir in corrupt deferred incoming maildrop pid private public saved; do
+        test -d $dir && {
+            rm -f $dir/*
+            rmdir $dir || echo "unable to remove directory %{queue_directory}/$dir"
+        }
+    done
+}
+
 if [ "$1" = 0 ]; then
-    # stop postfix silently if it's running
-    %{daemon_directory}/master -t 2>/dev/null || {
-        echo "Stopping the Postfix mail system"
-        if [ -f %{queue_directory}/pid/master.pid ]; then
-            kill `sed 1q %{queue_directory}/pid/master.pid`
-        else
-            echo "BUG: postfix.spec (preun) - please inform packager" 2>/dev/null
-        fi
-    }
+    # stop postfix silently, but only if it's running
+    if [ postfix_running ]; then
+        stop_postfix
+    fi
 
     /sbin/chkconfig --del postfix                    
 
@@ -391,67 +449,40 @@ if [ "$1" = 0 ]; then
 
     # cd to %{queue_directory} before removing unwanted files
     cd %{queue_directory} && {
-
-# remove LDAP chroot files
 %if %{LDAP}
-        for i in usr/lib/libldap.so.1 usr/lib/liblber.so.1; do
-            test -f %{queue_directory}/$i && \
-                rm -f %{queue_directory}/$i
-        done
+        ldap_chroot_remove
 %endif
-
-        # remove chroot jail when uninstalling the package
-        for i in etc/localtime usr/lib/zoneinfo/localtime \
-		etc/host.conf etc/resolv.conf etc/nsswitch.conf \
-		etc/hosts etc/passwd etc/services \
-		lib/libnss_* lib/libresolv*; do
-            test -f $i && rm -f $i
-        done
-        for dir in usr/lib/zoneinfo usr/lib usr lib etc; do
-            test -d $i && rmdir $i
-        done
-        # selectively remove the rest of the queue directory structure
-        # first remove the "queues" (and assume the hash depth is still 2)
-	for dir in active bounce defer flush; do
-	    for a in 0 1 2 3 4 5 6 7 8 9 A B C D E F; do
-		test -d $dir/$a && {
-		    for b in 0 1 2 3 4 5 6 7 8 9 A B C D E F; do
-		        test -d $dir/$a/$b && (
-		            rm -f $dir/$a/$b/*
-		            rmdir $dir/$a/$b
-		        )
-		    done
-		    rmdir $dir/$a
-		}
-	    done
-	done
-	# now remove the other directories
-        for dir in corrupt deferred incoming maildrop pid private public saved; do
-            test -d $dir && {
-                rm -f $dir/*
-                rmdir $dir || echo "unable to remove directory %{queue_directory}/$dir"
-            }
-        done
+        chroot_remove
     }
+    true # to ensure we exit safely
 fi
 
 %postun
+umask 022
+
+postfix_running () {
+    %{daemon_directory}/master -t 2>/dev/null
+} 
+
+restart_postfix () {
+    echo "Stopping   the Postfix mail system"
+    if [ -f %{queue_directory}/pid/master.pid ]; then
+        kill `sed 1q %{queue_directory}/pid/master.pid`
+    else
+        echo "BUG: postfix.spec (postun) - please inform packager" 2>/dev/null
+    fi
+    sleep 2 # to give things time to stop
+    %{daemon_directory}/master &
+    echo "Restarting the Postfix mail system"
+}
 
 if [ "$1" != 0 ]; then
-    # restart postfix if it was running
-    # -- need to fix this to stop during install and keep note of the state for use here ---
-    # stop postfix silently if it's running
-    %{daemon_directory}/master -t 2>/dev/null || {
-        echo "Stopping   the Postfix mail system"
-        if [ -f %{queue_directory}/pid/master.pid ]; then
-            kill `sed 1q %{queue_directory}/pid/master.pid`
-        else
-            echo "BUG: postfix.spec (postun) - please inform packager" 2>/dev/null
-        fi
-        sleep 2 # to give things time to stop
-        %{daemon_directory}/master &
-        echo "Restarting the Postfix mail system"
-    }
+    # restart postfix, but only if it was running
+    if [ postfix_running ]; then
+        restart_postfix
+    else
+        true
+    fi
 fi
 
 %clean
