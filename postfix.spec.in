@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.36 2002/06/09 17:31:01 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.37 2002/06/30 22:20:09 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -62,7 +62,7 @@
 %define official 1 
 %define ver 1.1.11
 %define mail_release_date 20020115
-%define rel 1
+%define rel 2pre3
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -80,10 +80,10 @@
 %define sample_dir %{config_dir}/samples
 %define readme_dir %{config_dir}/README_FILES
 
-%define newaliases_path %{_bindir}/newaliases
-%define mailq_path %{_bindir}/mailq
-%define rmail_path %{_bindir}/rmail
-%define sendmail_path %{_sbindir}/sendmail
+%define newaliases_path %{_bindir}/newaliases.postfix
+%define mailq_path %{_bindir}/mailq.postfix
+%define rmail_path %{_bindir}/rmail.postfix
+%define sendmail_path %{_sbindir}/sendmail.postfix
 
 %define init_directory /etc/rc.d/init.d
 %define cron_directory /etc/cron.daily
@@ -107,7 +107,8 @@ PreReq: /etc/init.d, /sbin/service
 %endif
 Epoch: 2
 Provides: MTA smtpd smtpdaemon
-Obsoletes: sendmail, exim, qmail, smail
+# Keep packages like squirrelmail happy.
+Provides: %{_sbindir}/sendmail
 Version: %{package_version}
 Release: %{rel}__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
@@ -129,6 +130,7 @@ Source11: postfix-build
 # Obligatory Patches
 Patch1: postfix-config.patch
 Patch2: postfix-smtp_sasl_proto.c.patch
+Patch3: postfix-alternatives.patch
 
 # Optional patches
 Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}_quota.patch 
@@ -202,7 +204,7 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.36 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.37 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, VDA=%{VDA}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -267,6 +269,7 @@ patch -p1 <%{pfixtls}/pfixtls.diff
 # Apply obligatory patches
 %patch1 -p1 -b .config
 %patch2 -p1 -b .auth
+%patch3 -p1 -b .alternatives
 
 # Apply optional patches
 %if %{VDA}
@@ -297,6 +300,13 @@ done
 mv conf/master.cf conf/master.cf-nochroot
 awk -f %{_sourcedir}/postfix-chroot-setup.awk < conf/master.cf-nochroot > conf/master.cf
 %endif
+
+# Modify master.cf: rmail --> rmail.postfix
+ed conf/master.cf <<EOF || exit 1
+%s/rmail/rmail.postfix/
+w
+q
+EOF
 
 cp %{_sourcedir}/postfix-new-RPM-packages postfix-new-RPM-packages
 
@@ -471,6 +481,12 @@ for i in qmqp-source smtp-sink smtp-source; do
   install -m 755 bin/$i %{buildroot}%{_sbindir}/$i
 done
 
+# Move man pages around so we don't conflict with sendmail
+# Binaries are handled in the defines in preamble of specfile
+mv %{buildroot}%{_mandir}/man1/mailq.1      %{buildroot}%{_mandir}/man1/mailq.postfix.1
+mv %{buildroot}%{_mandir}/man1/newaliases.1 %{buildroot}%{_mandir}/man1/newaliases.postfix.1
+mv %{buildroot}%{_mandir}/man5/aliases.5    %{buildroot}%{_mandir}/man5/aliases.postfix.5
+
 # Executed after the package has been installed.
 # - activate postfix, setup chroot environment if necessary
 %post
@@ -489,6 +505,21 @@ sh %{config_dir}/post-install upgrade-package \
 	sample_directory=%{sample_dir} \
 	readme_directory=%{readme_dir} \
 || :
+
+# add alternatives support (available in rh7.3), or perform the equivalent
+# functionality by hand if needed.
+
+if [ -x %{_sbindir}/alternatives ]; then
+    %whinge "using RH alternatives"
+    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{_sbindir}/sendmail.postfix 30 \
+        --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
+        --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
+        --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
+        --slave %{_mandir}/man1/mailq.1.gz mta-mailqman %{_mandir}/man1/mailq.postfix.1.gz \
+        --slave %{_mandir}/man1/newaliases.1.gz mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1.gz \
+        --slave %{_mandir}/man5/aliases.5.gz mta-aliasesman %{_mandir}/man5/aliases.postfix.5.gz
+# if we are not using 7.3 the trigger scripts will kick in
+fi
 
 # build the aliases.db file on the INSTALL machine
 %{_sbindir}/postalias %{config_dir}/aliases
@@ -512,6 +543,50 @@ EOF
 fi
 
 # Start of trigger scripts ------------------------------------------------
+
+%triggerpostun -- sendmail
+
+# if removing sendmail and not using alternatives: replace with postfix equivalents
+%whinge "triggerpostun -- sendmail: final number of sendmail packages=$2"
+[ $2 = 0 ] || exit 0
+if [ ! -x %{_sbindir}/alternatives ]; then
+#    %whinge "triggerpostun -- sendmail: no alternatives"
+    if [ ! -e %{_sbindir}/sendmail ]; then
+        %whinge "no %{_sbindir}/sendmail present: simulating RH alternatives"
+        ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
+        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
+        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
+        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
+        ln -sf %{_mandir}/man1/mailq.postfix.1.gz      %{_mandir}/man1/mailq.1.gz 
+        ln -sf %{_mandir}/man1/newaliases.postfix.1.gz %{_mandir}/man1/newaliases.1.gz 
+        ln -sf %{_mandir}/man5/aliases.postfix.5.gz    %{_mandir}/man5/aliases.5.gz
+#    else
+#        %whinge "%{_sbindir}/sendmail present: do nothing"
+    fi
+fi
+
+%triggerpostun -- postfix
+ 
+# if upgrading postfix some versions are pre-alternatives and thus use /usr/sbin/sendmail.
+# After uninstalling the old package this file will be missing and we need to link to the
+# new postfix sendmail binary
+%whinge "triggerpostun -- postfix: final number of Postfix packages=$2"
+[ $2 -gt 0 ] || exit 0
+if [ ! -x %{_sbindir}/alternatives ]; then
+#    %whinge "triggerpostun -- postfix: no alternatives"
+    if [ ! -e %{_sbindir}/sendmail ]; then
+        %whinge "no %{_sbindir}/sendmail present: simulating RH alternatives"
+        ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
+        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
+        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
+        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
+        ln -sf %{_mandir}/man1/mailq.postfix.1.gz      %{_mandir}/man1/mailq.1.gz 
+        ln -sf %{_mandir}/man1/newaliases.postfix.1.gz %{_mandir}/man1/newaliases.1.gz 
+        ln -sf %{_mandir}/man5/aliases.postfix.5.gz    %{_mandir}/man5/aliases.5.gz
+#    else
+#        %whinge "%{_sbindir}/sendmail present: do nothing"
+    fi
+fi
 
 # Generate chroot jails on the fly when needed things are installed/upgraded
 %if ! %{DISABLE_CHROOT}
@@ -663,6 +738,22 @@ queue_directory_remove () {
 if [ "$1" = 0 ]; then
     /sbin/service postfix stop &>/dev/null
     /sbin/chkconfig --del postfix
+
+    if [ -x %{_sbindir}/alternatives ]; then
+        %{_sbindir}/alternatives --remove mta %{_sbindir}/sendmail.postfix
+    elif [ -L %{_sbindir}/sendmail} ]; then
+        # check that symbolic link belongs to postfix and perhaps remove files
+        if [ `ls -l %{_sbindir}/sendmail | awk '{print $11}'` = %{_sbindir}/sendmail.postfix ]; then
+            rm -f %{_sbindir}/sendmail
+            rm -f %{_bindir}/mailq
+            rm -f %{_bindir}/newaliases
+            rm -f %{_bindir}/rmail
+            rm -f %{_mandir}/sendmail
+            rm -f %{_mandir}/man1/mailq.1.gz
+            rm -f %{_mandir}/man1/newaliases.1.gz
+            rm -f %{_mandir}/man5/aliases.5.gz
+        fi
+    fi
 
     # userdel also deletes the user's group
     %{_sbindir}/userdel postfix   || %whinge "WARNING: failed to remove user postfix"
@@ -834,10 +925,22 @@ fi
 
 %changelog
 
+* Tue Jun 25 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-2
+  - Add support for alternatives (needed on RH 7.3)
+    - based on patch provided by Christopher D. Audley
+      <Christopher.D.Audley@jhu.edu>.
+    - works on 7.3 and earlier distributions, simulating the alternatives
+      package if it is not present.
+    - other minor fixes based on suggestions from various testers:
+      - Scott A. Hughes <sahughes@sanguine.net> 
+      - Tom Diehl <tdiehl@rogueind.com>
+      - Emmanuel Seyman <seyman@acticiel.com>
+      - Norbert Weisz <norbert.weisz@hp.com> 
+
 * Sun Jun 09 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-1
   - update to postfix-1.1.11
   - support for building with db3 on rh6.x - patch provided by
-     Frederic Hermann <Frederic.Hermann@ferma.fr> 
+     Frederic Hermann <Frederic.Hermann@ferma.fr>
   - remove FQDN hostname checks - request by Wietse
 
 * Sun May 19 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.10-1

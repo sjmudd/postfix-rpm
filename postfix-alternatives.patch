@@ -13,9 +13,9 @@ installed as postfix-files.rpmnew), so we just munge the post-install script.
 +		/usr/bin/newaliases) path=$path.postfix ;;
 +		/usr/bin/rmail) path=$path.postfix ;;
 +		/usr/sbin/sendmail) path=$path.postfix ;;
-+		/usr/share/man/man1/mailq.1.gz) path=/usr/share/man/man1/mailq.postfix.1.gz ;;
-+		/usr/share/man/man1/newaliases.1.gz) path=/usr/share/man/man1/newaliases.postfix.1.gz ;;
-+		/usr/share/man/man5/aliases.5.gz) path=/usr/share/man/man5/aliases.postfix.5.gz ;;
++		/usr/share/man/man1/mailq.1) path=/usr/share/man/man1/mailq.postfix.1 ;;
++		/usr/share/man/man1/newaliases.1) path=/usr/share/man/man1/newaliases.postfix.1 ;;
++		/usr/share/man/man5/aliases.5) path=/usr/share/man/man5/aliases.postfix.5 ;;
 +	esac
  	# Pick up the flags.
  	case $flags in *u*) upgrade_flag=1;; *) upgrade_flag=;; esac

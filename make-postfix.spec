@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.35.2.9 2002/06/09 17:31:01 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.35.2.10 2002/06/30 22:20:09 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -256,6 +256,6 @@ s!__TLS__!$POSTFIX_TLS!g
 s!__TLSFIX__!$TLSFIX!g
 s!__VDA__!$POSTFIX_VDA!g
 s!__DISABLE_CHROOT__!$POSTFIX_DISABLE_CHROOT!g
-" postfix.spec.in >> `rpm --eval '%{_specdir}'`/postfix.spec
+" `rpm --eval '%{_sourcedir}'`/postfix.spec.in >> `rpm --eval '%{_specdir}'`/postfix.spec
 
 # end of make-postfix.spec

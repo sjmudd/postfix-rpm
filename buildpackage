@@ -94,6 +94,7 @@ testvda () {
 build () {
 ( cd ${srcdir} && \
   sh make-postfix.spec && \
+  chmod u+w ${specdir}/postfix.spec && \
   cd ${specdir} && \
   sleep 2 && \
   echo ""
