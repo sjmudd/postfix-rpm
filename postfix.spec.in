@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.258 2004/01/31 20:13:34 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.259 2004/01/31 22:39:01 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -226,7 +226,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.258 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.259 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -855,7 +855,6 @@ umask 022
 %dir %attr(0755, root, root)        %verify(not md5 size mtime) %{_var}/spool/postfix/pid
 
 %doc AAAREADME
-%doc CA-2003-12
 %doc COPYRIGHT
 %doc COMPATIBILITY
 %doc HISTORY
@@ -864,6 +863,7 @@ umask 022
 %doc RELEASE_NOTES
 %doc RELEASE_NOTES-1.1
 %doc RELEASE_NOTES-2.0
+%doc SNAPSHOT
 %doc US_PATENT_6321267
 
 %doc postfix-RPM-new-packages
