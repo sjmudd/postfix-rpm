@@ -1,0 +1,21 @@
+*** release-20010228/src/cleanup/cleanup.c.orig	Wed Dec 13 19:15:27 2000
+--- release-20010228/src/cleanup/cleanup.c	Wed Mar 28 16:32:32 2001
+***************
+*** 215,222 ****
+      if (CLEANUP_OUT_OK(state) == 0 && type > 0) {
+  	if ((state->errs & CLEANUP_STAT_CONT) == 0)
+  	    msg_warn("%s: skipping further client input", state->queue_id);
+! 	while ((type = rec_get(src, buf, 0)) > 0
+! 	       && type != REC_TYPE_END)
+  	     /* void */ ;
+      }
+  
+--- 215,222 ----
+      if (CLEANUP_OUT_OK(state) == 0 && type > 0) {
+  	if ((state->errs & CLEANUP_STAT_CONT) == 0)
+  	    msg_warn("%s: skipping further client input", state->queue_id);
+! 	while (type != REC_TYPE_END
+! 	       && (type = rec_get(src, buf, 0)) > 0)
+  	     /* void */ ;
+      }
+  

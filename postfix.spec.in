@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.84 2001/03/24 10:17:35 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.85 2001/03/29 22:25:32 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -41,7 +41,7 @@
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
 
 %define vers 20010228
-%define rel  4
+%define rel  5
 
 Name: postfix
 Summary: Postfix Mail Transport Agent
@@ -68,6 +68,8 @@ Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
 # required to install smtp-sink and smtp-source
 Patch3:  postfix-INSTALL.sh.patch
+Patch4:  postfix-cleanup.patch
+Patch5:  postfix-flush.patch
 #
 # Optional patches - set the appropriate environment variables to include
 #                    them when building the package/spec file
@@ -125,7 +127,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.84 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.85 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -187,6 +189,8 @@ awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > co
 %patch1 -p1 -b .config
 %patch2 -p1 -b .chk
 %patch3 -p1 -b .install
+%patch4 -p1 -b .cleanup
+%patch5 -p1 -b .flush
 
 # APPLY OPTIONAL PATCHES
 
@@ -598,6 +602,11 @@ fi
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Fri Mar 30 2001 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20010228-5, add patches
+	- flush.c
+	- cleanup.c
+
 * Sat Mar 24 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20010228-4, add %{daemon_directory}/virtual, virtual transport
   to %files list.  Pointed out to me by Daniel Buchmann <db@bibsys.no>.
