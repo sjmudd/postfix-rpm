@@ -1,0 +1,273 @@
+diff -cr postfix-2.0.16-20030915.orig/HISTORY ./HISTORY
+*** postfix-2.0.16-20030915.orig/HISTORY	Mon Sep 15 20:53:03 2003
+--- postfix-2.0.16-20030915/HISTORY	Tue Sep 16 21:21:11 2003
+***************
+*** 8558,8563 ****
+--- 8558,8577 ----
+  	Cleanup: postcat is now null-byte transparent. File:
+  	postcat/postcat.c.
+  
++ 20030916
++ 
++ 	Experimental feature: ``check_{sender,recipient}_mx_access
++ 	maptype:mapname'' applies the named Postfix access table
++ 	to the MX host name and IP addresses for the sender or
++ 	recipient address. If no MX record is found, the A record
++ 	is used instead.
++ 
++ 	Experimental feature: ``check_{sender,recipient}_ns_access
++ 	maptype:mapname'' applies the named Postfix access table
++ 	to the DNS server hostname and IP addresses for the sender
++ 	or recipient address. If no NS record is found, the parent
++ 	domain is used instead.
++ 
+  Open problems:
+  
+  	High: when virtual aliasing is turned off after content
+diff -cr postfix-2.0.16-20030915.orig/src/dns/dns_lookup.c ./src/dns/dns_lookup.c
+*** postfix-2.0.16-20030915.orig/src/dns/dns_lookup.c	Mon Aug  4 11:38:40 2003
+--- postfix-2.0.16-20030915/src/dns/dns_lookup.c	Tue Sep 16 20:51:32 2003
+***************
+*** 509,514 ****
+--- 509,515 ----
+  	    vstring_sprintf(why,
+  		   "Name service error for %s: invalid host or domain name",
+  			    name);
++ 	h_errno = HOST_NOT_FOUND;
+  	return (DNS_NOTFOUND);
+      }
+  
+***************
+*** 520,525 ****
+--- 521,527 ----
+  	    vstring_sprintf(why,
+  		   "Name service error for %s: invalid host or domain name",
+  			    name);
++ 	h_errno = HOST_NOT_FOUND;
+  	return (DNS_NOTFOUND);
+      }
+  
+diff -cr postfix-2.0.16-20030915.orig/src/global/mail_params.h ./src/global/mail_params.h
+*** postfix-2.0.16-20030915.orig/src/global/mail_params.h	Sun Sep 14 15:11:41 2003
+--- postfix-2.0.16-20030915/src/global/mail_params.h	Tue Sep 16 20:33:45 2003
+***************
+*** 1314,1319 ****
+--- 1314,1324 ----
+  #define CHECK_RECIP_ACL		"check_recipient_access"
+  #define CHECK_ETRN_ACL		"check_etrn_access"
+  
++ #define CHECK_SENDER_MX_ACL	"check_sender_mx_access"
++ #define CHECK_RECIP_MX_ACL	"check_recipient_mx_access"
++ #define CHECK_SENDER_NS_ACL	"check_sender_ns_access"
++ #define CHECK_RECIP_NS_ACL	"check_recipient_ns_access"
++ 
+  #define WARN_IF_REJECT		"warn_if_reject"
+  
+  #define REJECT_RBL		"reject_rbl"	/* LaMont compatibility */
+diff -cr postfix-2.0.16-20030915.orig/src/smtpd/smtpd_check.c ./src/smtpd/smtpd_check.c
+*** postfix-2.0.16-20030915.orig/src/smtpd/smtpd_check.c	Sun Sep 14 20:03:18 2003
+--- postfix-2.0.16-20030915/src/smtpd/smtpd_check.c	Tue Sep 16 21:24:46 2003
+***************
+*** 89,94 ****
+--- 89,102 ----
+  /* .IP "check_recipient_access maptype:mapname"
+  /*	Look up the resolved recipient address in the named access table,
+  /*	any parent domains of the recipient domain, and the localpart@.
++ /* .IP "check_sender_mx_access maptype:mapname"
++ /* .IP "check_recipient_mx_access maptype:mapname"
++ /*	Apply the specified access table to the MX server host name and IP
++ /*	addresses.  If no MX record is found the A record is used instead.
++ /* .IP "check_sender_ns_access maptype:mapname"
++ /* .IP "check_recipient_ns_access maptype:mapname"
++ /*	Apply the specified access table to the DNS server host name and IP
++ /*	addresses.  If no NS record is found, the parent domain is used instead.
+  /* .IP "check_recipient_maps"
+  /*	Reject recipients not listed as valid local, virtual or relay
+  /*	recipients.
+***************
+*** 482,487 ****
+--- 490,501 ----
+      else \
+  	(void) smtpd_check_reject((state), (class), (fmt), (a1), (a2), (a3)); \
+      } while (0)
++ #define DEFER_IF_PERMIT4(state, class, fmt, a1, a2, a3, a4) do { \
++     if ((state)->warn_if_reject == 0) \
++ 	defer_if(&(state)->defer_if_permit, (class), (fmt), (a1), (a2), (a3), (a4)); \
++     else \
++ 	(void) smtpd_check_reject((state), (class), (fmt), (a1), (a2), (a3), (a4)); \
++     } while (0)
+  
+   /*
+    * Cached RBL lookup state.
+***************
+*** 2153,2158 ****
+--- 2167,2290 ----
+      return (SMTPD_CHECK_DUNNO);
+  }
+  
++ /* check_server_access - access control by server host name or address */
++ 
++ static int check_server_access(SMTPD_STATE *state, const char *table,
++ 			               const char *name,
++ 			               int type,
++ 			               const char *reply_name,
++ 			               const char *reply_class,
++ 			               const char *def_acl)
++ {
++     const char *myname = "check_server_access";
++     const char *domain;
++     int     dns_status;
++     DNS_RR *server_list;
++     DNS_RR *server;
++     int     found = 0;
++     struct in_addr addr;
++     struct hostent *hp;
++     char   *addr_string;
++     int     status;
++     char  **cpp;
++     static DNS_FIXED fixed;
++ 
++     if (msg_verbose)
++ 	msg_info("%s: %s", myname, name);
++ 
++     /*
++      * Skip over local-part.
++      */
++     if ((domain = strrchr(name, '@')) != 0)
++ 	domain += 1;
++     else
++ 	domain = name;
++ 
++     /*
++      * Look up the server records.
++      * 
++      * If the domain exists but MX lookup fails, fabricate an MX record that
++      * points to the domain name itself.
++      * 
++      * If the domain exists but NS lookup fails, look up the parent domain name
++      * server. Except in the case of Verisign wild-cards for top-level domain
++      * names. Looking up the com or net name servers is pointless.
++      */
++     dns_status = dns_lookup(domain, type, 0, &server_list,
++ 			    (VSTRING *) 0, (VSTRING *) 0);
++     if (dns_status == DNS_NOTFOUND) {
++ 	if (h_errno == HOST_NOT_FOUND)
++ 	    return (SMTPD_CHECK_DUNNO);
++ 	if (type == T_MX)
++ 	    server_list = dns_rr_create(domain, &fixed, 0,
++ 					domain, strlen(domain) + 1);
++ 	else if (type == T_NS && (domain = strchr(domain, '.')) != 0
++ 		 && strchr(++domain, '.') != 0
++ 		 && (dns_status = dns_lookup(domain, T_NS, 0, &server_list,
++ 				   (VSTRING *) 0, (VSTRING *) 0)) == DNS_OK)
++ 	     /* void */ ;
++ 	else
++ 	    return (SMTPD_CHECK_DUNNO);
++     } else if (dns_status != DNS_OK) {
++ 	DEFER_IF_PERMIT2(state, MAIL_ERROR_POLICY,
++ 			 "450 <%s>: %s rejected: Domain not found",
++ 			 reply_name, reply_class);
++ 	return (SMTPD_CHECK_DUNNO);
++     }
++ 
++     /*
++      * No bare returns after this point or we have a memory leak.
++      */
++ #define CHECK_SERVER_RETURN(x) { dns_rr_free(server_list); return(x); }
++ 
++     /*
++      * Check the hostnames first.
++      */
++     for (server = server_list; server != 0; server = server->next) {
++ 	if (msg_verbose)
++ 	    msg_info("%s: %s hostname check: %s",
++ 		     myname, dns_strtype(type), (char *) server->data);
++ 	if ((status = check_domain_access(state, table, (char *) server->data,
++ 				      FULL, &found, reply_name, reply_class,
++ 					  def_acl)) != 0 || found)
++ 	    CHECK_SERVER_RETURN(status);
++     }
++ 
++     /*
++      * Argh. Check the host IP addresses.
++      */
++     for (server = server_list; server != 0; server = server->next) {
++ 	if (msg_verbose)
++ 	    msg_info("%s: %s host address check: %s",
++ 		     myname, dns_strtype(type), (char *) server->data);
++ 	if ((hp = gethostbyname((char *) server->data)) == 0) {
++ 	    DEFER_IF_PERMIT4(state, MAIL_ERROR_POLICY,
++ 			     "450 <%s>: %s rejected: "
++ 			     "Unable to look up %s host %s",
++ 			     reply_name, reply_class,
++ 			     dns_strtype(type), (char *) server->data);
++ 	    CHECK_SERVER_RETURN(SMTPD_CHECK_DUNNO);
++ 	}
++ 	if (hp->h_addrtype != AF_INET || hp->h_length != sizeof(addr)) {
++ 	    if (msg_verbose)
++ 		msg_warn("address type %d length %d for %s",
++ 		       hp->h_addrtype, hp->h_length, (char *) server->data);
++ 	    continue;				/* XXX */
++ 	}
++ 	for (cpp = hp->h_addr_list; *cpp; cpp++) {
++ 	    memcpy((char *) &addr, *cpp, sizeof(addr));
++ 	    addr_string = mystrdup(inet_ntoa(addr));
++ 	    status = check_addr_access(state, table, addr_string, FULL,
++ 				       &found, reply_name, reply_class,
++ 				       def_acl);
++ 	    myfree(addr_string);
++ 	    if (status != 0 || found)
++ 		CHECK_SERVER_RETURN(status);
++ 	}
++     }
++     CHECK_SERVER_RETURN(SMTPD_CHECK_DUNNO);
++ }
++ 
+  /* check_mail_access - OK/FAIL based on mail address lookup */
+  
+  static int check_mail_access(SMTPD_STATE *state, const char *table,
+***************
+*** 3032,3037 ****
+--- 3164,3177 ----
+  	} else if (strcasecmp(name, REJECT_SENDER_LOGIN_MISMATCH) == 0) {
+  	    if (state->sender && *state->sender)
+  		status = reject_sender_login_mismatch(state, state->sender);
++ 	} else if (is_map_command(state, name, CHECK_SENDER_NS_ACL, &cpp)) {
++ 	    if (state->sender && *state->sender)
++ 		status = check_server_access(state, *cpp, state->sender, T_NS,
++ 					  reply_name, reply_class, def_acl);
++ 	} else if (is_map_command(state, name, CHECK_SENDER_MX_ACL, &cpp)) {
++ 	    if (state->sender && *state->sender)
++ 		status = check_server_access(state, *cpp, state->sender, T_MX,
++ 					  reply_name, reply_class, def_acl);
+  	} else if (strcasecmp(name, REJECT_RHSBL_SENDER) == 0) {
+  	    if (cpp[1] == 0)
+  		msg_warn("restriction %s requires domain name argument", name);
+***************
+*** 3084,3089 ****
+--- 3224,3237 ----
+  	    if (state->recipient)
+  		status = reject_non_fqdn_address(state, state->recipient,
+  				    state->recipient, SMTPD_NAME_RECIPIENT);
++ 	} else if (is_map_command(state, name, CHECK_RECIP_NS_ACL, &cpp)) {
++ 	    if (state->recipient && *state->recipient)
++ 		status = check_server_access(state, *cpp, state->recipient,
++ 				    T_NS, reply_name, reply_class, def_acl);
++ 	} else if (is_map_command(state, name, CHECK_RECIP_MX_ACL, &cpp)) {
++ 	    if (state->recipient && *state->recipient)
++ 		status = check_server_access(state, *cpp, state->recipient,
++ 				    T_MX, reply_name, reply_class, def_acl);
+  	} else if (strcasecmp(name, REJECT_RHSBL_RECIPIENT) == 0) {
+  	    if (cpp[1] == 0)
+  		msg_warn("restriction %s requires domain name argument", name);
+diff -cr postfix-2.0.16-20030915.orig/src/smtpd/smtpd_check_access ./src/smtpd/smtpd_check_access
+*** postfix-2.0.16-20030915.orig/src/smtpd/smtpd_check_access	Tue Mar 11 19:54:21 2003
+--- postfix-2.0.16-20030915/src/smtpd/smtpd_check_access	Tue Sep 16 21:05:45 2003
+***************
+*** 56,58 ****
+--- 56,60 ----
+  discard@hold.domain	discard
+  discardtext@hold.domain	discard text
+  dunnotext@dunno.domain	dunno text
++ 64.94.110.11		reject Verisign wild-card
++ topica.com		reject
