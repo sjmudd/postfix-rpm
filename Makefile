@@ -1,8 +1,10 @@
-
+#
+# Makefile for producing my Postfix RPMs
+#
 
 # Setup the directory structure used (on a non-root machine)
 # normally done just once after checking out the repository
-# files
+# files.
 setup:
 	@echo Setting up directory structure
 	@sh setup-rpm-environment
@@ -17,8 +19,11 @@ commit:
 # checks if there have been changes to source
 checkcvs:
 
-# remove stuff in BUILDDIR, remove links in SOURCES, remove files in tmp directory
-tidy:
+# to build the latest version of the rpm
+latest:
+	@echo updating CVS files
+	cvs update || : 
+	$(MAKE) rpm
 
 # build the rpm
 rpm:
@@ -30,13 +35,11 @@ tests: vda_test
 
 
 # Test the rpm prep stage for VDA patches - do they apply cleanly?
-vda_test:
+vda-test:
 	@echo ""
 	@echo "===> testing VDA patches"
-	@specdir=`rpm --eval '%{_specdir}'`
-	@echo "specdir=$$specdir"
-	@srcdir=`rpm --eval '%{_sourcedir}'`
-	@echo "srcdir=$$srcdir"
+	@specdir=`rpm --eval '%{_specdir}'`; \
+	srcdir=`rpm --eval '%{_sourcedir}'`; \
 	( cd $$srcdir && \
 	  pwd && \
 	POSTFIX_VDA=1 sh make-postfix.spec && \
