@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.67 2001/02/21 20:52:28 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.68 2001/02/23 18:48:48 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -50,8 +50,8 @@ Copyright: IBM Public License
 PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail, exim, qmail, smail
-Version: 20010204
-Release: 4__SUFFIX__
+Version: 20010222
+Release: 1__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Vendor: Built under __DISTRIBUTION__
 Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{version}.tar.gz
@@ -518,7 +518,6 @@ fi
 %attr(0755, root, root) %{cron_directory}/postfix
 
 %doc 0README
-%doc BEWARE
 %doc COMPATIBILITY
 %doc DB_README
 %doc DEBUG_README
@@ -529,6 +528,7 @@ fi
 %doc INSTALL.sh
 %doc LDAP_README
 %doc LICENSE
+%doc LINUX_README
 %doc LMTP_README
 %doc MACOSX_README
 %doc MYSQL_README
@@ -602,6 +602,10 @@ fi
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Tue Feb 20 2001 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20010222-1,  update to latest snapshot
+                        further minor changes to /etc/rc.d/init.d/postfix
+
 * Tue Feb 20 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20010204-4,  minor changes
   - fix spelling mistake in changelog, droesen's name
