@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.20 2004/05/10 20:02:44 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.21 2004/05/31 20:39:18 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -320,8 +320,9 @@ rhel)
     ;;
 
 fedora)
+	# distinguish fedora-core-1 / fedora-core-2
         DEFAULT_DB=4
-        DIST=".fc1"
+        DIST=".fc${major}"
 	;;
 
 redhat)

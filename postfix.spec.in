@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.293 2004/05/23 09:45:11 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.294 2004/05/31 20:39:19 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -81,7 +81,7 @@
 %define official 1
 %define ver 2.1.1
 %define mail_release_date RC4-20040418
-%define rel 3__SUFFIX__
+%define rel 4__SUFFIX__
 %if %{official}
 %define tarball_version %{ver}
 %define ftp_dir official
@@ -236,7 +236,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.293 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.294 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -1052,6 +1052,10 @@ umask 022
 #
 
 %changelog
+
+* Thu May 20 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.1-4
+- fix make-postfix.spec to recognise both Fedoras: fc1 and fc2
+  - thanks to help from Fred Grayson <fred@fred-grayson.net>
 
 * Thu May 20 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.1-3
 - postfix-get-distribution did not correctly recognise redhat-release-3ES-7.2
