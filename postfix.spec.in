@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.2.27 2005/03/06 08:57:10 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.2.28 2005/03/06 09:01:09 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -259,7 +259,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.2.27 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.2.28 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -1121,7 +1121,7 @@ umask 022
 * Sun Mar 06 2005 Simon J Mudd <sjmudd@pobox.com> 2.1.5-6
   - update IPv6 patch
 
-* Wed Jan 07 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.5-5
+* Wed Jan 07 2005 Simon J Mudd <sjmudd@pobox.com> 2.1.5-5
   - make alternatives priority configurable. It was 30 and fixed. It seems
     this can cause problems with users who want to use a different value.
     suggested by Michael Best <mbest@pendragon.org>
