@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.69 2001/11/16 11:32:25 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.70 2001/11/16 11:39:46 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -145,7 +145,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.69 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.70 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -704,10 +704,9 @@ fi
 
 %changelog
 
-* Thu Nov 15 2001 Simon J Mudd <sjmudd@pobox.com>
+* Thu Nov 16 2001 Simon J Mudd <sjmudd@pobox.com>
 - postfix-20010228-pl08-1
-  - update to latest patch level,
-    : fixing smtpd command log memory exhaustion bug
+  - fixes smtpd command log memory exhaustion bug
 
 * Thu Nov 15 2001 Simon J Mudd <sjmudd@pobox.com>
 - postfix-20010228-pl07-1
