@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.236 2003/01/07 09:32:27 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.237 2003/01/08 17:42:33 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -25,13 +25,13 @@
 # ipv6                     - include IPV6 support
 # tls                      - include TLS support
 # tlsfix                   - include TLS fix (apparently needed for rh6.2)
-# REQUIRES_INIT_D          - Required by RedHat 7.x
+# requires_init_d          - Required by RedHat >= 7
 # requires_db              - used to add dbX dependencies in the package
 # include_db               - include the dbX library when compiling (rh6.x with db3)
-# SMTPD_MULTILINE_GREETING - my patch to allow multiline banner
+# smtpd_multiline_greeting - my patch to allow multiline banner
 # vda                      - add virtual delivery agent patch
 # disable_chroot           - disable setup of chroot environment
-# MANPAGE_SUFFIX	   - man page suffix, .gz except Mandrake 8 which uses .bz2
+# mps			   - man page suffix, .gz except Mandrake 8 which uses .bz2
 #
 %define distribution __DISTRIBUTION__
 %define mps __MANPAGE_SUFFIX__
@@ -48,8 +48,8 @@
 %define tlsfix __TLSFIX__
 %define include_db __INCLUDE_DB__
 %define requires_db __REQUIRES_DB__
-%define REQUIRES_INIT_D __REQUIRES_INIT_D__
-%define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
+%define requires_init_d __REQUIRES_INIT_D__
+%define smtpd_multiline_greeting __SMTPD_MULTILINE_GREETING__
 # VDA doesn't appear to work on these snapshots
 %define vda __VDA__
 %define vda 0
@@ -70,7 +70,7 @@
 %define official 0
 %define ver 2.0.0
 %define mail_release_date 20030107
-%define rel 0.1
+%define rel 1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -109,7 +109,7 @@ Group: System Environment/Daemons
 URL: http://www.postfix.org
 License: IBM Public License
 PreReq: /sbin/chkconfig
-%if %{REQUIRES_INIT_D}
+%if %{requires_init_d}
 PreReq: /etc/init.d, /sbin/service
 %endif
 Epoch: 2
@@ -210,12 +210,12 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.236 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.237 $,
 with the following options:
 
-SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
+smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
 ldap=%{ldap}, sasl=%{sasl}, pcre=%{pcre}, tls=%{tls}, tlsfix=%{tlsfix}, mysql=%{mysql}, redhatmysql=%{redhatmysql}
-include_db=%{include_db}, requires_db=%{requires_db}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}, cdb=%{cdb}, ipv6=%{ipv6}
+include_db=%{include_db}, requires_db=%{requires_db}, requires_init_d=%{requires_init_d}, cdb=%{cdb}, ipv6=%{ipv6}
 debug=%{?_with_debug:1}%{?!_with_debug:0}
 
 To use postfix with alternative options download the source package and
@@ -298,7 +298,7 @@ sh dict_cdb.sh
 %if %{pgsql2}
 %patch51 -p1 -b .pgraw
 %endif
-%if %{SMTPD_MULTILINE_GREETING}
+%if %{smtpd_multiline_greeting}
 %patch99 -p1 -b .multiline
 %endif
 
@@ -921,6 +921,7 @@ fi
 %{daemon_dir}/nqmgr
 %{daemon_dir}/pickup
 %{daemon_dir}/pipe
+%{daemon_dir}/proxymap
 %{daemon_dir}/qmgr
 %{daemon_dir}/qmqpd
 %{daemon_dir}/showq
@@ -967,12 +968,16 @@ fi
 
 %changelog
 
-* Tue Jan 07 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.0-20030107-0.1
+* Wed Jan 08 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.0-20030107-1
   - fix master.cf: virtual should not be chrooted
     - problem reported by Alex Kramarov <alex@incredimail.com>
   - update to 2.0.0-20030107
   - restore postfix-files.patch as Wietse has now included
     ADDRESS_VERIFICATION_README (was SENDER_VERFICATION_README)
+  - cosmestic: lowercase some macro names
+    - SMTPD_MULTILINE_GREETING -> smtpd_multiline_greeting
+    - REQUIRES_INIT_D -> requires_init_d
+  - include new proxymap binary
 
 * Tue Dec 31 2002 Simon J Mudd <sjmudd@pobox.com> 2.0.0-20021223-1
   - update to latest snapshot
