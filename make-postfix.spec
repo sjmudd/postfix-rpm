@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.29 2003/11/26 18:49:43 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.30 2003/11/27 18:03:36 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -16,8 +16,6 @@
 #			library paths ( /usr/include/mysql:/usr/lib/mysql )
 # POSTFIX_MYSQL_QUERY	include support for writing full select statements
 #			in mysql maps
-# POSTFIX_MYSQL_DICT_REG
-#			include support for mysql: dict_register patch
 # POSTFIX_LDAP		include support for openldap packages
 # POSTFIX_PCRE		include support for pcre maps
 # POSTFIX_PGSQL		include support for PostGres database
@@ -131,10 +129,6 @@ fi
 # This may need checking?
 if [ ${releasename} = mandrake -a ${major} -le 7 ]; then
     REQUIRES_INIT_D=0
-fi
-
-if [ "$POSTFIX_MYSQL_DICT_REG" = 1 ]; then
-    echo "including patch for dict_register fix for proxy:mysql:mysql-xxx.cf"
 fi
 
 if [ "$POSTFIX_CDB" = 1 ]; then
@@ -427,7 +421,6 @@ esac
 [ -z "$POSTFIX_MYSQL_REDHAT" ]		   && POSTFIX_MYSQL_REDHAT=0
 [ -z "$POSTFIX_MYSQL_PATHS" ]		   && POSTFIX_MYSQL_PATHS=0
 [ -z "$POSTFIX_MYSQL_QUERY" ]		   && POSTFIX_MYSQL_QUERY=0
-[ -z "$POSTFIX_MYSQL_DICT_REG" ]	   && POSTFIX_MYSQL_DICT_REG=0
 [ -z "$POSTFIX_PCRE" ]			   && POSTFIX_PCRE=0
 [ -z "$POSTFIX_PGSQL" ]			   && POSTFIX_PGSQL=0
 [ -z "$POSTFIX_PGSQL2" ]		   && POSTFIX_PGSQL2=0
@@ -456,7 +449,6 @@ s!__INCLUDE_DB__!$POSTFIX_INCLUDE_DB!g
 s!__IPV6__!$POSTFIX_IPV6!g
 s!__LDAP__!$POSTFIX_LDAP!g
 s!__MANPAGE_SUFFIX__!$MANPAGE_SUFFIX!g
-s!__MYSQL_DICT_REG__!$POSTFIX_MYSQL_DICT_REG!g
 s!__MYSQL_PATHS__!$POSTFIX_MYSQL_PATHS!g
 s!__MYSQL__!$POSTFIX_MYSQL!g
 s!__MYSQL_QUERY__!$POSTFIX_MYSQL_QUERY!g
