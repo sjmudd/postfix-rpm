@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.7 2003/03/09 19:36:05 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.8 2003/03/27 13:56:21 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -10,7 +10,9 @@
 # The following external variables if set to 1 affect the behaviour
 #
 # POSTFIX_REDHAT_MYSQL	include support for RedHat's mysql packages
-# POSTFIX_MYSQL		include support for MySQL's  MySQL packages
+# POSTFIX_MYSQL		include support for MySQL's MySQL packages
+# POSTFIX_MYSQLQUERY	include support for writing full select statements
+#			in mysql maps
 # POSTFIX_LDAP		include support for openldap packages
 # POSTFIX_PCRE		include support for pcre maps
 # POSTFIX_PGSQL		include support for PostGres database
@@ -160,6 +162,10 @@ if [ "$POSTFIX_REDHAT_MYSQL" = 1 ]; then
     echo "  adding MySQL support (RedHat mysql* packages) to spec file"
     SUFFIX="${SUFFIX}.mysql"
 fi
+if [ "$POSTFIX_MYSQLQUERY" = 1 ]; then
+    echo "  adding support for full mysql select statements to spec file"
+    SUFFIX="${SUFFIX}.mysqlquery"
+fi
 POSTFIX_SASL_LIBRARY=notused
 if [ "$POSTFIX_SASL" = 1 -o "$POSTFIX_SASL" = 2 ]; then
     echo "  adding SASL v${POSTFIX_SASL} support to spec file"
@@ -290,6 +296,7 @@ esac
 [ -z "$POSTFIX_LDAP" ]			   && POSTFIX_LDAP=0
 [ -z "$POSTFIX_MYSQL" ]			   && POSTFIX_MYSQL=0
 [ -z "$POSTFIX_REDHAT_MYSQL" ]		   && POSTFIX_REDHAT_MYSQL=0
+[ -z "$POSTFIX_MYSQLQUERY" ]		   && POSTFIX_MYSQLQUERY=0
 [ -z "$POSTFIX_PCRE" ]			   && POSTFIX_PCRE=0
 [ -z "$POSTFIX_PGSQL" ]			   && POSTFIX_PGSQL=0
 [ -z "$POSTFIX_PGSQL2" ]		   && POSTFIX_PGSQL2=0
@@ -322,6 +329,7 @@ s!__SUFFIX__!$SUFFIX!g
 s!__LDAP__!$POSTFIX_LDAP!g
 s!__MYSQL__!$POSTFIX_MYSQL!g
 s!__REDHAT_MYSQL__!$POSTFIX_REDHAT_MYSQL!g
+s!__MYSQL_QUERY__!$POSTFIX_MYSQLQUERY!g
 s!__PCRE__!$POSTFIX_PCRE!g
 s!__PGSQL__!$POSTFIX_PGSQL!g
 s!__PGSQL2__!$POSTFIX_PGSQL2!g

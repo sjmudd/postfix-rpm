@@ -12,6 +12,7 @@ postfix-etc-init.d-postfix
 postfix-files.patch
 postfix-get-distribution
 postfix-log_recipient
+postfix-mysql_query.patch
 postfix-pg.postfix-1.1.4.patch
 postfix-pg-raw.patch
 postfix-rbl_reply_maps.patch

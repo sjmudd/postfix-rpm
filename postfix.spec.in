@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.37 2003/03/21 21:34:23 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.38 2003/03/27 13:56:21 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -15,6 +15,8 @@
 # ldap                     - include LDAP support
 # mysql	                   - include www.mysql.com's MySQL rpms
 # redhatmysql              - include RedHat's MySQL rpms
+# mysqlquery		   - include support for writing full select statements
+#			     in mysql maps
 # pcre                     - include pcre support
 # pgsql                    - include Postgres database support
 # pgsql2                   - experimental postgres patches by George Barbarosie
@@ -39,6 +41,7 @@
 %define ldap __LDAP__
 %define mysql __MYSQL__
 %define redhatmysql __REDHAT_MYSQL__
+%define mysqlquery __MYSQL_QUERY__
 %define pcre __PCRE__
 %define pgsql __PGSQL__
 %define pgsql2 __PGSQL2__
@@ -70,7 +73,7 @@
 %define official 1
 %define ver 2.0.7
 %define mail_release_date 20021219
-%define rel 1
+%define rel 2
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -142,6 +145,7 @@ Patch3: postfix-files.patch
 
 # Optional patches
 Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}.patch.gz
+Patch5: postfix-mysql_query.patch
 # Adapted from http://www.stahl.bau.tu-bs.de/~hildeb/postfix/duchovni/log_recipient.gz
 Patch7: postfix-log_recipient
 Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pgver}.patch
@@ -214,7 +218,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.37 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.38 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -288,6 +292,9 @@ sh dict_cdb.sh
 %endif
 %if %{vda}
   gzip -dc %{_sourcedir}/postfix-%{vdaver}.patch.gz | patch -p1 -b --suffix .vda -s
+%endif
+%if %{mysqlquery}
+%patch5 -p1 -b .mysql_query
 %endif
 # Apply the PostgreSQL patches only if required
 %if %{pgsql}
@@ -995,6 +1002,12 @@ fi
 #
 
 %changelog
+
+* Fri Mar 21 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.7-2
+  - proxymap was chrooted when it shouldn't be: pointed out by
+    Jared Davision <jared@medical-objects.com.au> 
+  - add optional mysqlquery patch enabled with POSTFIX_MYSQLQUERY=1 in
+    make-postfix.spec: suggested by Jure Pecar <pegasus@nerv.eu.org>
 
 * Fri Mar 21 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.7-1
   - update to 2.0.7
