@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.273 2004/04/15 05:56:20 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.274 2004/04/17 15:22:03 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -70,11 +70,12 @@
 %define smtpd_multiline_greeting __SMTPD_MULTILINE_GREETING__
 %define vda __VDA__
 %define ipv6 __IPV6__
+%define suffix __SUFFIX__
 
 # start to support the conditional builds via rpm's --with debug
 %define debug %{?_with_debug:1}%{?!_with_debug:0}
 
-# Version information
+# patch version information
 %define vda_version 2.0.16
 %define tls_version pfixtls-0.8.18-2.0.18-20040205-0.9.7c
 %define pg_version 2.0.0.2
@@ -85,7 +86,7 @@
 %define official 0
 %define ver 2.1
 %define mail_release_date RC3-20040414
-%define rel 0.1
+%define rel 0.2%{suffix}
 %if %{official}
 %define tarball_version %{ver}
 %define ftp_dir official
@@ -93,13 +94,12 @@
 %define tarball_version %{ver}-%{mail_release_date}
 %define ftp_dir experimental
 %endif
-# package_version fixes
-# - rpm does not accept '-' in version strings so replace them with a '.'
-#   (only affects snapshots)
+# rpm does not accept '-' in version strings so replace them with a '.'
+# - (only affects snapshots)
 %define package_version %(echo %{tarball_version} | sed 's/-/./g')
 
+# common directories
 %define docdir %{_docdir}/%{name}-%{version}
-%define sample_dir %{docdir}/samples
 # post-install complains if I replace README_FILES with readme (my bug?)
 %define readme_dir %{docdir}/README_FILES
 %define html_dir %{docdir}/html
@@ -114,6 +114,31 @@
 %define postfinger postfinger-1.29
 %define whinge /usr/bin/logger -p mail.info -t postfix/rpm
 %define die_cmd die(){ %whinge "$*"; exit 1; }
+
+# we need to use alternatives to install postfix in various places.
+# - define macros to avoid repitition.
+
+%define alternatives_install \
+    %{_sbindir}/alternatives --install \
+	        %{_sbindir}/sendmail               mta               %{sendmail_path} 30 \
+        --slave %{_bindir}/mailq                   mta-mailq         %{mailq_path} \
+        --slave %{_bindir}/newaliases              mta-newaliases    %{newaliases_path} \
+        --slave %{_bindir}/rmail                   mta-rmail         %{rmail_path} \
+        --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
+        --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
+        --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
+        --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
+        --initscript postfix
+
+%define simulate_alternatives_install \
+        ln -sf %{sendmail_path}                           %{_sbindir}/sendmail; \
+        ln -sf %{mailq_path}                              %{_bindir}/mailq; \
+        ln -sf %{newaliases_path}                         %{_bindir}/newaliases; \
+        ln -sf %{rmail_path}                              %{_bindir}/rmail; \
+        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps}; \
+        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps}; \
+        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps}; \
+        ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
 
 Name: postfix
 Group: System Environment/Daemons
@@ -130,7 +155,7 @@ Provides: %{_sbindir}/sendmail %{_bindir}/mailq %{_bindir}/newaliases
 Provides: %{_bindir}/rmail
 
 Version: %{package_version}
-Release: %{rel}__SUFFIX__
+Release: %{rel}
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Summary: Postfix Mail Transport Agent
 Vendor: Built on %{build_dist_full} (%{build_dist})
@@ -182,7 +207,6 @@ Requires: openldap >= 1.2.9
 BuildRequires: openldap-devel >= 1.2.9
 %endif
 
-# default pcre, mandrake libpcre0
 %if %{pcre}
 Requires: %{pcre_requires}
 BuildRequires: %{pcre_requires}, %{pcre_requires}-devel
@@ -238,7 +262,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.273 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.274 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -473,8 +497,7 @@ umask 022
 
 %{?!debug:strip -R .comment --strip-unneeded bin/* libexec/*}
 
-# Rename man pages so they we don't conflict with sendmail's
-# Binaries are handled in the defines in preamble of specfile
+# rename man pages which may conflict with sendmail's
 mv man/man1/mailq.1      man/man1/mailq.postfix.1
 mv man/man1/newaliases.1 man/man1/newaliases.postfix.1
 mv man/man1/sendmail.1   man/man1/sendmail.postfix.1
@@ -494,11 +517,10 @@ sh postfix-install -non-interactive \
        setgid_group=postdrop \
        html_directory=%{html_dir} \
        manpage_directory=%{_mandir} \
-       sample_directory=%{sample_dir} \
        readme_directory=%{readme_dir} || exit 1 
 
-# RPM compresses man pages automatically.  Edit postfix-files to reflect this,
-# so post-install won't get confused.
+# RPM compresses man pages automatically.  Edit postfix-files to avoid
+# confusing post-install.
 ed ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/postfix-files <<EOF || exit 1
 %s/\(\/man[158]\/.*\.[158]\):/\1%{mps}:/
 w
@@ -512,7 +534,7 @@ bin/postconf -c ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix -e \
 	"alias_database = hash:%{_sysconfdir}/postfix/aliases" \
 || exit 1
 
-# This installs into the /etc/rc.d/init.d directory
+# Install Sys V init script
 mkdir -p ${RPM_BUILD_ROOT}%{init_directory}
 install -c %{_sourcedir}/postfix-etc-init.d-postfix \
                   ${RPM_BUILD_ROOT}%{init_directory}/postfix
@@ -540,9 +562,7 @@ done
 install -c -m 755 %{_sourcedir}/%{postfinger} ${RPM_BUILD_ROOT}%{_bindir}/postfinger
 install -c -m 755 %{_sourcedir}/postfix-chroot.sh ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/
 
-# I think %{sample_dir} is not longer used and should therefore be removed. (2004-04-05)
 [ -d "${RPM_BUILD_ROOT}%{html_dir}" ]   || mkdir -p ${RPM_BUILD_ROOT}%{html_dir}
-[ -d "${RPM_BUILD_ROOT}%{sample_dir}" ] || mkdir -p ${RPM_BUILD_ROOT}%{sample_dir}
 [ -d "${RPM_BUILD_ROOT}%{readme_dir}" ] || mkdir -p ${RPM_BUILD_ROOT}%{readme_dir}
 install -c -m 644 %{_sourcedir}/README-Postfix-SASL-RedHat.txt ${RPM_BUILD_ROOT}%{readme_dir}/
 
@@ -580,17 +600,16 @@ Documentation
 
 Postfix documentation should be available in the standard directory
 %{docdir}/.  I have also added a symbolic link to the readme_files and html
-directories from the %{_sysconfdir}/postfix directory.
+directories from %{_sysconfdir}/postfix.
 
 The main Postfix web site is http://www.postfix.org.
 
 Packages
 --------
 
-If you downloaded a pre-built package or built this package yourself
-from a Source RPM you may find a newer version at http://ftp.WL0.org or
-the mirrors listed at http://postfix.WL0.org.  Look for the appropriate
-directory according to your distribution.
+Newer versions of source and standard binary packages may be available from
+http://ftp.WL0.org or the mirrors listed at http://postfix.WL0.org.  Look
+in the appropriate directory according to your distribution.
 
 Mailing List
 ------------
@@ -616,8 +635,8 @@ Package Build Options
 ---------------------
 
 This package can be built on several Linux distributions and with several
-optional features.  /etc/postfix/postfix.spec.cf contains the build
-information used to build this version of the rpm you are using. It can also
+optional features.  %{_sysconfdir}/postfix/postfix.spec.cf contains the 
+information used to build this version of the rpm. It can also
 be used to build a new rpm with the same options.
 
 Enjoy!
@@ -625,13 +644,13 @@ Enjoy!
 Simon J Mudd, <sjmudd@pobox.com>
 EOF
 
-# Include postfix.spec.cf which can be used to build a newer version of the
+# generate postfix.spec.cf which can be used to build a newer version of the
 # rpm with the same parameters as the current package.
 cat <<EOF > ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/postfix.spec.cf
 #
-# This file stores the configuration options used to build this version of
-# the Postfix RPM you are using. You can use it to build a newer version
-# of the package from the Source RPM with the same options.
+# This file holds the configuration options used to build the postfix rpm
+# you are using. You can use it to build a newer version of the package from
+# the Source RPM with the same options.
 #
 # To do this download and install the new source RPM and do the following:
 #
@@ -645,7 +664,7 @@ cat <<EOF > ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/postfix.spec.cf
 POSTFIX_MYSQL=%{mysql}
 POSTFIX_MYSQL_PATHS=%{mysql_paths}
 POSTFIX_MYSQL_REDHAT=%{mysql_redhat}
-POSTFIX_MYSQL_QUERY=
+POSTFIX_MYSQL_QUERY=%{mysql_query}
 POSTFIX_LDAP=%{ldap}
 POSTFIX_PCRE=%{pcre}
 POSTFIX_PGSQL=%{pgsql}
@@ -683,31 +702,11 @@ sh %{_sysconfdir}/postfix/post-install upgrade-package \
 	setgid_group=postdrop \
 	html_directory=%{html_dir} \
 	manpage_directory=%{_mandir} \
-	sample_directory=%{sample_dir} \
 	readme_directory=%{readme_dir} \
+	sendmail_path=%{sendmail_path} \
+	newaliases_path=%{newaliases_path} \
+	mailq_path=%{mailq_path} \
 || :
-
-# Check paths:
-#	mailq_path
-#	newaliases_path
-#	sendmail_path
-# Ensure that these values are correct. This only affects packages which have
-# been upgraded from pre-alternatives values.
-
-old_path=`postconf -h mailq_path`
-[ "$old_path" != "%{mailq_path}" ] && \
-    %whinge "Updating mailq_path: $old_path --> %{mailq_path}" && \
-    postconf -e "mailq_path=%{mailq_path}"
-
-old_path=`postconf -h newaliases_path`
-[ "$old_path" != "%{newaliases_path}" ] && \
-    %whinge "Updating newaliases_path: $old_path --> %{newaliases_path}" && \
-    postconf -e "newaliases_path=%{newaliases_path}"
-	 
-old_path=`postconf -h sendmail_path`
-[ "$old_path" != "%{sendmail_path}" ] && \
-    %whinge "Updating sendmail_path: $old_path --> %{sendmail_path}" && \
-    postconf -e "sendmail_path=%{sendmail_path}"
 
 %{_sbindir}/postalias %{_sysconfdir}/postfix/aliases
 %{_sbindir}/postfix check || :
@@ -741,26 +740,11 @@ fi
 
 if [ -x %{_sbindir}/alternatives ]; then
     %whinge "Fresh Postfix Install: using RH alternatives"
-    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{_sbindir}/sendmail.postfix 30 \
-        --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
-        --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
-        --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
-        --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
-        --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
-        --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
-        --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
-        --initscript postfix
+    %{alternatives_install}
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
         %whinge "Fresh Postfix Install, no %{_sbindir}/sendmail present: simulating RH alternatives"
-        ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
-        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
-        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
-        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
-        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps} 
-        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
-        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
-        ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
+	%{simulate_alternatives_install}
     fi
 fi
 
@@ -781,26 +765,11 @@ test -f /usr/lib/sendmail && {
 
 if [ -x %{_sbindir}/alternatives ]; then
     %whinge "Uninstalling sendmail, so setup Postfix: using RH alternatives"
-    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{_sbindir}/sendmail.postfix 30 \
-        --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
-        --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
-        --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
-        --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
-        --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
-        --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
-        --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
-        --initscript postfix
+    %{alternatives_install}
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
         %whinge "Uninstalling sendmail, no %{_sbindir}/sendmail present: simulating RH alternatives"
-        ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
-        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
-        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
-        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
-        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps} 
-        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
-        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
-        ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
+	%{simulate_alternatives_install}
     else
         :
     fi
@@ -816,26 +785,11 @@ fi
 
 if [ -x %{_sbindir}/alternatives ]; then
     %whinge "Upgrading Postfix: using RH alternatives"
-    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{_sbindir}/sendmail.postfix 30 \
-        --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
-        --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
-        --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
-        --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
-        --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
-        --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
-        --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
-        --initscript postfix
+    %{alternatives_install}
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
         %whinge "Upgrading Postfix, no %{_sbindir}/sendmail present: simulating RH alternatives"
-        ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
-        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
-        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
-        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
-        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps} 
-        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
-        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
-        ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
+	%{simulate_alternatives_install}
     else
         :
     fi
@@ -963,182 +917,7 @@ umask 022
 
 %attr(0755, root, root) %{_sysconfdir}/postfix/postfix-chroot.sh
 
-# sample directory (no longer used?)
-%dir %attr(-, root, root) %{readme_dir}
 
-# html directory
-%dir %attr(-, root, root) %{html_dir}
-%attr(0644,   root, root) %{html_dir}/ADDRESS_CLASS_README.html
-%attr(0644,   root, root) %{html_dir}/ADDRESS_REWRITING_README.html
-%attr(0644,   root, root) %{html_dir}/ADDRESS_VERIFICATION_README.html
-%attr(0644,   root, root) %{html_dir}/BACKSCATTER_README.html
-%attr(0644,   root, root) %{html_dir}/BASIC_CONFIGURATION_README.html
-%attr(0644,   root, root) %{html_dir}/BUILTIN_FILTER_README.html
-%attr(0644,   root, root) %{html_dir}/CONTENT_INSPECTION_README.html
-%attr(0644,   root, root) %{html_dir}/DATABASE_README.html
-%attr(0644,   root, root) %{html_dir}/DB_README.html
-%attr(0644,   root, root) %{html_dir}/DEBUG_README.html
-%attr(0644,   root, root) %{html_dir}/ETRN_README.html
-%attr(0644,   root, root) %{html_dir}/FILTER_README.html
-%attr(0644,   root, root) %{html_dir}/INSTALL.html
-%attr(0644,   root, root) %{html_dir}/LDAP_README.html
-%attr(0644,   root, root) %{html_dir}/LINUX_README.html
-%attr(0644,   root, root) %{html_dir}/LMTP_README.html
-%attr(0644,   root, root) %{html_dir}/LOCAL_RECIPIENT_README.html
-%attr(0644,   root, root) %{html_dir}/MAILDROP_README.html
-%attr(0644,   root, root) %{html_dir}/MYSQL_README.html
-%attr(0644,   root, root) %{html_dir}/NFS_README.html
-%attr(0644,   root, root) %{html_dir}/OVERVIEW.html
-%attr(0644,   root, root) %{html_dir}/PACKAGE_README.html
-%attr(0644,   root, root) %{html_dir}/PCRE_README.html
-%attr(0644,   root, root) %{html_dir}/PGSQL_README.html
-%attr(0644,   root, root) %{html_dir}/QMQP_README.html
-%attr(0644,   root, root) %{html_dir}/QSHAPE_README.html
-%attr(0644,   root, root) %{html_dir}/RESTRICTION_CLASS_README.html
-%attr(0644,   root, root) %{html_dir}/SASL_README.html
-%attr(0644,   root, root) %{html_dir}/SCHEDULER_README.html
-%attr(0644,   root, root) %{html_dir}/SMTPD_ACCESS_README.html
-%attr(0644,   root, root) %{html_dir}/SMTPD_POLICY_README.html
-%attr(0644,   root, root) %{html_dir}/SMTPD_PROXY_README.html
-%attr(0644,   root, root) %{html_dir}/STANDARD_CONFIGURATION_README.html
-%attr(0644,   root, root) %{html_dir}/TUNING_README.html
-%attr(0644,   root, root) %{html_dir}/ULTRIX_README.html
-%attr(0644,   root, root) %{html_dir}/UUCP_README.html
-%attr(0644,   root, root) %{html_dir}/VERP_README.html
-%attr(0644,   root, root) %{html_dir}/VIRTUAL_README.html
-%attr(0644,   root, root) %{html_dir}/XCLIENT_README.html
-%attr(0644,   root, root) %{html_dir}/XFORWARD_README.html
-%attr(0644,   root, root) %{html_dir}/access.5.html
-%attr(0644,   root, root) %{html_dir}/aliases.5.html
-%attr(0644,   root, root) %{html_dir}/anvil.8.html
-%attr(0644,   root, root) %{html_dir}/bounce.8.html
-%attr(0644,   root, root) %{html_dir}/canonical.5.html
-%attr(0644,   root, root) %{html_dir}/cidr_table.5.html
-%attr(0644,   root, root) %{html_dir}/cleanup.8.html
-%attr(0644,   root, root) %{html_dir}/defer.8.html
-%attr(0644,   root, root) %{html_dir}/error.8.html
-%attr(0644,   root, root) %{html_dir}/flush.8.html
-%attr(0644,   root, root) %{html_dir}/header_checks.5.html
-%attr(0644,   root, root) %{html_dir}/index.html
-%attr(0644,   root, root) %{html_dir}/ldap_table.5.html
-%attr(0644,   root, root) %{html_dir}/lmtp.8.html
-%attr(0644,   root, root) %{html_dir}/local.8.html
-%attr(0644,   root, root) %{html_dir}/mailq.1.html
-%attr(0644,   root, root) %{html_dir}/master.8.html
-%attr(0644,   root, root) %{html_dir}/mysql_table.5.html
-%attr(0644,   root, root) %{html_dir}/newaliases.1.html
-%attr(0644,   root, root) %{html_dir}/oqmgr.8.html
-%attr(0644,   root, root) %{html_dir}/pcre_table.5.html
-%attr(0644,   root, root) %{html_dir}/pgsql_table.5.html
-%attr(0644,   root, root) %{html_dir}/pickup.8.html
-%attr(0644,   root, root) %{html_dir}/pipe.8.html
-%attr(0644,   root, root) %{html_dir}/postalias.1.html
-%attr(0644,   root, root) %{html_dir}/postcat.1.html
-%attr(0644,   root, root) %{html_dir}/postconf.1.html
-%attr(0644,   root, root) %{html_dir}/postconf.5.html
-%attr(0644,   root, root) %{html_dir}/postdrop.1.html
-%attr(0644,   root, root) %{html_dir}/postfix-logo.jpg
-%attr(0644,   root, root) %{html_dir}/postfix.1.html
-%attr(0644,   root, root) %{html_dir}/postkick.1.html
-%attr(0644,   root, root) %{html_dir}/postlock.1.html
-%attr(0644,   root, root) %{html_dir}/postlog.1.html
-%attr(0644,   root, root) %{html_dir}/postmap.1.html
-%attr(0644,   root, root) %{html_dir}/postqueue.1.html
-%attr(0644,   root, root) %{html_dir}/postsuper.1.html
-%attr(0644,   root, root) %{html_dir}/proxymap.8.html
-%attr(0644,   root, root) %{html_dir}/qmgr.8.html
-%attr(0644,   root, root) %{html_dir}/qmqpd.8.html
-%attr(0644,   root, root) %{html_dir}/regexp_table.5.html
-%attr(0644,   root, root) %{html_dir}/relocated.5.html
-%attr(0644,   root, root) %{html_dir}/sendmail.1.html
-%attr(0644,   root, root) %{html_dir}/showq.8.html
-%attr(0644,   root, root) %{html_dir}/smtp.8.html
-%attr(0644,   root, root) %{html_dir}/lmtp.8.html
-%attr(0644,   root, root) %{html_dir}/local.8.html
-%attr(0644,   root, root) %{html_dir}/mailq.1.html
-%attr(0644,   root, root) %{html_dir}/master.8.html
-%attr(0644,   root, root) %{html_dir}/mysql_table.5.html
-%attr(0644,   root, root) %{html_dir}/newaliases.1.html
-%attr(0644,   root, root) %{html_dir}/oqmgr.8.html
-%attr(0644,   root, root) %{html_dir}/pcre_table.5.html
-%attr(0644,   root, root) %{html_dir}/pgsql_table.5.html
-%attr(0644,   root, root) %{html_dir}/pickup.8.html
-%attr(0644,   root, root) %{html_dir}/pipe.8.html
-%attr(0644,   root, root) %{html_dir}/postalias.1.html
-%attr(0644,   root, root) %{html_dir}/postcat.1.html
-%attr(0644,   root, root) %{html_dir}/postconf.1.html
-%attr(0644,   root, root) %{html_dir}/postconf.5.html
-%attr(0644,   root, root) %{html_dir}/postdrop.1.html
-%attr(0644,   root, root) %{html_dir}/postfix-logo.jpg
-%attr(0644,   root, root) %{html_dir}/postfix.1.html
-%attr(0644,   root, root) %{html_dir}/postkick.1.html
-%attr(0644,   root, root) %{html_dir}/postlock.1.html
-%attr(0644,   root, root) %{html_dir}/postlog.1.html
-%attr(0644,   root, root) %{html_dir}/postmap.1.html
-%attr(0644,   root, root) %{html_dir}/postqueue.1.html
-%attr(0644,   root, root) %{html_dir}/postsuper.1.html
-%attr(0644,   root, root) %{html_dir}/proxymap.8.html
-%attr(0644,   root, root) %{html_dir}/qmgr.8.html
-%attr(0644,   root, root) %{html_dir}/qmqpd.8.html
-%attr(0644,   root, root) %{html_dir}/regexp_table.5.html
-%attr(0644,   root, root) %{html_dir}/relocated.5.html
-%attr(0644,   root, root) %{html_dir}/sendmail.1.html
-%attr(0644,   root, root) %{html_dir}/showq.8.html
-%attr(0644,   root, root) %{html_dir}/smtp.8.html
-%attr(0644,   root, root) %{html_dir}/smtpd.8.html
-%attr(0644,   root, root) %{html_dir}/spawn.8.html
-%attr(0644,   root, root) %{html_dir}/tcp_table.5.html
-%attr(0644,   root, root) %{html_dir}/trace.8.html
-%attr(0644,   root, root) %{html_dir}/transport.5.html
-%attr(0644,   root, root) %{html_dir}/trivial-rewrite.8.html
-%attr(0644,   root, root) %{html_dir}/verify.8.html
-%attr(0644,   root, root) %{html_dir}/virtual.5.html
-%attr(0644,   root, root) %{html_dir}/virtual.8.html
-
-# README_FILES directory
-%dir %attr(-, root, root) %{readme_dir}
-%attr(0644,   root, root) %{readme_dir}/AAAREADME
-%attr(0644,   root, root) %{readme_dir}/ADDRESS_CLASS_README
-%attr(0644,   root, root) %{readme_dir}/ADDRESS_REWRITING_README
-%attr(0644,   root, root) %{readme_dir}/ADDRESS_VERIFICATION_README
-%attr(0644,   root, root) %{readme_dir}/BACKSCATTER_README
-%attr(0644,   root, root) %{readme_dir}/BASIC_CONFIGURATION_README
-%attr(0644,   root, root) %{readme_dir}/BUILTIN_FILTER_README
-%attr(0644,   root, root) %{readme_dir}/CONTENT_INSPECTION_README
-%attr(0644,   root, root) %{readme_dir}/DATABASE_README
-%attr(0644,   root, root) %{readme_dir}/DB_README
-%attr(0644,   root, root) %{readme_dir}/DEBUG_README
-%attr(0644,   root, root) %{readme_dir}/ETRN_README
-%attr(0644,   root, root) %{readme_dir}/FILTER_README
-%attr(0644,   root, root) %{readme_dir}/INSTALL
-%attr(0644,   root, root) %{readme_dir}/LDAP_README
-%attr(0644,   root, root) %{readme_dir}/LINUX_README
-%attr(0644,   root, root) %{readme_dir}/LMTP_README
-%attr(0644,   root, root) %{readme_dir}/LOCAL_RECIPIENT_README
-%attr(0644,   root, root) %{readme_dir}/MAILDROP_README
-%attr(0644,   root, root) %{readme_dir}/MYSQL_README
-%attr(0644,   root, root) %{readme_dir}/NFS_README
-%attr(0644,   root, root) %{readme_dir}/OVERVIEW
-%attr(0644,   root, root) %{readme_dir}/PACKAGE_README
-%attr(0644,   root, root) %{readme_dir}/PCRE_README
-%attr(0644,   root, root) %{readme_dir}/PGSQL_README
-%attr(0644,   root, root) %{readme_dir}/QMQP_README
-%attr(0644,   root, root) %{readme_dir}/QSHAPE_README
-%attr(0644,   root, root) %{readme_dir}/RELEASE_NOTES
-%attr(0644,   root, root) %{readme_dir}/RESTRICTION_CLASS_README
-%attr(0644,   root, root) %{readme_dir}/SASL_README
-%attr(0644,   root, root) %{readme_dir}/SCHEDULER_README
-%attr(0644,   root, root) %{readme_dir}/SMTPD_ACCESS_README
-%attr(0644,   root, root) %{readme_dir}/SMTPD_POLICY_README
-%attr(0644,   root, root) %{readme_dir}/SMTPD_PROXY_README
-%attr(0644,   root, root) %{readme_dir}/STANDARD_CONFIGURATION_README
-%attr(0644,   root, root) %{readme_dir}/TUNING_README
-%attr(0644,   root, root) %{readme_dir}/ULTRIX_README
-%attr(0644,   root, root) %{readme_dir}/UUCP_README
-%attr(0644,   root, root) %{readme_dir}/VERP_README
-%attr(0644,   root, root) %{readme_dir}/VIRTUAL_README
-%attr(0644,   root, root) %{readme_dir}/XCLIENT_README
-%attr(0644,   root, root) %{readme_dir}/XFORWARD_README
 
 %attr(0755, root, root) %config %{init_directory}/postfix
 
@@ -1169,7 +948,6 @@ umask 022
 %doc RELEASE_NOTES
 %doc RELEASE_NOTES-1.1
 %doc RELEASE_NOTES-2.0
-#%doc SNAPSHOT
 %doc TODO-BEFORE-RELEASE
 %doc US_PATENT_6321267
 
@@ -1186,9 +964,11 @@ umask 022
 %doc IPv6-ChangeLog
 %endif
 
-%doc html
-%doc examples
-%doc README_FILES
+%doc %dir %{html_dir}
+%doc %{html_dir}/*
+
+%doc %dir %{readme_dir}
+%doc %{readme_dir}/*
 
 %dir %attr(0755, root, root) %verify(not md5 size mtime) %{_libexecdir}/postfix
 %{_libexecdir}/postfix/anvil
@@ -1251,8 +1031,9 @@ umask 022
 
 %changelog
 
-* Thu Apr 15 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC3.20040414-0.1
+* Sat Apr 17 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC3.20040414-0.2
 - update to RC3
+- tidy up some more with documentation and also the alternatives scripts
 
 * Wed Apr 14 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC2.20040413-0.1
 - update to RC2
