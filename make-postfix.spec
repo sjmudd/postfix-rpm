@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.4.2 2005/02/24 22:48:24 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.4.3 2005/03/12 09:18:43 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -43,6 +43,7 @@
 # All Red Hat Enterprise Linuxes will now be treated identically
 # and named rhelXX
 # - LDAP support is included on all enterprise linux varieties
+# - TLS support is also included
 #
 # POSTFIX_DB=4		add db4 package to requires list
 # - Red Hat Linux Enterprise 3 / 4
@@ -244,9 +245,10 @@ REQUIRES_ZLIB=
 [ "$POSTFIX_MYSQL" = 1 ]        && REQUIRES_ZLIB=1
 [ "$POSTFIX_MYSQL_REDHAT" = 1 ] && REQUIRES_ZLIB=1
 
+POSTFIX_TLS=1
 if [ "$POSTFIX_TLS" = 1 ]; then
     echo "  adding TLS support to spec file"
-    SUFFIX="${SUFFIX}.tls"
+    #SUFFIX="${SUFFIX}.tls"	# disable this as it is now the default for 2.2
 
     # Different fixes (see spec file)
     [ ${releasename} = 'redhat' -a ${major} -eq 6 ] && TLSFIX=1

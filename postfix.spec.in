@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.4.2 2005/02/09 18:19:27 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.4.3 2005/03/12 09:18:43 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -86,14 +86,14 @@
 %define V_spf   2.1.3-4
 
 # If set to 1 if official version, 0 if snapshot
-%define official 0
-%define V_postfix 2.2
-%define rel 1__SUFFIX__
+%define official 1
+%define V_postfix 2.2.0
+%define rel 0.1__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
 %else
-%define V_release_date 20050206
+%define V_release_date RC2
 %define V_tarball %{V_postfix}-%{V_release_date}
 %define ftp_dir experimental
 %endif
@@ -249,7 +249,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.4.2 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.4.3 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -563,15 +563,6 @@ mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/pam.d
 install -m 644 %SOURCE101 ${RPM_BUILD_ROOT}%{_sysconfdir}/pam.d/smtp.postfix
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
 install -m 644 %SOURCE102 ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig/saslauthd.postfix
-%endif
-
-# fix path to perl and certs
-%if %{with_tls}
-ed TLS/loadCAcert.pl <<EOF || exit 1
-%%s,/usr/local/bin/perl,/usr/bin/perl,g
-w
-q
-EOF
 %endif
 
 # Include README.rpm explaining where the documentation can be found and
@@ -960,14 +951,11 @@ umask 022
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/aliases
 %attr(0644, root, root) %verify(not md5 size mtime) %ghost             %{_sysconfdir}/postfix/aliases.db
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/canonical
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/generic
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/header_checks
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/relocated
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/transport
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/virtual
-#%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/cidr_table
-#%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/pcre_table
-#%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/regexp_table
-#%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/tcp_table
 
 %attr(0644, root, root) %{_sysconfdir}/postfix/README.rpm
 %attr(0644, root, root) %{_sysconfdir}/postfix/postfix.spec.cf
@@ -1079,6 +1067,10 @@ umask 022
 #
 
 %changelog
+
+* Thu Mar 10 2005 Simon J Mudd <sjmudd@pobox.com> 2.2.0-0.1
+  - upgrade to 2.2.0
+    - VDA patch does not apply cleanly
 
 * Mon Feb 07 2005 Simon J Mudd <sjmudd@pobox.com> 2.2-20050206-1
   - upgrade to 2.2
