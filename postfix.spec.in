@@ -1,28 +1,25 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.49 2001/06/08 18:13:43 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.50 2001/06/09 10:43:35 sjmudd Exp $
 #
-# File used to generate the different spec files, used to build the postfix
-# package on RedHat Linux.
+# File used to generate the distribution-specific postfix.spec file.
 #
 # Please send bugfixes and comments to the packager.
 #
 ##############################################################################
 #
-# This spec file generated with the following options:
+# This spec file was built on distribution: __DISTRIBUTION__
 #
-# Built on __DISTRIBUTION__
-# 
-# If you need to make changes do them to the postfix.spec.in file and
-# regenerate the spec file.  See
+# If you need to make changes to postfix.spec, make them to postfix.spec.in
+# and regenerate the spec file.
+#
+# See the following files for more information:
 #
 #	%{_sourcedir}/make-postfix.spec
 #	%{_sourcedir}/postfix-build
 #
-# for more information.
-#
 ##############################################################################
-
+#
 # defines according to our taste - values should be 0 (NO) or 1 (YES)
 #
 # LDAP	- include LDAP support
@@ -147,7 +144,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.49 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.50 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
