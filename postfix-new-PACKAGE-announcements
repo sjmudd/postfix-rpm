@@ -1,0 +1,21 @@
+
+
+    HOW TO RECEIVE ANNOUNCEMENTS OF CHANGES IN THE RPM PACKAGES I PRODUCE
+    =====================================================================
+
+I have set up a private "list" to announce changes in the postfix packages
+I write, so that those of you who are interested can be advised of newer
+releases I produce.
+
+I plan to simply announce the latest package I've updated, and or changes
+which have been made, either following newer releases by Wietse, or as
+I update the packages due to suggestions I receive from users.
+
+I could send these announcements to postfix-users, but I think there are
+already a large number of users on this list, and probably a majority
+do not use rpm or linux, so the announcements are rather off-topic.
+
+If you are interested in receiving an email announcement, please let me
+know, sending me a message to my email address: <sjmudd@pobox.com>
+
+Simon Mudd
