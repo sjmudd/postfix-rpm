@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.239 2003/01/09 17:35:35 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.240 2003/01/14 13:36:38 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -206,11 +206,11 @@ a slightly outdated FAQ, which covers the steps involved in installing
 and configuring postfix.
 
 The binary and source rpms I produce are currently available at
-	http://pobox.com/~sjmudd/postfix, ftp://ftp.WL0.org
+	http://postfix.WL0.org, ftp://ftp.WL0.org
 and the mirrors which can be found at the following URL:
-	http://pobox.com/~sjmudd/postfix/en/mirrors/
+	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.239 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.240 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -967,6 +967,9 @@ fi
 #
 
 %changelog
+
+* Tue Jan 14 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.0-20030109-0.X
+  - update URLs in rpm -qi postfix output
 
 * Thu Jan 09 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.0-20030109-0.1
  - update to 2.0.0-20030109-0.1
