@@ -1,6 +1,6 @@
 make-postfix.spec
 pfixtls-0.8.16-2.0.16-0.9.7b.tar.gz
-postfinger-1.26
+postfinger-1.29
 postfix-2.0.16-20031026-multiline-greeting.patch
 postfix-2.0.16.patch.gz
 postfix-2.0-ns-mx-acl-patch.gz

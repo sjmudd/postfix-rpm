@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.111 2004/03/27 19:10:35 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.112 2004/03/27 20:02:43 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -106,7 +106,7 @@
 
 %define init_directory /etc/rc.d/init.d
 
-%define postfinger postfinger-1.26
+%define postfinger postfinger-1.29
 %define whinge /usr/bin/logger -p mail.info -t postfix/rpm
 %define die_cmd die(){ %whinge "$*"; exit 1; }
 
@@ -236,7 +236,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.111 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.112 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -955,6 +955,7 @@ umask 022
 - recognise rhel-3.0WS and also show the full distribution the rpm was built
   on. This allows us to distinguish a build on Whitebox and RedHat Enterprise
   Linux.  Problem noted by Tom Diehl <tdiehl@rogueind.com>
+- update postfinger to 1.29
 
 * Mon Mar 15 2004 Simon J Mudd <sjmudd@pobox.com> 2.0.19-1
 - update to 2.0.19
