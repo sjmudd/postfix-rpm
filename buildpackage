@@ -49,19 +49,20 @@ done
 # download_if_necessary to srcdir base/file if not already there
 
 download_if_necessary() {
-    srcdir=$1
-    base=$2
-    file=$3
+    local srcdir=$1
+    local base=$2
+    local file=$3
     if [ ! -f "${srcdir}/${file}" ]; then
-        echo "	${file} not found, download_if_necessarying to ${srcdir}"
-        echo "	from ${base}..."
+        echo "	${file} not found"
+	echo "  downloading to ${srcdir} from ${base}..."
         ( cd ${srcdir} && wget ${base}/${file} || {
             echo 'Failed!'
             exit 1
         }
         )
+    else
+        echo "	${file} exists in ${srcdir}"
     fi
-    echo "	${srcdir}/${file} exists"
     echo ""
 }
 
@@ -180,7 +181,7 @@ Checking VDA patches...
 
 EOF
 download_if_necessary . ${base} ${file}.gz
-gunzip ${file}.gz
+gunzip < ${file}.gz > ${file}
 
 echo "CVS Status:"
 
@@ -202,4 +203,5 @@ testtls
 testvda
 build
 echo ""
+rm  ${file}
 sh removelinks
