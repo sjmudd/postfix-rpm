@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.21 2001/01/29 22:07:34 root Exp $
+#  $Id: make-postfix.spec,v 1.22 2001/02/26 23:07:33 sjmudd Exp $
 #
 
 SUFFIX=
@@ -93,9 +93,6 @@ fi
 if [ -z "$POSTFIX_SMTPD_MULTILINE_GREETING" ]; then
     POSTFIX_SMTPD_MULTILINE_GREETING=0
 fi
-if [ -z "$POSTFIX_SAFE_MYNETWORKS" ]; then
-    POSTFIX_SAFE_MYNETWORKS=0
-fi
 
 # Remove leading '+' from package suffix (if exists)
 SUFFIX=`echo "${SUFFIX}" | sed -e 's;^\+;;'`
@@ -113,7 +110,6 @@ s!__DISTRIBUTION_PREREQ__!$DISTRIBUTION_PREREQ!g
 s!__DISTRIBUTION__!$DISTRIBUTION!g
 
 s!__SMTPD_MULTILINE_GREETING__!$POSTFIX_SMTPD_MULTILINE_GREETING!g
-s!__SAFE_MYNETWORKS__!$POSTFIX_SAFE_MYNETWORKS!g
 
 s!__REQUIRES__!$REQUIRES!g
 s!__BUILDREQUIRES__!$BUILDREQUIRES!g
