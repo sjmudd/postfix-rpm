@@ -1,6 +1,14 @@
---- snapshot-20010525/src/smtp/smtp_sasl_proto.c.orig	Sat May 26 10:51:17 2001
-+++ snapshot-20010525/src/smtp/smtp_sasl_proto.c	Sat May 26 11:10:12 2001
-@@ -77,21 +77,30 @@
+--- snapshot-20010525/src/smtp/smtp_sasl_proto.c.auth	Tue May 22 20:27:06 2001
++++ snapshot-20010525/src/smtp/smtp_sasl_proto.c	Sat May 26 18:35:31 2001
+@@ -61,6 +61,7 @@
+ 
+ #include <msg.h>
+ #include <mymalloc.h>
++#include <stringops.h>
+ 
+ /* Global library. */
+ 
+@@ -77,21 +78,23 @@
  
  void    smtp_sasl_helo_auth(SMTP_STATE *state, const char *words)
  {
@@ -15,16 +23,10 @@
 +     * methods. We could try to be clever and compute unions of those lists,
 +     * but simple concatenation may do the job.
       */
-+
      if (state->sasl_mechanism_list) {
  	if (strcasecmp(state->sasl_mechanism_list, words) == 0)
  	    return;
-+
-+	if (words)
-+	    msg_info("%s: words='%s'", my_name, words);
-+        msg_info("%s: state->sasl_mechanism_list='%s'", my_name, state->sasl_mechanism_list);
-+
-+	cp = concatenate(state->sasl_mechanism_list, " ", words);
++	cp = concatenate(state->sasl_mechanism_list, " ", words, (char *) 0);
  	myfree(state->sasl_mechanism_list);
 -	msg_warn("%s offered AUTH option multiple times",
 -		 state->session->namaddr);
@@ -33,7 +35,6 @@
 -    }
 -    if (strlen(words) > 0) {
 +	state->sasl_mechanism_list = cp;
-+        msg_info("%s:NEW state->sasl_mechanism_list='%s'", my_name, state->sasl_mechanism_list);
 +    } else if (strlen(words) > 0) {
  	state->sasl_mechanism_list = mystrdup(words);
  	state->features |= SMTP_FEATURE_AUTH;
