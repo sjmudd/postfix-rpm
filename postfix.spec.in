@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.237 2003/01/08 17:42:33 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.238 2003/01/08 18:40:47 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -64,13 +64,13 @@
 %define vdaver 1.1.11-20020822
 %define pfixtls pfixtls-0.8.12-2.0.0.1-0.9.6h
 %define pgver 1.1.4
-%define pfixipv6 tls+ipv6-1.10-pf-2.0.0-20021223
+%define pfixipv6 tls+ipv6-1.10-pf-2.0.0-20030101
 
 # If set to 1 if official version, 0 if snapshot
 %define official 0
 %define ver 2.0.0
 %define mail_release_date 20030107
-%define rel 1
+%define rel 1.1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -210,7 +210,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.237 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.238 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -967,6 +967,9 @@ fi
 #
 
 %changelog
+
+* Wed Jan 08 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.0-20030107-1.1
+ - update ipv6 patch to tls+ipv6-1.10-pf-2.0.0-20030101.patch.gz
 
 * Wed Jan 08 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.0-20030107-1
   - fix master.cf: virtual should not be chrooted

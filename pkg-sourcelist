@@ -19,5 +19,5 @@ postfix-pg-raw.patch
 postfix-rbl_reply_maps.patch
 postfix-smtp_sasl_proto.c.patch
 postfix.spec.in
-tls+ipv6-1.10-pf-2.0.0-20021223.patch.gz
 README.CDB
+tls+ipv6-1.10-pf-2.0.0-20030101.patch.gz
