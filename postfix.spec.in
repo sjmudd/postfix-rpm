@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.229 2002/12/20 07:35:25 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230 2002/12/20 20:09:07 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -43,9 +43,7 @@
 %define pgsql2 __PGSQL2__
 %define sasl __SASL__
 %define sasl_library __SASL_LIBRARY__
-# Currently the latest TLS patches do not work against this snapshot
 %define tls __TLS__
-%define tls 0
 %define tlsfix __TLSFIX__
 %define include_db __INCLUDE_DB__
 %define requires_db __REQUIRES_DB__
@@ -62,7 +60,7 @@
 
 # Version information
 %define vdaver 1.1.11-20020822
-%define pfixtls pfixtls-0.8.12-1.1.12-20021214-0.9.6h
+%define pfixtls pfixtls-0.8.12-1.1.12-20021219-0.9.6h
 %define pgver 1.1.4
 
 # If set to 1 if official version, 0 if snapshot
@@ -208,7 +206,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.229 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -956,6 +954,7 @@ fi
 
 * Fri Dec 20 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021219-1
   - update to latest snapshot
+  - update TLS patches
 
 * Thu Dec 19 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021218-1
   - update to latest snapshot
