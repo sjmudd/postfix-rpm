@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.111 2001/05/13 18:10:06 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.112 2001/05/15 08:09:01 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -14,12 +14,12 @@
 # Built on __DISTRIBUTION__
 # 
 # If you need to make changes do them to the postfix.spec.in file and
-# regenerate the spec file with:
+# regenerate the spec file.  See
 #
-#     cd ../SOURCES
-#     sh make-postfix.spec
+#	SOURCES/make-postfix.spec
+#	SOURCES/postfix-build
 #
-# after defining the relevent options you wish to use.
+# for more information.
 #
 ##############################################################################
 
@@ -52,7 +52,7 @@
 #Used when we have patchlevels, as can't include '-' in the package name
 #define version1 %{vers}-%{patchlevel}
 #define version2 %{vers}_%{patchlevel}
-%define rel  3
+%define rel  4
 %define tlsno pfixtls-0.7.2-snap20010502-0.9.6a
 %define distribution __DISTRIBUTION__
 
@@ -71,6 +71,7 @@ Conflicts: sendmail, exim, qmail, smail
 Version: %{version2}%{branch}
 Release: %{rel}__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
+Summary: Postfix Mail Server
 Vendor: Built on __DISTRIBUTION__
 Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/%{branch}-%{version1}.tar.gz
 Source1: postfix-README_rpm.txt
@@ -83,6 +84,7 @@ Source7: postfix.spec.in
 Source8: make-postfix.spec
 Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{tlsno}.tar.gz
 Source10: http://jimsun.linxnet.com/downloads/pflogsumm.pl
+Source11: postfix-build
 Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
 # required to install smtp-sink and smtp-source
@@ -149,14 +151,14 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.111 $,
-under __DISTRIBUTION__, with the following options:
+This package/specfile was built from postfix.spec.in $Revision: 2.112 $,
+with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
 LDAP=__LDAP__		SASL=__SASL__
 PCRE=__PCRE__		TLS=__TLS__
 MYSQL=__MYSQL__		REDHATMYSQL=__REDHAT_MYSQL__
-REQUIRES_DB3 __REQUIRES_DB3__		REQUIRES_INIT_D __REQUIRES_INIT_D__
+REQUIRES_DB3 __REQUIRES_DB3__	REQUIRES_INIT_D __REQUIRES_INIT_D__
 
 The source package contains information about rebuilding with alternative
 options.
@@ -188,11 +190,20 @@ umask 022
 # stop build if something is wrong
 die(){ %whinge "$*"; exit 1; }
 
-# warn if the distribution this spec file was made for isn't the same as the
-# current distribution
+# Warn if the distribution this spec file was made for isn't the same as
+# the current distribution
+# possible distributions are variants of:
+#	'redhat-release-7.0-1' or 'mandrake-release-7.1-1mdk'
+# It would be nice to convert these to:
+#	'redhat-release-7.0' and 'mandrake-release-7.1'
+# or even
+#	'redhat-release-7' and 'mandrake-release-7'
+# and make the comparison at these levels.
 
-DISTRIBUTION=`rpm -qa | grep release | egrep '(redhat|mandrake)'`
-if [ "${DISTRIBUTION}" != "__DISTRIBUTION__" ]; then
+CURRDIST=`rpm -qa | grep release | egrep '(redhat-|mandrake-)'`
+SPECDIST="__DISTRIBUTION__"
+
+if [ "${CURRDIST}" != "${SPECDIST}" ]; then
     cat <<ENDTEXT
 
 			W A R N I N G
@@ -202,8 +213,8 @@ This package's spec file was built for a different distribution to the
 version which you are using.  If the differences (shown below) are only
 a difference in MINOR version number this should not be a problem.
 
-Current Distribution:	${DISTRIBUTION}
-postfix.spec built for:	__DISTRIBUTION__
+Current Distribution:	${CURRDIST}
+postfix.spec built for:	${SPECDIST}
 
 If not it is advisable to rebuild the postfix.spec file as indicated below:
 
@@ -688,6 +699,12 @@ fi
 #
 
 %changelog
+* Mon May 07 2001 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20010502-4, general tidyup of make-postfix.spec
+  - also add check if built from source on a different version of linux to
+    the one the spec file was originally created for.
+  - add postfix-build to ./SOURCES directory to simplify building.
+
 * Mon May 07 2001 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20010502-3
   - configuration changes, used with make-postfix.spec

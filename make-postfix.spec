@@ -1,17 +1,36 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.25 2001/05/13 18:01:46 sjmudd Exp $
+#  $Id: make-postfix.spec,v 1.26 2001/05/15 08:09:01 sjmudd Exp $
 #
+# Script to create the postfix.spec file from postfix.spec.in
+#
+# It's behaviour depends on the version of redhat-linux it is running
+# on, but this could be extended to other non-redhat distributions.
+# 
+# The following external variables if set to 1 affect the behaviour
+#
+# POSTFIX_REDHAT_MYSQL	include support for RedHat's mysql packages
+# POSTFIX_MYSQL		include support for MySQL's  MySQL packages
+# POSTFIX_LDAP		include support for openldap packages
+# POSTFIX_PCRE		include support for pcre maps
+# POSTFIX_SASL		include support for SASL
+# POSTFIX_TLS		include support for TLS
+# POSTFIX_SMTPD_MULTILINE_GREETING
+#			include support for multitline SMTP banner
+#
+# Red Hat Linux 7.x (at the moment) specific requirements
+#
+# REQUIRES_DB3		add db3 package to requires list
+# REQUIRES_INIT_D	add /etc/init.d/ to requires list
 
 SUFFIX=
-REQUIRES=
-BUILDREQUIRES=
-DISTRIBUTION='Unknown Linux Distribution'
 REQUIRES_DB3=
+REQUIRES_INIT_D=
+DISTRIBUTION='Unknown Linux Distribution'
 
 # Ensure only one of POSTFIX_MYSQL and POSTFIX_REDHAT_MYSQL are defined
-test -n "$POSTFIX_MYSQL" && \
-  test -n "$POSTFIX_REDHAT_MYSQL" && {
+[ -n "$POSTFIX_MYSQL" ] && \
+[ -n "$POSTFIX_REDHAT_MYSQL" ] && {
     cat <<EOF
 Postfix MySQL support
 ---------------------
@@ -32,7 +51,8 @@ EOF
 # For this reason LDAP support is not compiled by default
 
 echo ""
-echo "Generating Postfix spec file: ../SPECS/postfix.spec"
+echo "Creating Postfix spec file: ../SPECS/postfix.spec"
+
 if [ "$POSTFIX_LDAP" = 1 ]; then
     echo "  adding LDAP  support to spec file"
     SUFFIX="${SUFFIX}+ldap"

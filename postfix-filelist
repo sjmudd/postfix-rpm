@@ -1,10 +1,13 @@
 make-postfix.spec
+pfixtls-0.7.2-snap20010502-0.9.6a.tar.gz
+pflogsumm.pl
 postfix-INSTALL.sh.patch
 postfix-README_maildrop_security.txt
 postfix-README_rpm.txt
 postfix-RPM-TODO-list
 postfix-aliases
 postfix-broken_auth.patch
+postfix-build
 postfix-chroot-setup.awk
 postfix-chroot_chk.patch
 postfix-chroot_setup.patch
@@ -13,10 +16,7 @@ postfix-etc-cron.daily-postfix
 postfix-etc-init.d-postfix
 postfix-fallback_relay.patch
 postfix-makedefs.patch
+postfix-smtpd.c.patch
+postfix-smtpd_check.c.patch
 postfix-smtpd_multiline_greeting.patch
 postfix.spec.in
-postfix-smtpd.c.patch
-pfixtls-0.7.2-snap20010502-0.9.6a.tar.gz
-pflogsumm.pl
-postfix-smtpd_check.c.patch
-postfix-build
