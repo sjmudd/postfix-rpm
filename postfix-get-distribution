@@ -14,7 +14,7 @@
 
 # Provide a usage message
 function usage () {
-id='$Revision: 1.2.2.10 $'
+id='$Revision: 1.2.2.11 $'
 id=$(echo $id | sed -e 's/^.*: //g' -e 's/ .*$//g')
 cat <<EOF
 `basename $0` $id
@@ -44,9 +44,22 @@ fi
 #
 # Get release information (if possible)
 if [ `rpm -q redhat-release >/dev/null 2>&1; echo $?` = 0 ]; then
-    releasename=redhat
-    release=`rpm -q redhat-release | sed -e 's;^redhat-release-;;' \
+    # This means we are RHL <= 9 OR enterprise linux
+    # redhat-release-3ES-1
+    # redhat-release-9-3
+    # redhat-release-8.0-8
+    # redhat-release-7.2-1
+    # redhat-release-6.2-1
+    if [ rpm -q redhat-release | egrep -q '(ES|ES|AS)' ];
+    then
+        releasename=rhes
+        release=`rpm -q redhat-release | sed -e 's;^redhat-release-;;' \
                                          -e 's;-[0-9]*$;;'`
+    else
+        releasename=redhat
+        release=`rpm -q redhat-release | sed -e 's;^redhat-release-;;' \
+                                         -e 's;-[0-9]*$;;'`
+    fi
 elif [ `rpm -q fedora-release >/dev/null 2>&1; echo $?` = 0 ]; then
     releasename=fedora
     release=`rpm -q fedora-release | sed -e 's;^fedora-release-;;' \

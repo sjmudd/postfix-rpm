@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.24 2003/11/05 16:56:01 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.25 2003/11/14 16:58:06 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -298,14 +298,27 @@ yellowdog)
     ;;
 
 rhes|rhas)
-    DEFAULT_DB=3
-    [ ${releasename} = "rhes" ] && DIST=".rhes21"
-    [ ${releasename} = "rhas" ] && DIST=".rhas21"
+    # Stop distinguishing between enterprise | advanced server or workstation
+    # as this seems rather pointless (should run on all versions I think)
+    DEFAULT_DB=4
+    case ${major} in
+    3)
+        DIST=".rhes3"
+        ;;
+    2)
+        DEFAULT_DB=3
+        DIST=".rhes21"
+        ;;
+    *)
+        echo "ERROR: Do not recognise the version of Red Hat Enterprise Server/Advanced Server/Workstation"
+        exit 1
+        ;;
+    esac
     ;;
 
 fedora)
-	DEFAULT_DB=4
-	DIST=".fc1"
+        DEFAULT_DB=4
+        DIST=".fc1"
 	;;
 
 redhat)

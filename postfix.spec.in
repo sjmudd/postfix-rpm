@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.98 2003/11/05 16:56:01 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.99 2003/11/14 16:58:06 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -87,7 +87,7 @@
 %define official 1
 %define ver 2.0.16
 %define mail_release_date 20021219
-%define rel 5
+%define rel 6
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -160,7 +160,7 @@ Patch7: postfix-log_recipient
 Patch9: http://webs.sinectis.com.ar/lesanti/postfix/postfix-2.0.9-dict_mysql_noregister.patch
 Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pgver}.patch
 Patch51: postfix-pg-raw.patch
-Patch99: ftp://ftp.wl0.org/SOURCES/postfix-1.1.12-20021124-multiline-greeting.patch
+Patch99: ftp://ftp.wl0.org/SOURCES/postfix-2.0.16-20031026-multiline-greeting.patch
 
 BuildRoot: %{_tmppath}/postfix-%{package_version}-buildroot
 
@@ -233,7 +233,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.98 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.99 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -337,7 +337,7 @@ sh dict_cdb.sh
 %if %{tls}
 # Move postfix/tls docs into TLS dir
 mkdir TLS
-mv %{pfixtls}/doc/* TLS
+mv %{pfixtls}/doc/* TLS/
 for i in ACKNOWLEDGEMENTS CHANGES INSTALL README TODO; do
   mv %{pfixtls}/$i $i.TLS
 done
@@ -550,10 +550,10 @@ done
 install -c -m 755 %{_sourcedir}/%{postfinger} ${RPM_BUILD_ROOT}%{_bindir}/postfinger
 install -c -m 755 %{_sourcedir}/postfix-chroot.sh ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/
 
-# fix path to perl
+# fix path to perl and certs
 %if %{tls}
 ed TLS/loadCAcert.pl <<EOF || exit 1
-s,/usr/local/bin/perl,/usr/bin/perl,g
+%%s,/usr/local/bin/perl,/usr/bin/perl,g
 w
 q
 EOF
@@ -946,6 +946,13 @@ umask 022
 #
 
 %changelog
+
+* Fri Nov 14 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.16-6
+  - (fixed) remove perl dependencies (ed script needed modifying)
+  - add support for Red Hat Enterprise Linux 3 (treating all versions
+    identically).
+  - update smtp multiline greeting patch
+    - problem reported by Leandro Santi <lesanti@uolsinectis.com.ar>
 
 * Wed Nov 05 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.16-5
   - remove perl dependencies

@@ -1,7 +1,13 @@
-diff -uNr postfix-1.1.12-20021124-orig/src/smtpd/smtpd.c postfix-1.1.12-20021124/src/smtpd/smtpd.c
---- postfix-1.1.12-20021124-orig/src/smtpd/smtpd.c	2002-10-28 19:40:26.000000000 +0100
-+++ postfix-1.1.12-20021124/src/smtpd/smtpd.c	2002-11-26 10:36:17.000000000 +0100
-@@ -1430,7 +1430,7 @@
+	This fixes a problem in Simon's multiline-greeting patch.
+
+	When smtpd_chat_reply() detects an I/O error, vstream_longjmp()
+	is called, hence smtpd_chat_reply_multiline()'s context is 
+	destroyed but the local VSTRINGs are not.
+
+diff -ur postfix-2.0.16-20031026.orig/src/smtpd/smtpd.c postfix-2.0.16-20031026.patched/src/smtpd/smtpd.c
+--- postfix-2.0.16-20031026.orig/src/smtpd/smtpd.c	Wed Oct 22 18:58:55 2003
++++ postfix-2.0.16-20031026.patched/src/smtpd/smtpd.c	Wed Nov 12 16:47:46 2003
+@@ -1808,7 +1808,7 @@
  	    && (state->access_denied = smtpd_check_client(state)) != 0) {
  	    smtpd_chat_reply(state, "%s", state->access_denied);
  	} else {
@@ -10,9 +16,9 @@ diff -uNr postfix-1.1.12-20021124-orig/src/smtpd/smtpd.c postfix-1.1.12-20021124
  	}
  
  	for (;;) {
-diff -uNr postfix-1.1.12-20021124-orig/src/smtpd/smtpd_chat.c postfix-1.1.12-20021124/src/smtpd/smtpd_chat.c
---- postfix-1.1.12-20021124-orig/src/smtpd/smtpd_chat.c	2002-11-14 14:30:19.000000000 +0100
-+++ postfix-1.1.12-20021124/src/smtpd/smtpd_chat.c	2002-11-26 10:54:54.000000000 +0100
+diff -ur postfix-2.0.16-20031026.orig/src/smtpd/smtpd_chat.c postfix-2.0.16-20031026.patched/src/smtpd/smtpd_chat.c
+--- postfix-2.0.16-20031026.orig/src/smtpd/smtpd_chat.c	Sat Jul  5 17:28:32 2003
++++ postfix-2.0.16-20031026.patched/src/smtpd/smtpd_chat.c	Wed Nov 12 17:51:15 2003
 @@ -14,6 +14,11 @@
  /*	SMTPD_STATE *state;
  /*	char	*format;
@@ -46,10 +52,12 @@ diff -uNr postfix-1.1.12-20021124-orig/src/smtpd/smtpd_chat.c postfix-1.1.12-200
  
  /* Utility library. */
  
-@@ -182,6 +194,58 @@
+@@ -180,6 +192,61 @@
+ 	vstream_longjmp(state->client, SMTP_ERR_TIME);
+     if (vstream_ferror(state->client))
  	vstream_longjmp(state->client, SMTP_ERR_EOF);
- }
- 
++}
++
 +/* trim_line - remove trailing whitespace and return a pointer to the first */
 +/* non-space char in the string.  Based on TRIM() in ../util/dict.c         */
 +/* WARNING: this function is DESTRUCTIVE.                                   */
@@ -74,10 +82,16 @@ diff -uNr postfix-1.1.12-20021124-orig/src/smtpd/smtpd_chat.c postfix-1.1.12-200
 +void smtpd_chat_reply_multiline(SMTPD_STATE *state, int smtp_reply_code, char *format,...)
 +{
 +    va_list ap;
-+    VSTRING *temp_line = vstring_alloc(512);/* SMTP reply before unescapeing     */
-+    VSTRING *multiline = vstring_alloc(512);/* SMTP reply after unescaping       */
-+    char    *line, *line2;                  /* one line (of the multiline) reply */
-+    size_t   size;                          /* size of a single line             */
++    char    *line, *line2;     /* one line (of the multiline) reply */
++    size_t   size;             /* size of a single line             */
++    static VSTRING *temp_line; /* SMTP reply before unescapeing     */
++    static VSTRING *multiline; /* SMTP reply after unescaping       */
++
++    /* First-time intialization. */
++    if (!temp_line)
++	temp_line = vstring_alloc(512);
++    if (!multiline)
++	multiline = vstring_alloc(512);
 +
 +    va_start(ap, format);
 +    vstring_vsprintf(temp_line, format, ap);
@@ -85,7 +99,6 @@ diff -uNr postfix-1.1.12-20021124-orig/src/smtpd/smtpd_chat.c postfix-1.1.12-200
 +
 +    /* unescape lines with "\\n", converting them to "\n" */
 +    unescape( multiline, STR(temp_line) );
-+    vstring_free( temp_line );
 +
 +    line = STR(multiline);
 +    while ( (size = strcspn(line, LINE_SEPARATOR)) < strlen(line) ) {
@@ -98,16 +111,12 @@ diff -uNr postfix-1.1.12-20021124-orig/src/smtpd/smtpd_chat.c postfix-1.1.12-200
 +    }
 +    line2 = trim_line(line);
 +    smtpd_chat_reply(state, "%03d %s", smtp_reply_code, line2);
-+
-+    vstring_free( multiline );
-+}
-+
- /* print_line - line_wrap callback */
+ }
  
- static void print_line(const char *str, int len, int indent, char *context)
-diff -uNr postfix-1.1.12-20021124-orig/src/smtpd/smtpd_chat.h postfix-1.1.12-20021124/src/smtpd/smtpd_chat.h
---- postfix-1.1.12-20021124-orig/src/smtpd/smtpd_chat.h	2000-11-18 15:37:30.000000000 +0100
-+++ postfix-1.1.12-20021124/src/smtpd/smtpd_chat.h	2002-11-26 10:55:33.000000000 +0100
+ /* print_line - line_wrap callback */
+diff -ur postfix-2.0.16-20031026.orig/src/smtpd/smtpd_chat.h postfix-2.0.16-20031026.patched/src/smtpd/smtpd_chat.h
+--- postfix-2.0.16-20031026.orig/src/smtpd/smtpd_chat.h	Sat Nov 18 11:37:30 2000
++++ postfix-2.0.16-20031026.patched/src/smtpd/smtpd_chat.h	Wed Nov 12 16:47:46 2003
 @@ -15,6 +15,7 @@
  extern void smtpd_chat_reset(SMTPD_STATE *);
  extern void smtpd_chat_query(SMTPD_STATE *);
