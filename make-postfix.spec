@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.8 2003/03/27 13:56:21 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.9 2003/04/07 08:25:14 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -41,7 +41,11 @@
 # uid/gid and postdrop gid if the standard values I'm assigning are
 # not correct on your system.
 #
-# Red Hat Linux 8.x requires
+# Red Hat Linux 9 requires
+# REQUIRES_INIT_D	add /etc/init.d/ to requires list
+# POSTFIX_DB=4		add db4 package to requires list
+#
+# Red Hat Linux 8 requires
 # REQUIRES_INIT_D	add /etc/init.d/ to requires list
 # POSTFIX_DB=4		add db4 package to requires list
 #
@@ -82,8 +86,15 @@ echo "    check and remove /var/lib/rpm/__db.00? files"
 tmpdir=`rpm --eval '%{_sourcedir}'`
 distribution=`sh ${tmpdir}/postfix-get-distribution`
 releasename=`echo $distribution | sed -e 's;-.*$;;'`
-major=`echo $distribution | sed -e 's;[a-z]*-;;' -e 's;\.[0-9]*$;;'`
-minor=`echo $distribution | sed -e 's;[a-z]*-;;' -e 's;[0-9]*\.;;'`
+
+if [ `echo $release | grep -q '\.'` ]; then
+    major=`echo $release | sed -e 's;\.[0-9]*$;;'`      # strip off trailing minor
+    minor=`echo $release | sed -e 's;^[0-9]*\.;.;'`     # strip off leading major
+else
+    major=$release
+    minor=
+fi
+
 echo "  Distribution is: ${distribution}"
 echo ""
 
@@ -215,9 +226,15 @@ yellowdog)
 
 redhat)
     case ${major} in
+    9)
+	DEFAULT_DB=4
+	REQUIRES_INIT_D=1
+	;;
+
     8)
 	DEFAULT_DB=4
 	REQUIRES_INIT_D=1
+	DIST=".rh8"
 	;;
 
     7)
