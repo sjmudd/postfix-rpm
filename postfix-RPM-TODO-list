@@ -1,8 +1,8 @@
 POSTFIX PACKAGE TODO LIST
 ==========================================
 
-Revision:     $Revision: 1.5 $
-Last Updated: $Date: 2000/12/10 20:28:55 $
+Revision:     $Revision: 1.6 $
+Last Updated: $Date: 2000/12/15 22:29:06 $
 
 Summary of comments and reminders of things that need to be looked at.
 
@@ -93,3 +93,39 @@ Problem:
 - compile & include smtp-source/sink and generate the manpages for them
 - include my mynetworks patch if Wietse doesn't get clue on that :-]
 
+----------------------------------------------------------------------
+
+Reported by:	Tuomo Soini <tis@foobar.fi>
+Date:		11/12/2000
+Status:		Fixed in 20001212-2
+Problem:
+--------
+postfix user/group required to build package.  Create them if needed on
+package build.
+
+----------------------------------------------------------------------
+
+Reported by:	Daniel Roesen <droesen@entire-systems.com> 
+Date:		07/12/2000
+Status:		Partly complete in 20001212-2, part PENDING
+Problem:
+--------
+include smtp-source/sink, but PENDING including man pages.
+
+----------------------------------------------------------------------
+
+Reported by:	Daniel Roesen <droesen@entire-systems.com> 
+Date:		07/12/2000
+Status:		Complete in 20001212-2 if option is enabled when building
+Problem:
+--------
+Include my mynetworks patch if Wietse doesn't get clue on that.
+
+Comments:
+---------
+To include Daniel's patch before building from the source package do the
+following:
+ # export POSTFIX_SAFE_MYNETWORKS=1
+ # rpm -ba postfix.spec # to build the package
+
+NOTE: The version I build includes this patch
