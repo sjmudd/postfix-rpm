@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.29 2002/04/18 07:04:23 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.30 2002/04/18 12:16:55 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -60,7 +60,7 @@
 %define official 1 
 %define ver 1.1.7
 %define mail_release_date 20020115
-%define rel 3
+%define rel 4
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -113,6 +113,7 @@ Summary: Postfix Mail Transport Agent
 Vendor: Built on %{distribution}
 Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_dir}/postfix-%{tarball_version}.tar.gz
 Source1: postfix-new-RPM-packages
+Source2: postfix-get-distribution
 Source3: postfix-etc-init.d-postfix
 Source4: postfix-etc-cron.daily-postfix
 Source5: postfix-aliases
@@ -199,7 +200,7 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.29 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.30 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, VDA=%{VDA}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -853,6 +854,10 @@ fi
 #
 
 %changelog
+
+* Thu Apr 18 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-4
+  - bugfix: add Source2: postfix-get-distribution
+    - advised by "Weisz, Norbert" <Norbert.Weisz@Compaq.com>
 
 * Thu Apr 18 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-3
   - changes to names and stuff in spec file (basic tidy-up)
