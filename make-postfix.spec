@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.23 2001/03/30 16:12:26 sjmudd Exp $
+#  $Id: make-postfix.spec,v 1.24 2001/05/12 20:53:09 sjmudd Exp $
 #
 
 SUFFIX=
@@ -8,6 +8,7 @@ REQUIRES=
 BUILDREQUIRES=
 DISTRIBUTION_PREREQ=
 DISTRIBUTION='Unknown Linux Distribution'
+REQUIRES_DB3=
 
 # Ensure only one of POSTFIX_MYSQL and POSTFIX_REDHAT_MYSQL are defined
 test -n "$POSTFIX_MYSQL" && \
@@ -60,15 +61,12 @@ if [ "$POSTFIX_TLS" = 1 ]; then
     SUFFIX="${SUFFIX}+tls"
 fi
 
-# rh7 db3 crap - this is rather ugly
+# Determine the correct db files to use. RedHat 7 requires db3
 if [ `rpm -q redhat-release` ]; then
-    # We are running RedHat Linux
-    # check for RedHat 7 and change Requires for new db3 if necessary
     A=`rpm -q redhat-release | grep -q 7; echo $?`
     if [ "$A" = 0 ]; then
-        REQUIRES="Requires: db3"
-        BUILDREQUIRES="BuildRequires: db3, db3-devel"
-        DISTRIBUTION_PREREQ=', /etc/init.d, /sbin/service'
+	REQUIRES_INIT_D=1
+        REQUIRES_DB3=1
     fi
     DISTRIBUTION=`rpm -q redhat-release` 
     # check for RedHat 6 and change SUFFIX to avoid package name conflicts
@@ -79,27 +77,16 @@ if [ `rpm -q redhat-release` ]; then
 fi
 
 # ensure if undefined the value is 0
-if [ -z "$POSTFIX_LDAP" ]; then
-    POSTFIX_LDAP=0
-fi
-if [ -z "$POSTFIX_MYSQL" ]; then
-    POSTFIX_MYSQL=0
-fi
-if [ -z "$POSTFIX_REDHAT_MYSQL" ]; then
-    POSTFIX_REDHAT_MYSQL=0
-fi
-if [ -z "$POSTFIX_PCRE" ]; then
-    POSTFIX_PCRE=0
-fi
-if [ -z "$POSTFIX_SASL" ]; then
-    POSTFIX_SASL=0
-fi
-if [ -z "$POSTFIX_TLS" ]; then
-    POSTFIX_TLS=0
-fi
-if [ -z "$POSTFIX_SMTPD_MULTILINE_GREETING" ]; then
-    POSTFIX_SMTPD_MULTILINE_GREETING=0
-fi
+
+[ -z "$REQUIRES_DB3" ]			&& REQUIRES_DB3=0
+[ -z "$REQUIRES_INIT_D" ]		&& REQUIRES_INIT_D=0
+[ -z "$POSTFIX_LDAP" ]			&& POSTFIX_LDAP=0
+[ -z "$POSTFIX_MYSQL" ]			&& POSTFIX_MYSQL=0
+[ -z "$POSTFIX_REDHAT_MYSQL" ]		&& POSTFIX_REDHAT_MYSQL=0
+[ -z "$POSTFIX_PCRE" ]			&& POSTFIX_PCRE=0
+[ -z "$POSTFIX_SASL" ]			&& POSTFIX_SASL=0
+[ -z "$POSTFIX_TLS" ]			&& POSTFIX_TLS=0
+[ -z "$POSTFIX_SMTPD_MULTILINE_GREETING" ] && POSTFIX_SMTPD_MULTILINE_GREETING=0
 
 # Remove leading '+' from package suffix (if exists)
 SUFFIX=`echo "${SUFFIX}" | sed -e 's;^\+;;'`
@@ -113,13 +100,11 @@ cat > ../SPECS/postfix.spec <<EOF
 #
 EOF
 sed "
-s!__DISTRIBUTION_PREREQ__!$DISTRIBUTION_PREREQ!g
+s!__REQUIRES_DB3__!$REQUIRES_DB3!g
+s!__REQUIRES_INIT_D__!$REQUIRES_INIT_D!g
 s!__DISTRIBUTION__!$DISTRIBUTION!g
 
 s!__SMTPD_MULTILINE_GREETING__!$POSTFIX_SMTPD_MULTILINE_GREETING!g
-
-s!__REQUIRES__!$REQUIRES!g
-s!__BUILDREQUIRES__!$BUILDREQUIRES!g
 
 s!__SUFFIX__!$SUFFIX!g
 

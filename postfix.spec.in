@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.106 2001/05/08 19:03:23 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.107 2001/05/12 20:53:09 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -38,9 +38,9 @@
 %define REDHATMYSQL __REDHAT_MYSQL__
 %define PCRE __PCRE__
 %define SASL __SASL__
+%define REQUIRES_DB3 __REQUIRES_DB3__
+%define REQUIRES_INIT_D __REQUIRES_INIT_D__
 %define TLS __TLS__
-# The TLS patch doesn't currently work, need a more up to date patch
-%define TLS 0
 
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
 
@@ -60,7 +60,11 @@ Summary: Postfix Mail Transport Agent
 Group: System Environment/Daemons
 URL: http://www.postfix.org
 Copyright: IBM Public License
-PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
+PreReq: /sbin/chkconfig
+# Required by RedHat 7.x
+%if %{REQUIRES_INIT_D}
+PreReq: /etc/init.d, /sbin/service
+%endif
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail, exim, qmail, smail
 Version: %{version2}%{branch}
@@ -95,10 +99,11 @@ BuildRoot: %{_tmppath}/%{name}-%{version1}-root
 # Determine the different packages required for building postfix
 BuildRequires: gawk, perl, sed
 
-# Requires for different packages - added automatically (optional)
-__REQUIRES__
-# BuildRequires for different packages - added automatically (optional)
-__BUILDREQUIRES__
+# Used on Red Hat 7.x
+%if %{REQUIRES_DB3}
+Requires: db3
+BuildRequires: db3, db3-devel
+%endif
 
 %if %{LDAP}
 Requires: openldap >= 1.2.9
@@ -115,8 +120,8 @@ Requires: mysql, mysqlclient9
 BuildRequires: mysql, mysqlclient9, mysql-devel
 %endif
 %if %{MYSQL}
-Requires: MySQL, MySQL-client, zlib
-BuildRequires: MySQL, MySQL-client, MySQL-devel, zlib-devel
+Requires: MySQL-shared, zlib
+BuildRequires: MySQL-shared, MySQL-devel, zlib-devel
 %endif
 
 %if %{SASL}
@@ -143,7 +148,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.106 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.107 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -646,19 +651,16 @@ fi
 ##############################################################################
 # List of changes made to this package.
 #
-# Old changelog from Tue Dec 15 1998 - Dec 31 1999 has been removed.
+# Old changelog from Tue Dec 15 1998 - Dec 31 2000 has been removed.
 #
-# This included changes and suggestions from:
-#
-#	Lars Hecking <lhecking@nmrc.ucc.ie> 
-#	John A. Martin <jam@jamux.com>
-#	Chuck Mead <chuck@moongroup.com>
-#	Simon J Mudd <sjmudd@pobox.com>
-#	Matt Shibla <mshibla@iname.com>
-#	Bennett Todd <bet@mordor.net>
-#       Tim Powers <timp@redhat.com>
 
 %changelog
+* Mon May 07 2001 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20010502-3
+  - configuration changes, used with make-postfix.spec
+  - remove changelog entries before 01-01-2001
+  - modifications to improve support with MySQL-3.23.36-1 
+
 * Mon May 07 2001 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20010502-2, add smptd_check.c.patch from Wietse
 
@@ -785,161 +787,4 @@ fi
 
 * Thu Jan 04 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001217-8, minor touches to build procedure
-
-* Mon Dec 31 2000 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001217-6, suggestions from Daniel Roesen <droesen@entire-systems.com>
-- remove default LDAP support: RedHat only supports this by default on RH 6.2
-  and later
-- remove package build after building spec file (I was being lazy)
-- fix a couple of typos
-- warn if user is trying to build the package when he is not the superuser
-
-* Fri Dec 22 2000 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001217-5
-- include Requires: /etc/init.d if built on rh7
-- change POSTFIX_SMTPD_MULTILINE to POSTFIX_SMTPD_MULTILINE_GREETING
-
-* Fri Dec 22 2000 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001217-3, support for rh7 building
-  - if built on a rh7 machine, the spec file will include a Requires:
-    for db3/db3-devel.
-  - include the Requires: and BuildRequires: support for use with
-    openldap, mysql, pcre, and cyrus-sasl packages
-  ( current build also shows the version of redhat the spec file
-    was generated on, just to make things a bit clearer )
-
-* Fri Dec 22 2000 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001217-2, major changes so that I
-  can build any spec file to include mysql, ldap, pcre
-  and AUTH support.  This is not finished but basically
-  just requires the Requires: lines to work properly.
-- add Broken auth support Daniel Roesen <droesen@entire-systems.com>
-
-* Mon Dec 18 2000 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001217-1, no changes, updating to latest snapshot
-
-* Thu Dec 13 2000 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001212-3, minor fixes
-  %{queue_directory} removal while correct as probably a bit dangerous
-  so try and be a bit safer.
-  stop gzipping the man pages (I think this is done automatically now)
-
-* Thu Dec 13 2000 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001212-2, minor fixes
-  %{queue_directory} removal wasn't correct
-
-* Wed Dec 13 2000 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001212-1, several changes following comments from
-  Daniel Roesen <droesen@entire-systems.com>
-  Tuomo Soini <tis@foobar.fi>
-  - change chroot removal on package uninstallation
-  - rebuild aliases.db on package installation not build
-  - tidy up stop/start over package upgrade
-  - change method for selectively installing patches
-      now use POSTFIX_SMTPD_MULTILINE=1 for smtpd multiline greetings
-              POSTFIX_SAFE_MYNETWORKS=1 for droesen's patch
-  - create postfix user/group on package build if necessary
-  - include smtp-source/smtp-sink for testing
-  - include comments in spec file for building with other libraries
-      this is so later I can do this automatically
-
-* Thu Nov 23 2000 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001121-4, several minor fixes following comments from
-  Daniel Roesen <droesen@entire-systems.com>
-  1. fix /etc/cron.daily/postfix
-  2. remove /etc/postfix/aliases.db %ghost attribute
-     (trying to remove error messages related to file not existing, I think
-      that this is due to it not being copied over)
-  3. trying to cure the uninstall complaining about files left over in 
-     /var/spool/postfix
-  4. remove groupdel which is not required after userdel on uninstall
-
-* Thu Nov 23 2000 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001121-3,
-  fix minor error in chroot jail removal
-
-* Thu Nov 23 2000 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001121-2,
-  didn't like chroot jail setup in -1, so now I use the example script
-  to build the jail on package installation
-
-- snapshot-20001121-1, makedefs should be fixed (but can't check)
-  chroot jail now built on postfix start (from /etc/rc.d/init.d/postfix)
-  change invocation of INSTALL.sh when installing into ${BUILD_ROOT}
-
-* Tue Nov 07 2000 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001030-2, add chkconfig postfix to /etc/cron.daily/postfix
-  fix Wietse's makedefs so this builds on rh6.x and rh7.
-  checked with Patrick Reich <dminor@adelade.org>
-
-* Wed Nov 01 2000 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001030-1, need to refix patch for RedHat 7 which 
-  I don't yet have installed on my machine.
-
-* Fri Oct 27 2000 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001005-6, include patch so will build on RedHat 7,
-  provided by Jim Drash <jdrash@one.net>
-                    
-* Sat Oct 14 2000 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001005-5, include lmtp, nqmgr, spawn in %files section
-
-* Thu Oct 12 2000 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001005-4, fix chroot awk script which was wrong
-
-* Thu Oct 12 2000 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001005-3, changes url shown for my packages.
-
-* Sun Oct 08 2000 Simon Mudd <sjmudd@pobox.com>
-- built for snapshot-20001005-2, tidying up and taking in _some_
-  of the stuff I've seen on one of redhat's postfix spec files.
-  Also corrected the multiline patch.
-
-* Sun Jun 04 2000 Simon Mudd <sjmudd@pobox.com>
-- built for postfix-19991231-pl08
-
-* Sun Apr 15 2000 Simon Mudd <sjmudd@pobox.com>
-- built for postfix-19991231-pl07
-
-* Fri Mar 30 2000 Simon Mudd <sjmudd@pobox.com>
-- built for postfix-19991231-pl06
-
-* Fri Mar 10 2000 Simon Mudd <sjmudd@pobox.com>
-- built for postfix-19991231-pl05
-
-* Tue Feb 01 2000 Simon Mudd <sjmudd@pobox.com>
-- include the patch which optionally delays check_msg_size()
-
-* Mon Jan 31 2000 Simon Mudd <sjmudd@pobox.com>
-- built for postfix-19991231-pl04
-
-* Fri Jan 28 2000 Simon Mudd <sjmudd@pobox.com>
-- built for postfix-19991231-pl03
-- add warning option (which is not enabled by default on standard postfix
-  config)
-- add comments of possible builders of binary s390 and alpha packages
-
-* Thu Jan 13 2000 Tim Powers <timp@redhat.com>
-- removing the whinge stuff from the pre and post sections to meet Red Hat
-	policy
-- quiet setup 
-- built for Powertools 6.2
-
-* Thu Jan 13 2000 Simon Mudd <sjmudd@pobox.com>
-- fix the postalias command which needed the '-c' option
-  specified.  (Edward S. Marshall <emarshal@logic.net>)
-
-- fix the rpm-3.x problem with defines not being commented out
-  and comment that part of the spec file so that I don't get
-  caught again. (It works on my platform with rpm-2.x!)
-
-* Tue Jan 04 2000 Simon Mudd <sjmudd@pobox.com>
-- update to work with postfix-19991231-pl02
-
-* Tue Jan 04 2000 Simon Mudd <sjmudd@pobox.com>
-- update to work with postfix-19991231-pl01
-- and the ghost parameter for aliases.db
-
-* Tue Jan 04 2000 Simon Mudd <sjmudd@pobox.com>
-- Fix BEWARE problem in doc
-- change man page compression to work on required files
 
