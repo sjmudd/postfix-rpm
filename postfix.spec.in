@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.173 2001/11/29 14:09:36 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.174 2001/12/11 08:47:51 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -42,14 +42,14 @@
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
 
 %define branch snapshot
-%define vers 20011127
+%define vers 20011210
 %define patchlevel pl01
 %define version1 %{vers}
 %define version2 %{vers}
 #Used when we have patchlevels, as can't include '-' in the package name
 #define version1 %{vers}-%{patchlevel}
 #define version2 %{vers}_%{patchlevel}
-%define rel 2
+%define rel 1
 
 %define tlsno pfixtls-0.7.13c-snap20011127-0.9.6b
 %define pflogno -1.0.3
@@ -148,7 +148,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.173 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.174 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -761,6 +761,10 @@ fi
 #
 
 %changelog
+
+* Wed Nov 28 2001 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20011210-1
+  - update to latest snapshot
 
 * Wed Nov 28 2001 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20011127-2
