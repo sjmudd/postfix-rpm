@@ -38,9 +38,9 @@ echo $release | grep -q '\.' && {
     minor=0
 }
 
-echo releasename=$releasename
-echo release=$release
-echo major=$major
-echo minor=$minor
+#echo releasename=$releasename
+#echo release=$release
+#echo major=$major
+#echo minor=$minor
  
 echo ${releasename}-${major}.${minor}
