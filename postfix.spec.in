@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.51 2001/01/26 18:09:02 root Exp $
+# $Id: postfix.spec.in,v 2.52 2001/01/26 19:11:05 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -252,7 +252,7 @@ AUXLIBS=
 # - MySQL (www.mysql.com) does need zlib support to compile correctly
 %if %{MYSQL}
   CCARGS="${CCARGS} -DHAS_MYSQL -I/usr/include/mysql"
-  AUXLIBS="${AUXLIBS} -L/usr/lib/mysql -lmysqlclient
+  AUXLIBS="${AUXLIBS} -L/usr/lib/mysql -lmysqlclient"
 %if %{REDHATMYSQL}
   :
 %else
