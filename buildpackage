@@ -34,12 +34,12 @@ BACKUP_IFS="$IFS"
 build_output=build-output
 pkgdir=`pwd`
 sign='--sign'
-test_patches=1
+test_patches=0
  
 USAGE="Usage: $0 [name=value] [option]
     --no-check              Do not check if the files have changed against the version stored in cvs.
     --no-sign               Do not sign the package.
-    --no-test-patches       Do not test the patches, or update
+    --test-patches          test the patches
                             postfix-test-patch-results
     name=value              Specify an installation parameter".
  
@@ -50,11 +50,11 @@ USAGE="Usage: $0 [name=value] [option]
 for arg
 do
     case $arg in
-              *=*) IFS= eval $arg; IFS="$BACKUP_IFS";;
-       --no-check) no_check=1;;
-        --no-sign) sign=;;
---no-test-patches) test_patches=0;;
-                *) echo $0: Error: $USAGE 1>&2; exit 1;;
+           *=*) IFS= eval $arg; IFS="$BACKUP_IFS";;
+    --no-check) no_check=1;;
+     --no-sign) sign=;;
+--test-patches) test_patches=1;;
+             *) echo $0: Error: $USAGE 1>&2; exit 1;;
     esac
     shift
 done
