@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.136 2001/07/08 17:16:44 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.137 2001/07/08 17:18:36 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -82,12 +82,12 @@ Source8: make-postfix.spec
 Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{tlsno}.tar.gz
 Source10: http://jimsun.linxnet.com/downloads/pflogsumm%{pflogno}.pl
 Source11: postfix-build
-Source12: postfix-smtp_addr.c.patch
 Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
 # required to install smtp-sink and smtp-source
 Patch3:  postfix-INSTALL.sh.patch
 Patch6:  postfix-smtp_sasl_proto.c.patch
+Patch7:  postfix-smtp_addr.c.patch
 #
 # Optional patches - set the appropriate environment variables to include
 #                    them when building the package/spec file
@@ -149,7 +149,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.136 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.137 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -259,7 +259,7 @@ patch -p1 <%{tlsno}/pfixtls.diff
 %patch2 -p1 -b .chk
 %patch3 -p1 -b .install
 %patch6 -p1 -b .auth
-%patch12 -p1 -b .smtp
+%patch7 -p1 -b .smtp
 
 # APPLY OPTIONAL PATCHES
 
