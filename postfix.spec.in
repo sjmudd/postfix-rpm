@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.281 2004/04/19 21:09:59 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.282 2004/04/19 21:31:33 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -84,8 +84,8 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 0
 %define ver 2.1
-%define mail_release_date RC3-20040414
-%define rel 0.7__SUFFIX__
+%define mail_release_date RC4-20040418
+%define rel 0.1__SUFFIX__
 %if %{official}
 %define tarball_version %{ver}
 %define ftp_dir official
@@ -241,7 +241,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.281 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.282 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -1069,8 +1069,9 @@ umask 022
 
 %changelog
 
-* Mon Apr 19 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC3.20040414-0.7
+* Mon Apr 19 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC4-20040418-0.1
 - suffix is wrong (so revert back)
+- update to RC4
 
 * Sun Apr 18 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC3.20040414-0.6
 - revoke %if %sasl <= 1 check to using a shell if, on rh9 it fails
