@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.213 2002/12/09 12:32:53 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.214 2002/12/09 12:49:43 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -67,7 +67,7 @@
 %define official 0
 %define ver 1.1.12
 %define mail_release_date 20021203
-%define rel 0.1
+%define rel 1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -209,7 +209,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.213 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.214 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -954,14 +954,13 @@ fi
 
 %changelog
 
-* Mon Dec 09 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021202-0.1
-  - apply changes from 1.1.12-2 --> 1.1.12-3 to snapshot
-
-* Fri Dec 06 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021202-1.2
+* Mon Dec 09 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021202-1
   - update TLS patches
-
-* Tue Dec 03 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021202-1.1
   - tidy up postfix queue removal on package deletion
+  - fix chroot_remove - it was not removing all chroot files
+  - /usr/lib/sendmail -> /usr/sbin/sendmail check needed fixing in light of
+    Postfix and sendmail existing on the machine at the same time.
+    - Move it's invocation which should have been in %post, not in %preun
 
 * Mon Dec 02 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021202-1
   - update to latest snapshot
