@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.2.14 2004/07/28 17:39:22 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.2.15 2004/07/28 17:40:16 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -85,7 +85,7 @@
 %define official 1
 %define V_postfix 2.1.4
 %define V_release_date RC4-20040418
-%define rel 3.1__SUFFIX__
+%define rel 4__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -239,7 +239,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.2.14 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.2.15 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -1070,7 +1070,7 @@ umask 022
 
 %changelog
 
-* Sun Jul 18 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.4-3.1
+* Wed Jul 28 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.4-4
   - rename qshape.pl to qshape to reflect the name used in the man page
     and QSHAPE_README file
   - define %mps macro directly in spec file
