@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.76 2003/07/24 19:30:33 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.77 2003/07/24 19:51:35 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -221,7 +221,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.76 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.77 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -535,7 +535,7 @@ done
 # install postfinger and postfix-chroot.sh scripts
 # - postfix-chroot.sh is placed in /etc/postfix to make it more visible
 install -c -m 755 %{_sourcedir}/%{postfinger} ${RPM_BUILD_ROOT}%{_bindir}/postfinger
-install -c -m 755 %{_sourcedir}/postfix-chroot.sh ${RPM_BUILD_ROOT}%{_sysconfdir}/
+install -c -m 755 %{_sourcedir}/postfix-chroot.sh ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/
 
 # fix path to perl
 %if %{tls}
