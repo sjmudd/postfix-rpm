@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.94 2003/09/17 21:23:42 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.95 2003/09/24 20:36:50 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -78,7 +78,7 @@
 
 # Version information
 %define vdaver 2.0.13.v2
-%define pfixtls pfixtls-0.8.15-2.0.13-0.9.7b
+%define pfixtls pfixtls-0.8.16-2.0.16-0.9.7b
 %define pgver 2.0.0.2
 %define pfixipv6 tls+ipv6-1.18-pf-2.0.14
 %define cdbver 1.1.11-20021104
@@ -87,7 +87,7 @@
 %define official 1
 %define ver 2.0.16
 %define mail_release_date 20021219
-%define rel 2
+%define rel 3
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -233,7 +233,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.94 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.95 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -942,6 +942,9 @@ umask 022
 #
 
 %changelog
+
+* Wed Sep 24 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.16-3
+  - add 2.0.16 TLS patches
 
 * Wed Sep 17 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.16-2
   - add Wietse's patch - Postfix access maps for MX and NS lookups
