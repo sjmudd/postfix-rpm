@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.12 2003/01/16 14:29:15 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.13 2003/01/16 15:06:39 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -50,7 +50,7 @@
 %define requires_db __REQUIRES_DB__
 %define requires_init_d __REQUIRES_INIT_D__
 %define smtpd_multiline_greeting __SMTPD_MULTILINE_GREETING__
-# VDA doesn't appear to work on these snapshots
+# The VDA patch does not currently work
 %define vda __VDA__
 %define disable_chroot __DISABLE_CHROOT__
 %define ipv6 __IPV6__
@@ -213,7 +213,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.12 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.13 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -290,7 +290,7 @@ fi
 sh dict_cdb.sh
 %endif
 %if %{vda}
-  gzip -dc %{_sourcedir}/postfix-%{vdaver}_quota.patch.gz | patch -p1 -b --suffix .vda -s
+  gzip -dc %{_sourcedir}/postfix-%{vdaver}.patch.gz | patch -p1 -b --suffix .vda -s
 %endif
 # Apply the PostgreSQL patches only if required
 %if %{pgsql}
@@ -967,6 +967,7 @@ fi
   - update CDB patches as the old ones no longer applied cleanly.
     Thanks to Mark Plowman <m.plowman@hexapole.com> for providing me with
     some feedback on this.
+  - change to vda processing, but the patch still doesn't apply
 
 * Wed Jan 15 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.2-1
   - update URLs in rpm -qi postfix output
