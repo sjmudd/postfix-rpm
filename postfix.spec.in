@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.103 2001/05/03 22:00:21 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.104 2001/05/03 22:01:50 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -82,7 +82,6 @@ Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
 # required to install smtp-sink and smtp-source
 Patch3:  postfix-INSTALL.sh.patch
-Patch4:  postfix-smtpd.c.patch
 #
 # Optional patches - set the appropriate environment variables to include
 #                    them when building the package/spec file
@@ -143,7 +142,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.103 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.104 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -210,7 +209,6 @@ patch -p1 <%{tlsno}/pfixtls.diff
 %patch1 -p1 -b .config
 %patch2 -p1 -b .chk
 %patch3 -p1 -b .install
-%patch4 -p1 -b .smtpd
 
 # APPLY OPTIONAL PATCHES
 
@@ -663,6 +661,7 @@ fi
 - snapshot-20010502-1, change /etc/cron.daily/postfix and add support 
   for pflogsumm.pl
 - update TLS patch
+- remove temporary smtpd.c.patch
 
 * Fri Apr 06 2001 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20010329-3, minor changes
