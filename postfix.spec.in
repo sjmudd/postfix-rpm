@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.4 2003/01/06 08:59:12 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.5 2003/01/07 08:48:00 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -70,7 +70,7 @@
 %define official 1
 %define ver 2.0.0.2
 %define mail_release_date 20021219
-%define rel 1
+%define rel 2
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -210,7 +210,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.4 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.5 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -963,6 +963,10 @@ fi
 #
 
 %changelog
+
+* Tue Jan 07 2003 S J Mudd <sjmudd@pobox.com> 2.0.0.2-2
+  - fix master.cf: virtual should not be chrooted
+    - problem reported by Alex Kramarov <alex@incredimail.com>
 
 * Mon Jan 06 2003 S J Mudd <sjmudd@pobox.com> 2.0.0.2-1
   - update to 2.0.0.2
