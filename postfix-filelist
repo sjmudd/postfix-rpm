@@ -13,7 +13,7 @@ postfix-etc-init.d-postfix
 postfix-makedefs.patch
 postfix-new-RPM-packages
 postfix-pg-raw.patch
-postfix-pg.snapshot-20011210.patch
+postfix-pg.postfix-1.1.4.patch
 postfix-smtp_sasl_proto.c.patch
 postfix-smtpd_multiline_greeting.patch
 postfix.spec.in

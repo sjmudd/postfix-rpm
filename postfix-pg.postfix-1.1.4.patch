@@ -1,6 +1,6 @@
-diff -ruN snapshot-20011210-vanilla/PGSQL_README snapshot-20011210/PGSQL_README
---- snapshot-20011210-vanilla/PGSQL_README	Thu Jan  1 01:00:00 1970
-+++ snapshot-20011210/PGSQL_README	Wed Dec 19 10:27:49 2001
+diff -ruN postfix-1.1.4-vanilla/PGSQL_README postfix-1.1.4/PGSQL_README
+--- postfix-1.1.4-vanilla/PGSQL_README	Thu Jan  1 01:00:00 1970
++++ postfix-1.1.4/PGSQL_README	Wed Mar  6 17:00:54 2002
 @@ -0,0 +1,88 @@
 +[Code contributed by Mathieu Arnold]
 +
@@ -90,12 +90,12 @@ diff -ruN snapshot-20011210-vanilla/PGSQL_README snapshot-20011210/PGSQL_README
 +maps will generate lots of concurrent pgsql clients, so the pgsql
 +server(s) should be run with this fact in mind.  Any further
 +performance information, in addition to any feedback is most welcome.
-diff -ruN snapshot-20011210-vanilla/src/util/Makefile.in snapshot-20011210/src/util/Makefile.in
---- snapshot-20011210-vanilla/src/util/Makefile.in	Mon Dec 10 00:11:49 2001
-+++ snapshot-20011210/src/util/Makefile.in	Wed Dec 19 10:28:39 2001
+diff -ruN postfix-1.1.4-vanilla/src/util/Makefile.in postfix-1.1.4/src/util/Makefile.in
+--- postfix-1.1.4-vanilla/src/util/Makefile.in	Sun Feb 24 00:45:59 2002
++++ postfix-1.1.4/src/util/Makefile.in	Wed Mar  6 17:00:54 2002
 @@ -4,7 +4,7 @@
- 	clean_env.c close_on_exec.c concatenate.c ctable.c dict.c \
- 	dict_alloc.c dict_db.c dict_dbm.c dict_debug.c dict_env.c \
+ 	chroot_uid.c clean_env.c close_on_exec.c concatenate.c ctable.c \
+ 	dict.c dict_alloc.c dict_db.c dict_dbm.c dict_debug.c dict_env.c \
  	dict_ht.c dict_ldap.c dict_mysql.c dict_ni.c dict_nis.c \
 -	dict_nisplus.c dict_open.c dict_pcre.c dict_regexp.c dict_static.c \
 +	dict_nisplus.c dict_open.c dict_pcre.c dict_pgsql.c dict_regexp.c dict_static.c \
@@ -103,8 +103,8 @@ diff -ruN snapshot-20011210-vanilla/src/util/Makefile.in snapshot-20011210/src/u
  	environ.c events.c exec_command.c fifo_listen.c fifo_trigger.c \
  	file_limit.c find_inet.c fsspace.c fullname.c get_domainname.c \
 @@ -32,7 +32,7 @@
- 	clean_env.o close_on_exec.o concatenate.o ctable.o dict.o \
- 	dict_alloc.o dict_db.o dict_dbm.o dict_debug.o dict_env.o \
+ 	chroot_uid.o clean_env.o close_on_exec.o concatenate.o ctable.o \
+ 	dict.o dict_alloc.o dict_db.o dict_dbm.o dict_debug.o dict_env.o \
  	dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
 -	dict_nisplus.o dict_open.o dict_pcre.o dict_regexp.o dict_static.o \
 +	dict_nisplus.o dict_open.o dict_pcre.o dict_pgsql.o dict_regexp.o dict_static.o \
@@ -120,7 +120,7 @@ diff -ruN snapshot-20011210-vanilla/src/util/Makefile.in snapshot-20011210/src/u
  	dict_unix.h dir_forest.h events.h exec_command.h find_inet.h \
  	fsspace.h fullname.h get_domainname.h get_hostname.h hex_quote.h \
  	htable.h inet_addr_host.h inet_addr_list.h inet_addr_local.h \
-@@ -550,6 +550,8 @@
+@@ -556,6 +556,8 @@
  dict_ldap.o: sys_defs.h
  dict_mysql.o: dict_mysql.c
  dict_mysql.o: sys_defs.h
@@ -129,7 +129,7 @@ diff -ruN snapshot-20011210-vanilla/src/util/Makefile.in snapshot-20011210/src/u
  dict_ni.o: dict_ni.c
  dict_ni.o: sys_defs.h
  dict_nis.o: dict_nis.c
-@@ -590,6 +592,7 @@
+@@ -596,6 +598,7 @@
  dict_open.o: dict_ni.h
  dict_open.o: dict_ldap.h
  dict_open.o: dict_mysql.h
@@ -137,9 +137,9 @@ diff -ruN snapshot-20011210-vanilla/src/util/Makefile.in snapshot-20011210/src/u
  dict_open.o: dict_pcre.h
  dict_open.o: dict_regexp.h
  dict_open.o: dict_static.h
-diff -ruN snapshot-20011210-vanilla/src/util/dict_open.c snapshot-20011210/src/util/dict_open.c
---- snapshot-20011210-vanilla/src/util/dict_open.c	Sun Dec  9 23:58:02 2001
-+++ snapshot-20011210/src/util/dict_open.c	Wed Dec 19 10:27:49 2001
+diff -ruN postfix-1.1.4-vanilla/src/util/dict_open.c postfix-1.1.4/src/util/dict_open.c
+--- postfix-1.1.4-vanilla/src/util/dict_open.c	Fri Dec 21 23:18:07 2001
++++ postfix-1.1.4/src/util/dict_open.c	Wed Mar  6 17:00:54 2002
 @@ -166,6 +166,7 @@
  #include <dict_ni.h>
  #include <dict_ldap.h>
@@ -158,9 +158,9 @@ diff -ruN snapshot-20011210-vanilla/src/util/dict_open.c snapshot-20011210/src/u
  #endif
  #ifdef HAS_PCRE
      DICT_TYPE_PCRE, dict_pcre_open,
-diff -ruN snapshot-20011210-vanilla/src/util/dict_pgsql.c snapshot-20011210/src/util/dict_pgsql.c
---- snapshot-20011210-vanilla/src/util/dict_pgsql.c	Thu Jan  1 01:00:00 1970
-+++ snapshot-20011210/src/util/dict_pgsql.c	Wed Dec 19 10:27:49 2001
+diff -ruN postfix-1.1.4-vanilla/src/util/dict_pgsql.c postfix-1.1.4/src/util/dict_pgsql.c
+--- postfix-1.1.4-vanilla/src/util/dict_pgsql.c	Thu Jan  1 01:00:00 1970
++++ postfix-1.1.4/src/util/dict_pgsql.c	Wed Mar  6 17:00:54 2002
 @@ -0,0 +1,675 @@
 +
 +/*++
@@ -837,9 +837,9 @@ diff -ruN snapshot-20011210-vanilla/src/util/dict_pgsql.c snapshot-20011210/src/
 +
 +#endif
 +
-diff -ruN snapshot-20011210-vanilla/src/util/dict_pgsql.h snapshot-20011210/src/util/dict_pgsql.h
---- snapshot-20011210-vanilla/src/util/dict_pgsql.h	Thu Jan  1 01:00:00 1970
-+++ snapshot-20011210/src/util/dict_pgsql.h	Wed Dec 19 10:27:49 2001
+diff -ruN postfix-1.1.4-vanilla/src/util/dict_pgsql.h postfix-1.1.4/src/util/dict_pgsql.h
+--- postfix-1.1.4-vanilla/src/util/dict_pgsql.h	Thu Jan  1 01:00:00 1970
++++ postfix-1.1.4/src/util/dict_pgsql.h	Wed Mar  6 17:00:54 2002
 @@ -0,0 +1,41 @@
 +#ifndef _DICT_PGSQL_H_INCLUDED_
 +#define _DICT_PGSQL_H_INCLUDED_

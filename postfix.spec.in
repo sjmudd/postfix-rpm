@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.16 2002/03/01 19:28:20 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.17 2002/03/08 09:03:41 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -16,7 +16,9 @@
 # MYSQL	                   - include www.mysql.com's MySQL rpms
 # REDHATMYSQL              - include RedHat's MySQL rpms
 # PCRE                     - include pcre support
-# PGSQL                 - include Postgres database support
+# PGSQL                    - include Postgres database support
+# PGSQL2                   - experimental postgres patches by George Barbarosie
+#                            <georgeb@intelinet.ro>: needs PGSQL=1
 # SASL                     - include SASL/AUTH support
 # TLS                      - include TLS support
 # TLSFIX                   - include TLS fix (apparently needed for rh6.2)
@@ -33,6 +35,7 @@
 %define REDHATMYSQL __REDHAT_MYSQL__
 %define PCRE __PCRE__
 %define PGSQL __PGSQL__
+%define PGSQL2 __PGSQL2__
 %define SASL __SASL__
 %define TLS __TLS__
 %define TLSFIX __TLSFIX__
@@ -47,6 +50,7 @@
 %define pflogno -1.0.4
 %define vdaver 1.1.3
 %define tlsno pfixtls-0.8.4-1.1.4-0.9.6c
+%define pgver  1.1.4
 
 # If set to 1 if official version, 0 if snapshot
 %define official 1 
@@ -59,7 +63,7 @@
 %define version1 %{ver}-%{releasedate}
 %define ftp_directory experimental
 %endif
-%define rel 2
+%define rel 3
 
 # Postfix requires one exlusive uid/gid,
 # and a 2nd exclusive gid for its own use.
@@ -123,7 +127,7 @@ Patch1: postfix-config.patch
 # Optional patches
 Patch2: postfix-smtp_sasl_proto.c.patch
 Patch3: postfix-%{vdaver}_quota.patch 
-Patch50: http://www.mat.cc/postfix/postfix-pg.snapshot-20011210.patch
+Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pgver}.patch
 Patch51: postfix-pg-raw.patch
 Patch99: postfix-smtpd_multiline_greeting.patch
 
@@ -131,7 +135,7 @@ BuildRoot: %{_tmppath}/%{name}-buildroot
 
 # Determine packaging requirements
 Requires: gawk, perl, sed, ed
-BuildRequires: gawk, perl, sed, ed
+BuildRequires: gawk, perl, sed, ed, patch
 
 %if %{REQUIRES_DB3}
 Requires: db3
@@ -191,10 +195,10 @@ and configuring postfix.
 The binary and source rpms I produce are currently stored on
 	http://pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.16 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.17 $,
 with the following options:
 
-SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING},VDA=%{VDA},PGSQL=%{PGSQL}
+SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING},VDA=%{VDA},PGSQL=%{PGSQL},PGSQL2=%{PGSQL2}
 LDAP=%{LDAP}, SASL=%{SASL}, PCRE=%{PCRE}, TLS=%{TLS}, TLSFIX=%{TLSFIX}, MYSQL=%{MYSQL}, REDHATMYSQL=%{REDHATMYSQL}
 REQUIRES_DB3=%{REQUIRES_DB3}, REQUIRES_DB4=%{REQUIRES_DB4}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}, POSTDROP_GID=%{POSTDROP_GID}
 
@@ -269,6 +273,8 @@ patch -p1 <%{tlsno}/pfixtls.diff
 # Apply the PostgreSQL patches only if required
 %if %{PGSQL}
 %patch50 -p1 -b .pg
+%endif
+%if %{PGSQL2}
 %patch51 -p1 -b .pgraw
 %endif
 %if %{SMTPD_MULTILINE_GREETING}
@@ -777,6 +783,12 @@ fi
 #
 
 %changelog
+
+* Fri Mar 08 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.4-3
+  - add patch to BuildRequires!
+  - add separate Postgres support patches into two parts
+    - standard Postgres patches from Mathieu Arnold <arn_mat@club-internet.fr>
+    - other experimental patch by George Barbarosie <georgeb@intelinet.ro>
 
 * Fri Mar 01 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.4-2
   - add Postgres Database support: George Barbarosie <georgeb@intelinet.ro>
