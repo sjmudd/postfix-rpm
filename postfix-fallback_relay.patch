@@ -1,70 +1,5 @@
-From sjmudd@pobox.com Sun Jan 21 14:56:59 2001
-Date: 21 Jan 2001 11:48:24 +0100
-From: Simon J Mudd <sjmudd@pobox.com>
-To: sjmudd@phoenix.ea4els.ampr.org
-Subject: [list.postfix-users] PATCH: fallback_relay loop (20001005 and
-    later)
-
-
--- 
--- 
-Simon J Mudd, Madrid SPAIN    Tel: +34-91-408 4878    email: sjmudd@pobox.com
-------- Start of forwarded message -------
-From: wietse@porcupine.org (Wietse Venema)
-Newsgroups: list.postfix-users
-Subject: PATCH: fallback_relay loop (20001005 and later)
-Date: 21 Jan 2001 01:20:49 +0100
-Organization: at home in Madrid
-Message-ID: <20010121001159.278CFBC0C7@spike.porcupine.org>
-References: <20010120162600.A58000@victor.teaser.fr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-
-Summary
--------
-This patch fixes a problem in the Postfix SMTP client's fallback
-relay feature in snapshot releases after 20001005.
-
-By default, Postfix does not use the fallback_relay feature. To
-find out if your system uses it, issue the command:
-
-    postconf fallback_relay
-
-The result is "fallback_relay =" when the feature is turned off.
-
-Description
------------
-As of 20001005, the Postfix SMTP client will send mail to a fallback
-relay host (if one is configured) even when the local machine is
-a backup MX host for the final destination.
-
-This causes a loop when the primary MX host is down. Postfix receives
-the mail, because it's a backup MX host for the destination. Postfix
-then sends the mail to the fallback relay, because the primary MX
-host is down.  The fallback sends the mail back to Postfix, because
-it's a backup MX host. Mail then bounces after 25 or so iterations.
-
-Laurent Wacrenier had the, um, pleasure, of finding this one.
-
-Solution
---------
-If the local machine is listed as MX host for the final destination,
-do not send undeliverable mail to the fallback relay.  That is how
-releases prior to 20001005 work, including 19991231.
-
-This patch should apply to all snapshots since 20001005, but I have
-tested this only with 20001217.
-
-To apply, step into the src/smtp source directory, feed this text
-into the patch command, and rebuild. The "make install" command
-replaces only the smtp client program.
-
-	Wietse
-
-diff -cr ../../../snapshot-20001217/src/smtp/smtp.h ./smtp.h
-*** ../../../snapshot-20001217/src/smtp/smtp.h	Sat Jul 15 14:06:34 2000
---- ./smtp.h	Sat Jan 20 18:30:34 2001
+*** snapshot-20001217/src/smtp/smtp.h.orig	Sat Jul 15 14:06:34 2000
+--- snapshot-20001217/src/smtp/smtp.h	Sat Jan 20 18:30:34 2001
 ***************
 *** 85,91 ****
     */
@@ -82,9 +17,8 @@ diff -cr ../../../snapshot-20001217/src/smtp/smtp.h ./smtp.h
   
    /*
     * smtp_proto.c
-diff -cr ../../../snapshot-20001217/src/smtp/smtp_addr.c ./smtp_addr.c
-*** ../../../snapshot-20001217/src/smtp/smtp_addr.c	Mon Nov 20 13:06:02 2000
---- ./smtp_addr.c	Sat Jan 20 18:34:23 2001
+*** snapshot-20001217/src/smtp/smtp_addr.c.orig	Mon Nov 20 13:06:02 2000
+--- snapshot-20001217/src/smtp/smtp_addr.c	Sat Jan 20 18:34:23 2001
 ***************
 *** 6,14 ****
   /* SYNOPSIS
@@ -142,9 +76,8 @@ diff -cr ../../../snapshot-20001217/src/smtp/smtp_addr.c ./smtp_addr.c
       return (addr_list);
   }
   
-diff -cr ../../../snapshot-20001217/src/smtp/smtp_addr.h ./smtp_addr.h
-*** ../../../snapshot-20001217/src/smtp/smtp_addr.h	Mon Jan 18 15:11:48 1999
---- ./smtp_addr.h	Sat Jan 20 18:34:53 2001
+*** snapshot-20001217/src/smtp/smtp_addr.h.orig	Mon Jan 18 15:11:48 1999
+--- snapshot-20001217/src/smtp/smtp_addr.h	Sat Jan 20 18:34:53 2001
 ***************
 *** 17,23 ****
     * Internal interfaces.
@@ -162,9 +95,8 @@ diff -cr ../../../snapshot-20001217/src/smtp/smtp_addr.h ./smtp_addr.h
   
   /* LICENSE
   /* .ad
-diff -cr ../../../snapshot-20001217/src/smtp/smtp_connect.c ./smtp_connect.c
-*** ../../../snapshot-20001217/src/smtp/smtp_connect.c	Mon Nov 20 13:06:03 2000
---- ./smtp_connect.c	Sat Jan 20 18:36:00 2001
+*** snapshot-20001217/src/smtp/smtp_connect.c.orig	Mon Nov 20 13:06:03 2000
+--- snapshot-20001217/src/smtp/smtp_connect.c	Sat Jan 20 18:36:00 2001
 ***************
 *** 292,298 ****
   
@@ -244,5 +176,3 @@ diff -cr ../../../snapshot-20001217/src/smtp/smtp_connect.c ./smtp_connect.c
   	    break;
       }
   
-
-------- End of forwarded message -------
