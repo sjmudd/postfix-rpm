@@ -1,12 +1,12 @@
 #!/bin/sh
-# $Revision: 2.8 $
+# $Revision: 2.9 $
 # File to make links from this directory to the SOURCES directory for all files
 
 HERE=`pwd`
 BASE=`rpm --eval '%{_sourcedir}'`
 
 echo "===> linking files to directory $BASE"
-for i in `cat postfix-filelist`; do
+for i in `cat pkg-sourcelist`; do
   test -f $i && test ! -x $i && \
     ln -s $HERE/$i $BASE/$i && echo "	$i"
 done
