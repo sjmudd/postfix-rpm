@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.43 2001/05/27 09:42:01 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.44 2001/05/27 09:44:17 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -86,8 +86,6 @@ Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
 # required to install smtp-sink and smtp-source
 Patch3:  postfix-INSTALL.sh.patch
-# fix the smtpd_check.c, Wietse
-Patch5: postfix-smtpd_check.c.patch
 #
 # Optional patches - set the appropriate environment variables to include
 #                    them when building the package/spec file
@@ -149,7 +147,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.43 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.44 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -256,7 +254,6 @@ patch -p1 <%{tlsno}/pfixtls.diff
 %patch1 -p1 -b .config
 %patch2 -p1 -b .chk
 %patch3 -p1 -b .install
-%patch5 -p1 -b .smtpd
 
 # APPLY OPTIONAL PATCHES
 
