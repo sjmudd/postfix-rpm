@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.263 2004/04/01 18:28:44 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.264 2004/04/02 08:33:46 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -83,19 +83,25 @@
 
 # If set to 1 if official version, 0 if snapshot
 %define official 0
-%define ver 2.0.18
-%define mail_release_date 20040122
-%define rel 0.2
+%define ver 2.1
+%define mail_release_date RC1-20040331
+%define rel 0.1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
 %define ftp_dir official
 %else
 %define tarball_version %{ver}-%{mail_release_date}
-%define package_version %{ver}.%{mail_release_date}
+# ugly - hack around the '-' - rpm does not want them in a version string
+# buy Postfix defines them. Convert '-' to '.'
+%define package_version %{ver}.%(echo %{mail_release_date} | sed -e 's/-/./g')
 %define ftp_dir experimental
 %endif
 
+# Move the documentation back to where it should be in /usr/share/postfix-<version>/
+# but add symbolic links from /etc/postfix to the samples and readme_files
+# - ensure that the sample_dir and readme_dir are updated on each
+# package upgrade otherwise they point to incorrect directories
 %define sample_dir %{_sysconfdir}/postfix/samples
 %define readme_dir %{_sysconfdir}/postfix/README_FILES
 
@@ -130,7 +136,6 @@ Packager: Simon J Mudd <sjmudd@pobox.com>
 Summary: Postfix Mail Transport Agent
 Vendor: Built on %{build_dist_full} (%{build_dist})
 Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_dir}/postfix-%{tarball_version}.tar.gz
-Source1: postfix-RPM-new-packages
 Source2: postfix-get-distribution
 Source3: postfix-etc-init.d-postfix
 Source4: postfix-chroot.sh
@@ -141,7 +146,6 @@ Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{tls_version}.tar.gz
 Source11: postfix-build
 Source12: http://www.corpit.ru/ftp/postfix/postfix-dict_cdb-%{cdb_version}.tar.gz
 Source14: ftp://ftp.stack.nl/pub/postfix/tls+ipv6/current/%{ipv6_version}.patch.gz
-Source15: postfix-RPM-TODO
 Source16: http://postfix.wl0.org/ftp/postfinger/%{postfinger}
 
 # Obligatory Patches
@@ -151,8 +155,6 @@ Patch3: postfix-files.patch
 # Optional patches
 Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vda_version}.patch.gz
 Patch5: postfix-mysql_query.patch
-# Adapted from http://www.stahl.bau.tu-bs.de/~hildeb/postfix/duchovni/log_recipient.gz
-Patch7: postfix-log_recipient
 Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pg_version}.patch
 Patch51: postfix-pg-raw.patch
 Patch99: ftp://ftp.wl0.org/SOURCES/postfix-2.0.16-20031026-multiline-greeting.patch
@@ -234,7 +236,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.263 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.264 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -300,7 +302,6 @@ fi
 # Apply obligatory patches
 %patch2 -p1 -b .auth
 %patch3 -p1 -b .alternatives
-%patch7 -p1 -b .logrcpt
 
 # Apply optional patches
 %if %{cdb}
@@ -345,10 +346,6 @@ ed conf/master.cf <<EOF || exit 1
 w
 q
 EOF
-
-for i in postfix-RPM-new-packages postfix-RPM-TODO; do
-    cp %{_sourcedir}/$i $i
-done
 
 %build
 umask 022
@@ -555,6 +552,55 @@ w
 q
 EOF
 %endif
+
+# Add a brief README.rpm saying where the documentation is and also pointing
+# out how to get updated copies of my package
+cat <<EOF > ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/README.rpm
+README.rpm
+==========
+
+Documentation
+-------------
+
+Postfix documentation should be available in the standard directory
+%......  I have also added a symbolic link to the readme_files and
+sample_files directories from the %{_sysconfdir}/postfix directory.
+
+See the main Postfix web site http://www.postfix.org for further
+information.
+
+Packages
+--------
+
+If you downloaded a pre-built package or built this package yourself
+from a Source RPM you may find a newer version at http://ftp.WL0.org or
+the mirrors listed at http://postfix.WL0.org.  Look for the appropriate
+directory according to your distribution.
+
+Mailing List
+------------
+
+I host a mailing list to announce new packages as they are
+released. If you are interested in subscribing take a look at
+http://postfix.WL0.org/en/lists/.  Previous announcements are archived.
+
+Chrooting
+---------
+
+The chroot behaviour of my packages has changed over time. Current
+packages will not turn on the chroot environment in Postfix.  Older
+versions did the opposite.  If you upgrade from an older version
+of my package the chroot behaviour will NOT be changed. (Check
+%{_sysconfdir}/postfix/master.cf for details.)
+
+I have provided a simple script postfix-chroot.sh which attempts to
+cover most situations and should enable you to disable or enable the
+chroot on your system with little effort.
+
+Enjoy!
+
+Simon J Mudd, <sjmudd@pobox.com>
+EOF
 
 %post
 umask 022
@@ -873,11 +919,11 @@ umask 022
 %doc RELEASE_NOTES
 %doc RELEASE_NOTES-1.1
 %doc RELEASE_NOTES-2.0
-%doc SNAPSHOT
+#%doc SNAPSHOT
+%doc TODO_BEFORE_RELEASE
 %doc US_PATENT_6321267
 
-%doc postfix-RPM-new-packages
-%doc postfix-RPM-TODO
+%doc %{_sysconfdir}/postfix/README.rpm
 
 %if %{tls}
 %doc ACKNOWLEDGEMENTS.TLS
@@ -955,6 +1001,12 @@ umask 022
 #
 
 %changelog
+
+* Thu Apr 01 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC1.20040331-0.1
+- prepare for release candidate 1 of 2.1
+- change my README files leaving one in the config directory
+- move the documentation files back to .... but maintain symlinks from 
+  /etc/postfix for convenience.
 
 * Mon Mar 15 2004 Simon J Mudd <sjmudd@pobox.com> 2.0.19-1
 - recognise rhel-3.0WS and also show the full distribution the rpm was built
