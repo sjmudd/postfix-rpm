@@ -3,14 +3,17 @@ eval 'exec perl -S $0 "$@"'
     if 0;
 #
 # pflogsumm.pl - Produce summaries of Postfix/VMailer MTA in logfile -
-#	Copyright (C) 1998-2001 by James S. Seymour (jseymour@LinxNet.com)
-#	(See "License", below.)  Release 1.0.3.
+#        Copyright (C) 1998-2002 by James S. Seymour (jseymour@LinxNet.com)
+#        (See "License", below.)  Release 1.0.4.
 #
 # Usage:
 #    pflogsumm.pl -[eq] [-d <today|yesterday>] [-h <cnt>] [-u <cnt>]
 #        [--verp_mung[=<n>]] [--verbose_msg_detail] [--iso_date_time]
 #        [-m|--uucp_mung] [-i|--ignore_case] [--smtpd_stats] [--mailq]
-#        [--problems_first] [--help] [file1 [filen]]
+#        [--problems_first] [--rej_add_from] [--no_bounce_detail]
+#        [--no_deferral_detail] [--no_reject_detail] [file1 [filen]]
+#
+#    pflogsumm.pl -[help|version]
 #
 # Options:
 #
@@ -26,11 +29,14 @@ eval 'exec perl -S $0 "$@"'
 #                   quickly consume very large amounts of memory if a lot
 #                   of log entries are processed!
 #
-#    -h <cnt>       top <cnt> to display in host/domain reports
+#    -h <cnt>       top <cnt> to display in host/domain reports. 0 == none.
 #
-#    --help	    Emit short usage message and bail out.  (By happy
-#		    coincidence, "-h" alone does much the same, being as
-#		    it requires a numeric argument :-).  Yeah, I know:
+#                   See also: "-u" and "--no_*_detail" for further report-
+#                             limiting options.
+#
+#    --help         Emit short usage message and bail out.  (By happy
+#                   coincidence, "-h" alone does much the same, being as
+#                   it requires a numeric argument :-).  Yeah, I know:
 #                   lame.)
 #
 #    -i
@@ -42,9 +48,9 @@ eval 'exec perl -S $0 "$@"'
 #
 #    --iso_date_time
 #
-#		    For summaries that contain date or time information, use
-#		    ISO 8601 standard formats (CCYY-MM-DD and HH:MM), rather
-#		    than "Mon DD CCYY" and "HHMM".
+#                   For summaries that contain date or time information, use
+#                   ISO 8601 standard formats (CCYY-MM-DD and HH:MM), rather
+#                   than "Mon DD CCYY" and "HHMM".
 #
 #    -m             modify (mung?) UUCP-style bang-paths
 #    --uucp_mung
@@ -59,17 +65,37 @@ eval 'exec perl -S $0 "$@"'
 #                   originated) will get converted to
 #                   "foo!username@somehost.dom".  This also affects the
 #                   extended detail report (-e), to help ensure that by-
-#		    domain-by-name sorting is more accurate.
+#                    domain-by-name sorting is more accurate.
 #
 #    --mailq        Run "mailq" command at end of report.  Merely a
 #                   convenience feature.  (Assumes that "mailq" is in
 #                   $PATH.  See "$mailqCmd" variable to path this if
 #                   desired.)
 #
+#    --no_bounce_detail
+#    --no_deferral_detail
+#    --no_reject_detail
+#
+#                   Suppresses the printing of the following detailed
+#                   reports, respectively:
+#
+#			message bounce detail (by relay)
+#			message deferral detail
+#			message reject detail
+#
+#                   See also: "-u" and "-h" for further report-limiting
+#                             options.
+#
 #    --problems_first
 #
 #                   Emit "problems" reports (bounces, defers, warnings, etc.)
 #                   before "normal" stats.
+#
+#    --rej_add_from
+#                   For those reject reports that list IP addresses or
+#                   host/domain names: append the email from address to
+#                   each listing.  (Does not apply to "Improper use of SMTP
+#                   command pipelining" report.)
 #
 #    -q             quiet - don't print headings for empty reports (note:
 #                   headings for warning, fatal, and "master" messages will
@@ -83,31 +109,36 @@ eval 'exec perl -S $0 "$@"'
 #                   reports.  For multiple-day reports: "per-hour" numbers
 #                   are daily averages (reflected in the report heading).
 #
-#    -u <cnt>       top <cnt> to display in user reports
+#    -u <cnt>       top <cnt> to display in user reports. 0 == none.
+#
+#                   See also: "-h" and "--no_*_detail" for further report-
+#                             limiting options.
 #
 #    --verbose_msg_detail
 #
-#		    For the message deferral, bounce and reject summaries:
-#		    display the full "reason", rather than a truncated one.
-#		    Note: this can result in quite long lines in the report.
+#                   For the message deferral, bounce and reject summaries:
+#                   display the full "reason", rather than a truncated one.
+#                   Note: this can result in quite long lines in the report.
 #
 #    --verp_mung    do "VERP" generated address (?) munging.  Convert
 #    --verp_mung=2  sender addresses of the form
-#		      "list-return-NN-someuser=some.dom@host.sender.dom"
-#		    to
-#		      "list-return-ID-someuser=some.dom@host.sender.dom"
+#                   "list-return-NN-someuser=some.dom@host.sender.dom"
+#                    to
+#                      "list-return-ID-someuser=some.dom@host.sender.dom"
 #
-#		    In other words: replace the numeric value with "ID".
+#                    In other words: replace the numeric value with "ID".
 #
-#		    By specifying the optional "=2" (second form), the
+#                   By specifying the optional "=2" (second form), the
 #                   munging is more "aggressive", converting the address
 #                   to something like:
 #
-#			"list-return@host.sender.dom"
+#                        "list-return@host.sender.dom"
 #
 #                   (Actually: specifying anything less than 2 does the
-#		    "simple" munging and anything greater than 1 results
-#		    in the more "aggressive" hack being applied.)
+#                   "simple" munging and anything greater than 1 results
+#                   in the more "aggressive" hack being applied.)
+#
+#    --version      Print program name and version and bail out.
 #
 #    If no file(s) specified, reads from stdin.  Output is to stdout.
 #
@@ -183,6 +214,7 @@ use Date::Calc qw(Delta_DHMS);
 # ---End: SMTPD_STATS_SUPPORT---
 
 my $mailqCmd = "mailq";
+my $release = "1.0.4";
 
 # Variables and constants used throughout pflogsumm
 use vars qw(
@@ -241,9 +273,10 @@ my (
     %rejects, $msgsRjctd,
     %rcvdMsg, $msgsFwdd, $msgsBncd,
     $msgsDfrdCnt, $msgsDfrd, %msgDfrdFlgs,
-    %connTime, %smtpPerDay, %smtpPerDom, $smtpConnCnt, $smtpTotTime
+    %connTime, %smtpdPerDay, %smtpdPerDom, $smtpdConnCnt, $smtpdTotTime,
+    %smtpMsgs
 );
-$dayCnt = $smtpConnCnt = $smtpTotTime = 0;
+$dayCnt = $smtpdConnCnt = $smtpdTotTime = 0;
 
 # Messages received and delivered per hour
 my @rcvPerHr = qw(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0);
@@ -255,22 +288,25 @@ my $lastMsgDay = 0;
 
 # "doubly-sub-scripted array: cnt, total and max time per-hour
 # Gag - some things, Perl doesn't do well :-(
-my @smtpPerHr;
-$smtpPerHr[0]  = [0,0,0]; $smtpPerHr[1]  = [0,0,0]; $smtpPerHr[2]  = [0,0,0];
-$smtpPerHr[3]  = [0,0,0]; $smtpPerHr[4]  = [0,0,0]; $smtpPerHr[5]  = [0,0,0];
-$smtpPerHr[6]  = [0,0,0]; $smtpPerHr[7]  = [0,0,0]; $smtpPerHr[8]  = [0,0,0];
-$smtpPerHr[9]  = [0,0,0]; $smtpPerHr[10] = [0,0,0]; $smtpPerHr[11] = [0,0,0];
-$smtpPerHr[12] = [0,0,0]; $smtpPerHr[13] = [0,0,0]; $smtpPerHr[14] = [0,0,0];
-$smtpPerHr[15] = [0,0,0]; $smtpPerHr[16] = [0,0,0]; $smtpPerHr[17] = [0,0,0];
-$smtpPerHr[18] = [0,0,0]; $smtpPerHr[19] = [0,0,0]; $smtpPerHr[20] = [0,0,0];
-$smtpPerHr[21] = [0,0,0]; $smtpPerHr[22] = [0,0,0]; $smtpPerHr[23] = [0,0,0];
+my @smtpdPerHr;
+$smtpdPerHr[0]  = [0,0,0]; $smtpdPerHr[1]  = [0,0,0]; $smtpdPerHr[2]  = [0,0,0];
+$smtpdPerHr[3]  = [0,0,0]; $smtpdPerHr[4]  = [0,0,0]; $smtpdPerHr[5]  = [0,0,0];
+$smtpdPerHr[6]  = [0,0,0]; $smtpdPerHr[7]  = [0,0,0]; $smtpdPerHr[8]  = [0,0,0];
+$smtpdPerHr[9]  = [0,0,0]; $smtpdPerHr[10] = [0,0,0]; $smtpdPerHr[11] = [0,0,0];
+$smtpdPerHr[12] = [0,0,0]; $smtpdPerHr[13] = [0,0,0]; $smtpdPerHr[14] = [0,0,0];
+$smtpdPerHr[15] = [0,0,0]; $smtpdPerHr[16] = [0,0,0]; $smtpdPerHr[17] = [0,0,0];
+$smtpdPerHr[18] = [0,0,0]; $smtpdPerHr[19] = [0,0,0]; $smtpdPerHr[20] = [0,0,0];
+$smtpdPerHr[21] = [0,0,0]; $smtpdPerHr[22] = [0,0,0]; $smtpdPerHr[23] = [0,0,0];
 
 $progName = "pflogsumm.pl";
 $usageMsg =
     "usage: $progName -[eq] [-d <today|yesterday>] [-h <cnt>] [-u <cnt>]
        [--verp_mung[=<n>]] [--verbose_msg_detail] [--iso_date_time]
        [-m|--uucp_mung] [-i|--ignore_case] [--smtpd_stats] [--mailq]
-       [--problems_first] [--help] [file1 [filen]]";
+       [--problems_first] [--rej_add_from] [--no_bounce_detail]
+       [--no_deferral_detail] [--no_reject_detail] [file1 [filen]]
+
+       $progName --[version|help]";
 
 # Some pre-inits for convenience
 $isoDateTime = 0;	# Don't use ISO date/time formats
@@ -285,12 +321,17 @@ GetOptions(
     "m"                  => \$opts{'m'},
     "uucp_mung"          => \$opts{'m'},
     "mailq"              => \$opts{'mailq'},
+    "no_bounce_detail"   => \$opts{'noBounceDetail'},
+    "no_deferral_detail" => \$opts{'noDeferralDetail'},
+    "no_reject_detail"   => \$opts{'noRejectDetail'},
     "problems_first"     => \$opts{'pf'},
     "q"                  => \$opts{'q'},
+    "rej_add_from"       => \$opts{'rejAddFrom'},
     "smtpd_stats"        => \$opts{'smtpdStats'},
     "u=i"                => \$opts{'u'},
     "verbose_msg_detail" => \$opts{'verbMsgDetail'},
-    "verp_mung:i"        => \$opts{'verpMung'}
+    "verp_mung:i"        => \$opts{'verpMung'},
+    "version"            => \$opts{'version'}
 ) || die "$usageMsg\n";
 
 # internally: 0 == none, undefined == -1 == all
@@ -299,7 +340,12 @@ $opts{'u'} = -1 unless(defined($opts{'u'}));
 
 if(defined($opts{'help'})) {
     print "$usageMsg\n";
-    exit;
+    exit 0;
+}
+
+if(defined($opts{'version'})) {
+    print "$progName $release\n";
+    exit 0;
 }
 
 $dateStr = get_datestr($opts{'d'}) if(defined($opts{'d'}));
@@ -310,7 +356,7 @@ $dateStr = get_datestr($opts{'d'}) if(defined($opts{'d'}));
 
 while(<>) {
     next if(defined($dateStr) && ! /^$dateStr/o);
-    s/: \[ID [0-9]+ .+\] /: /o;	# get rid of "[ID nnnnnn some.thing]" stuff
+    s/: \[ID [0-9]+\s+[^\]]+\] /: /o;	# lose "[ID nnnnnn some.thing]" stuff
     ($msgMonStr, $msgDay, $msgTimeStr, $cmd, $qid) =
 	m#^(...)\s+([0-9]+)\s(..:..:..)\s.*?(?:vmailer|postfix)[-/]([^\[:]*).*?: ([^:]+)#o;
     ($msgMonStr, $msgDay, $msgTimeStr, $cmd, $qid) =
@@ -371,24 +417,23 @@ while(<>) {
 	}
 	# stash in "triple-subscripted-array"
 
-	if($rejReas =~ m/^Client host rejected: Access denied/o) {
-	    ++$rejects{$rejTyp}{$rejReas}{gimme_domain($rejFrom)};
-	} elsif($rejReas =~ m/^Sender address rejected:/o) {
+	my ($from, $to) = $rejRmdr =~ m/from=<(.*?)>\s+to=<(.*?)>/;
+	if($rejReas =~ m/^Sender address rejected:/o) {
 	    # Sender address rejected: Domain not found
 	    # Sender address rejected: need fully-qualified address
-	    my ($from, $to) = $rejRmdr =~ m/from=<([^>]*)>\s+to=<([^>]*)>/;
 	    ++$rejects{$rejTyp}{$rejReas}{$from};
 	} elsif($rejReas =~ m/^Recipient address rejected:/o) {
 	    # Recipient address rejected: Domain not found
 	    # Recipient address rejected: need fully-qualified address
-	    my ($from, $to) = $rejRmdr =~ m/from=<(.*)>\s+to=<(.*)>$/;
 	    ++$rejects{$rejTyp}{$rejReas}{$to};
 	} elsif($rejReas =~ s/^.*?\d{3} (Improper use of SMTP command pipelining);.*$/$1/o) {
 	    my ($src) = /^.+? from ([^:]+):.*$/o;
 	    ++$rejects{$rejTyp}{$rejReas}{$src};
 	} else {
 #	    print STDERR "dbg: unknown reject reason $rejReas !\n\n";
-	    ++$rejects{$rejTyp}{$rejReas}{gimme_domain($rejFrom)};
+	    my $rejData = gimme_domain($rejFrom);
+	    $rejData .= "  ($from)" if($opts{'rejAddFrom'});
+	    ++$rejects{$rejTyp}{$rejReas}{$rejData};
 	}
 	++$msgsRjctd;
 	++$rejPerHr[$msgHr];
@@ -421,28 +466,28 @@ while(<>) {
 		    delete($connTime{$pid});	# dispose of no-longer-needed item
 		    my $tSecs = (86400 * $d) + (3600 * $h) + (60 * $m) + $s;
 
-		    ++$smtpPerHr[$msgHr][0];
-		    $smtpPerHr[$msgHr][1] += $tSecs;
-		    $smtpPerHr[$msgHr][2] = $tSecs if($tSecs > $smtpPerHr[$msgHr][2]);
+		    ++$smtpdPerHr[$msgHr][0];
+		    $smtpdPerHr[$msgHr][1] += $tSecs;
+		    $smtpdPerHr[$msgHr][2] = $tSecs if($tSecs > $smtpdPerHr[$msgHr][2]);
 
-		    unless(${$smtpPerDay{$revMsgDateStr}}[0]++) {
-			${$smtpPerDay{$revMsgDateStr}}[1] = 0;
-			${$smtpPerDay{$revMsgDateStr}}[2] = 0;
+		    unless(${$smtpdPerDay{$revMsgDateStr}}[0]++) {
+			${$smtpdPerDay{$revMsgDateStr}}[1] = 0;
+			${$smtpdPerDay{$revMsgDateStr}}[2] = 0;
 		    }
-		    ${$smtpPerDay{$revMsgDateStr}}[1] += $tSecs;
-		    ${$smtpPerDay{$revMsgDateStr}}[2] = $tSecs
-			if($tSecs > ${$smtpPerDay{$revMsgDateStr}}[2]);
+		    ${$smtpdPerDay{$revMsgDateStr}}[1] += $tSecs;
+		    ${$smtpdPerDay{$revMsgDateStr}}[2] = $tSecs
+			if($tSecs > ${$smtpdPerDay{$revMsgDateStr}}[2]);
 
-		    unless(${$smtpPerDom{$hostID}}[0]++) {
-			${$smtpPerDom{$hostID}}[1] = 0;
-			${$smtpPerDom{$hostID}}[2] = 0;
+		    unless(${$smtpdPerDom{$hostID}}[0]++) {
+			${$smtpdPerDom{$hostID}}[1] = 0;
+			${$smtpdPerDom{$hostID}}[2] = 0;
 		    }
-		    ${$smtpPerDom{$hostID}}[1] += $tSecs;
-		    ${$smtpPerDom{$hostID}}[2] = $tSecs
-			if($tSecs > ${$smtpPerDom{$hostID}}[2]);
+		    ${$smtpdPerDom{$hostID}}[1] += $tSecs;
+		    ${$smtpdPerDom{$hostID}}[2] = $tSecs
+			if($tSecs > ${$smtpdPerDom{$hostID}}[2]);
 
-		    ++$smtpConnCnt;
-		    $smtpTotTime += $tSecs;
+		    ++$smtpdConnCnt;
+		    $smtpdTotTime += $tSecs;
 		}
 	    }
 	}
@@ -497,6 +542,7 @@ while(<>) {
 	elsif((($addr, $relay, $delay, $status, $toRmdr) =
 		/to=<([^>]*)>, relay=([^,]+), delay=([^,]+), status=([^ ]+)(.*)$/o) >= 4)
 	{
+
 	    if($opts{'m'} && $addr =~ /^(.*!)*([^!]+)!([^!@]+)@([^\.]+)$/o) {
 		$addr = "$4!" . ($1? "$1" : "") . $3 . "\@$2";
 	    }
@@ -504,6 +550,7 @@ while(<>) {
 	    $addr = lc($addr) if($opts{'i'});
 	    (my $domAddr = $addr) =~ s/^[^@]+\@//o;	# get domain only
 	    if($status eq 'sent') {
+
 		# was it actually forwarded, rather than delivered?
 		if($toRmdr =~ /forwarded as /o) {
 		    ++$msgsFwdd;
@@ -576,6 +623,15 @@ while(<>) {
 	    ++$msgsRcvd;
 	    ++$rcvdMsg{$qid};	# quick-set a flag
 	}
+	elsif($cmd eq 'smtp') {
+	    if(/.* connect to ([^:]+): ([^;]+); address [0-9\.]+ port.*$/o) {
+		++$smtpMsgs{lc($2)}{$1};
+	    } elsif(/.* connect to ([^[]+)\[[0-9\.]+]: (.+) \(port \d+\)$/o) {
+		++$smtpMsgs{lc($2)}{$1};
+	    } else {
+#		print UNPROCD "$_\n";
+	    }
+	}
 	else
 	{
 #	    print UNPROCD "$_\n";
@@ -612,12 +668,12 @@ printf " %6d%s  recipient hosts/domains\n", adj_int_units($recipDomCnt);
 # ---Begin: SMTPD_STATS_SUPPORT---
 if(defined($opts{'smtpdStats'})) {
     print "\nsmtpd\n\n";
-    printf "  %6d%s  connections\n", adj_int_units($smtpConnCnt);
-    printf "  %6d%s  hosts/domains\n", adj_int_units(int(keys %smtpPerDom));
+    printf "  %6d%s  connections\n", adj_int_units($smtpdConnCnt);
+    printf "  %6d%s  hosts/domains\n", adj_int_units(int(keys %smtpdPerDom));
     printf "  %6d   avg. connect time (seconds)\n",
-	$smtpConnCnt > 0? ($smtpTotTime / $smtpConnCnt) + .5 : 0;
+	$smtpdConnCnt > 0? ($smtpdTotTime / $smtpdConnCnt) + .5 : 0;
     {
-	my ($sec, $min, $hr) = get_smh($smtpTotTime);
+	my ($sec, $min, $hr) = get_smh($smtpdTotTime);
 	printf " %2d:%02d:%02d  total connect time\n",
 	  $hr, $min, $sec;
     }
@@ -637,9 +693,9 @@ print_sending_domain_summary(\%sendgDom, $opts{'h'});
 
 # ---Begin: SMTPD_STATS_SUPPORT---
 if(defined($opts{'smtpdStats'})) {
-    print_per_day_smtp(\%smtpPerDay, $dayCnt) if($dayCnt > 1);
-    print_per_hour_smtp(\@smtpPerHr, $dayCnt);
-    print_domain_smtp_summary(\%smtpPerDom, $opts{'h'});
+    print_per_day_smtpd(\%smtpdPerDay, $dayCnt) if($dayCnt > 1);
+    print_per_hour_smtpd(\@smtpdPerHr, $dayCnt);
+    print_domain_smtpd_summary(\%smtpdPerDom, $opts{'h'});
 }
 # ---End: SMTPD_STATS_SUPPORT---
 
@@ -656,9 +712,16 @@ print_detailed_msg_data(\%msgDetail, "Message detail", $opts{'q'}) if($opts{'e'}
 
 # Print "problems" reports
 sub print_problems_reports {
-    print_nested_hash(\%deferred, "message deferral detail", $opts{'q'});
-    print_nested_hash(\%bounced, "message bounce detail (by relay)", $opts{'q'});
-    print_nested_hash(\%rejects, "message reject detail", $opts{'q'});
+    unless($opts{'noDeferralDetail'}) {
+	print_nested_hash(\%deferred, "message deferral detail", $opts{'q'});
+    }
+    unless($opts{'noBounceDetail'}) {
+	print_nested_hash(\%bounced, "message bounce detail (by relay)", $opts{'q'});
+    }
+    unless($opts{'noRejectDetail'}) {
+	print_nested_hash(\%rejects, "message reject detail", $opts{'q'});
+    }
+    print_nested_hash(\%smtpMsgs, "smtp delivery failures", $opts{'q'});
     print_nested_hash(\%warnings, "Warnings", $opts{'q'});
     print_nested_hash(\%fatals, "Fatal Errors", 0, $opts{'q'});
     print_nested_hash(\%panics, "Panics", 0, $opts{'q'});
@@ -815,10 +878,10 @@ sub print_user_data {
 
 # ---Begin: SMTPD_STATS_SUPPORT---
 
-# print "per-hour" smtp connection summary
+# print "per-hour" smtpd connection summary
 # (done in a subroutine only to keep main-line code clean)
-sub print_per_hour_smtp {
-    my ($smtpPerHr, $dayCnt) = @_;
+sub print_per_hour_smtpd {
+    my ($smtpdPerHr, $dayCnt) = @_;
     my ($hour, $value);
     if($dayCnt > 1) {
 	print <<End_Of_Per_Hour_Smtp_Average;
@@ -837,16 +900,16 @@ End_Of_Per_Hour_Smtp
     }
 
     for($hour = 0; $hour < 24; ++$hour) {
-	$smtpPerHr[$hour]->[0] || next;
-	my $avg = int($smtpPerHr[$hour]->[0]?
-	    ($smtpPerHr[$hour]->[1]/$smtpPerHr[$hour]->[0]) + .5 : 0);
+	$smtpdPerHr[$hour]->[0] || next;
+	my $avg = int($smtpdPerHr[$hour]->[0]?
+	    ($smtpdPerHr[$hour]->[1]/$smtpdPerHr[$hour]->[0]) + .5 : 0);
 	if($dayCnt > 1) {
-	    $smtpPerHr[$hour]->[0] /= $dayCnt;
-	    $smtpPerHr[$hour]->[1] /= $dayCnt;
-	    $smtpPerHr[$hour]->[0] += .5;
-	    $smtpPerHr[$hour]->[1] += .5;
+	    $smtpdPerHr[$hour]->[0] /= $dayCnt;
+	    $smtpdPerHr[$hour]->[1] /= $dayCnt;
+	    $smtpdPerHr[$hour]->[0] += .5;
+	    $smtpdPerHr[$hour]->[1] += .5;
 	}
-	my($sec, $min, $hr) = get_smh($smtpPerHr[$hour]->[1]);
+	my($sec, $min, $hr) = get_smh($smtpdPerHr[$hour]->[1]);
 
 	if($isoDateTime) {
 	    printf "    %02d:00-%02d:00", $hour, $hour + 1;
@@ -854,22 +917,22 @@ End_Of_Per_Hour_Smtp
 	    printf "    %02d00-%02d00  ", $hour, $hour + 1;
 	}
 	printf "   %6d%s       %2d:%02d:%02d",
-	    adj_int_units($smtpPerHr[$hour]->[0]),
+	    adj_int_units($smtpdPerHr[$hour]->[0]),
 	    $hr, $min, $sec;
 	if($dayCnt < 2) {
 	    printf "      %6ds      %6ds",
 		$avg,
-		$smtpPerHr[$hour]->[2];
+		$smtpdPerHr[$hour]->[2];
 	}
 	print "\n";
     }
 }
 
 
-# print "per-day" smtp connection summary
+# print "per-day" smtpd connection summary
 # (done in a subroutine only to keep main-line code clean)
-sub print_per_day_smtp {
-    my ($smtpPerDay, $dayCnt) = @_;
+sub print_per_day_smtpd {
+    my ($smtpdPerDay, $dayCnt) = @_;
     print <<End_Of_Per_Day_Smtp;
 
 Per-Day SMTPD Connection Summary
@@ -877,7 +940,7 @@ Per-Day SMTPD Connection Summary
     --------------------------------------------------------------------
 End_Of_Per_Day_Smtp
 
-    foreach (sort { $a <=> $b } keys(%$smtpPerDay)) {
+    foreach (sort { $a <=> $b } keys(%$smtpdPerDay)) {
 	my ($msgYr, $msgMon, $msgDay) = unpack("A4 A2 A2", $_);
 	if($isoDateTime) {
 	    printf "    %04d-%02d-%02d ", $msgYr, $msgMon + 1, $msgDay
@@ -886,20 +949,20 @@ End_Of_Per_Day_Smtp
 	    printf "    $msgMonStr %2d $msgYr", $msgDay;
 	}
 
-	my $avg = (${$smtpPerDay{$_}}[1]/${$smtpPerDay{$_}}[0]) + .5;
-	my($sec, $min, $hr) = get_smh(${$smtpPerDay{$_}}[1]);
+	my $avg = (${$smtpdPerDay{$_}}[1]/${$smtpdPerDay{$_}}[0]) + .5;
+	my($sec, $min, $hr) = get_smh(${$smtpdPerDay{$_}}[1]);
 
 	printf "   %6d%s       %2d:%02d:%02d      %6ds      %6ds\n",
-	    adj_int_units(${$smtpPerDay{$_}}[0]),
+	    adj_int_units(${$smtpdPerDay{$_}}[0]),
 	    $hr, $min, $sec,
 	    $avg,
-	    ${$smtpPerDay{$_}}[2];
+	    ${$smtpdPerDay{$_}}[2];
     }
 }
 
-# print "per-domain-smtp" connection summary
+# print "per-domain-smtpd" connection summary
 # (done in a subroutine only to keep main-line code clean)
-sub print_domain_smtp_summary {
+sub print_domain_smtpd_summary {
     use vars '$hashRef';
     local($hashRef) = $_[0];
     my($cnt) = $_[1];

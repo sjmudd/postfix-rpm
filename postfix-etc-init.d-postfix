@@ -10,7 +10,7 @@
 # config: /etc/postfix/main.cf
 # config: /etc/postfix/master.cf
 #
-# $Revision: 1.12 $
+# $Revision: 1.13 $
 #
 # Written by Package Author: Simon J Mudd <sjmudd@pobox.com>
 # 25/02/99: Mostly s/sendmail/postfix/g by John A. Martin <jam@jamux.com>
@@ -61,6 +61,11 @@ reload() {
 	return $RETVAL
 }
 
+restart() {
+	stop
+	start
+}
+
 abort() {
 	/usr/sbin/postfix abort 2>/dev/null 1>&2 && success || failure
 	return $?
@@ -85,8 +90,7 @@ case "$1" in
 	stop
 	;;
   restart)
-	stop
-	start
+	restart
 	;;
   reload)
 	reload
