@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.279 2004/04/18 14:00:51 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.280 2004/04/18 14:17:17 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -86,7 +86,7 @@
 %define official 0
 %define ver 2.1
 %define mail_release_date RC3-20040414
-%define rel 0.5%{suffix}
+%define rel 0.6%{suffix}
 %if %{official}
 %define tarball_version %{ver}
 %define ftp_dir official
@@ -242,7 +242,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.279 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.280 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -402,15 +402,15 @@ CCARGS="${CCARGS} -fsigned-char"
 %endif
 
 %if %{sasl}
-  %if %{sasl} <= 1
+  if [ "%{sasl}" -le 1 ]; then
     %define sasl_lib_dir %{_libdir}/sasl
     CCARGS="${CCARGS} -DUSE_SASL_AUTH"
     AUXLIBS="${AUXLIBS} -L%{sasl_lib_dir} -lsasl"
-  %else
+  else
     %define sasl_lib_dir %{_libdir}/sasl2
     CCARGS="${CCARGS} -I/usr/include/sasl -DUSE_SASL_AUTH"
     AUXLIBS="${AUXLIBS} -L%{sasl_lib_dir} -lsasl2"
-  %endif
+  fi
 %endif
 
 %if %{tls}
@@ -1069,6 +1069,9 @@ umask 022
 #
 
 %changelog
+
+* Sun Apr 18 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC3.20040414-0.6
+- revoke %if %sasl <= 1 check to using a shell if, on rh9 it fails
 
 * Sun Apr 18 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC3.20040414-0.5
 - put documentation in %{_docdir}/%{name}-{ver}-documentation as can
