@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.186 2002/01/15 13:59:18 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.187 2002/01/16 14:59:00 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -48,14 +48,14 @@
 %define POSTDROP_GID __POSTDROP_GID__
 
 %define branch snapshot
-%define vers 20020113
+%define vers 20020115
 %define patchlevel pl01
 %define version1 %{vers}
 %define version2 %{vers}
 #Used when we have patchlevels, as can't include '-' in the package name
 #define version1 %{vers}-%{patchlevel}
 #define version2 %{vers}_%{patchlevel}
-%define rel 1
+%define rel 0.1
 
 %define tlsno pfixtls-0.7.14-snap20020107-0.9.6c
 %define pflogno -1.0.3
@@ -174,7 +174,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.186 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.187 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -418,7 +418,7 @@ umask 022
 
 strip -R .comment --strip-unneeded bin/* libexec/*
 
-# install postfix into buildroot
+# install postfix into %{buildroot}
 sh postfix-install -non-interactive \
        install_root=%{buildroot} \
        config_directory=%{config_directory} \
@@ -430,7 +430,18 @@ sh postfix-install -non-interactive \
        mailq_path=%{mailq_path} \
        mail_owner=postfix \
        setgid_group=%{maildrop_group} \
-       manpage_path=%{_mandir} || exit 1
+       manpage_directory=%{_mandir} \
+       sample_directory=%{config_directory}/samples \
+       readme_directory=%{config_directory}/README_FILES || exit 1
+
+# RPM compresses man pages automatically.
+# - Edit postfix-files to reflect this, so post-install won't get confused
+#   when called during package installation.
+ed %{buildroot}%config_directory}/postfix-files <<EOF || exit 1
+%s/\(\/man[158]\/.*\.[158]\):/\1.gz:/
+w
+q
+EOF
 
 # Change alias_maps and alias_database default directory to %{config_directory}
 bin/postconf -c %{buildroot}%{config_directory} -e \
@@ -493,15 +504,12 @@ done
 
 # setup a symbolic link in the config directory of the following
 # documentation directories:
-#	samples -> config (not now)
-#	html -> html
-#	README_FILES -> README_FILES
+#	html -> "Doc directory"/html
 #
 # - not sure what the correct macro for /usr/share/doc/postfix-<version>/ is
 #   so do this by hand until some kind soul tells me!
 #
 ln -s ../../usr/share/doc/%{name}-%{version}/html %{buildroot}%{config_directory}/html
-ln -s ../../usr/share/doc/%{name}-%{version}/README_FILES %{buildroot}%{config_directory}/README_FILES
 
 ##############################################################################
 # The post script executes after the package has been installed.  Here
@@ -527,6 +535,8 @@ sh %{config_directory}/post-install \
 	config_directory=%{config_directory} \
 	mail_owner=postfix \
 	setgid_group=%{maildrop_group} \
+        sample_directory=%{config_directory}/samples \
+        readme_directory=%{config_directory}/README_FILES \
 	upgrade-package
 
 # build the aliases.db file on the INSTALL machine
@@ -681,9 +691,13 @@ fi
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/transport
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/virtual
 
-%attr(0644, root, root) %{config_directory}/sample-*.cf
+# This is a symbolic link
 %attr(0644, root, root) %{config_directory}/html
-%attr(0644, root, root) %{config_directory}/README_FILES
+
+%dir %attr(-, root, root) %{config_directory}/samples
+%attr(0644,   root, root) %{config_directory}/samples/*
+%dir %attr(-, root, root) %{config_directory}/README_FILES
+%attr(0644,   root, root) %{config_directory}/README_FILES/*
 
 %attr(0755, root, root) %config %{init_directory}/postfix
 
@@ -731,7 +745,6 @@ fi
 %endif
 
 %doc html
-%doc README_FILES
 
 %attr(0744, root, root) %config %{config_directory}/chroot-setup-LINUX2
 
@@ -792,7 +805,11 @@ fi
 
 %changelog
 
-* Fri Jan 11 2002 Simon J Mudd <sjmudd@pobox.com>
+* Wed Jan 16 2002 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20020115-1, update to latest snapshot
+  - fix postfix-files to reflect compressed man pages
+
+* Tue Jan 15 2002 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20020113-1, update to latest snapshot
   - sample files have moved, they are now (temporarily?) in /etc/postfix
     following Wietse's wish.
