@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.37 2000/12/22 22:05:39 root Exp $
+# $Id: postfix.spec.in,v 2.38 2000/12/22 22:54:33 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -13,15 +13,13 @@ Summary: Postfix Mail Transport Agent
 Group: System Environment/Daemons
 URL: http://www.postfix.org
 Copyright: IBM Public License
-#This line not used as on redhat-release-6.2-1 I don't have this directory
-#PreReq: /sbin/chkconfig, /etc/init.d
-PreReq: /sbin/chkconfig
+PreReq: /sbin/chkconfig__REDHAT_PREREQ__
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
 Version: 20001217
-Release: 3XX_POSTFIX_SUFFIX
+Release: 5__POSTFIX_SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
-Vendor: None -- Built under XX_REDHAT_RELEASE
+Vendor: None -- Built under __REDHAT_RELEASE__
 Distribution: Experimental
 Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{version}.tar.gz
 Source1: postfix-README_rpm.txt
@@ -51,9 +49,9 @@ Patch99: postfix-smtpd_reply_multiline.patch
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 
 # Requires for different packages - added automatically
-Requires: XX_POSTFIX_REQUIRES
+Requires: __POSTFIX_REQUIRES__
 # BuildRequires for different packages - added automatically
-BuildRequires: XX_POSTFIX_BUILDREQUIRES
+BuildRequires: __POSTFIX_BUILDREQUIRES__
 
 
 %description
@@ -163,8 +161,8 @@ grep -q ^postfix: /etc/passwd || {
 umask 022
 make tidy
 make -f Makefile.init makefiles \
-    'CCARGS=XX_POSTFIX_CCARGS' \
-    'AUXLIBS=XX_POSTFIX_AUXLIBS'
+    'CCARGS=__POSTFIX_CCARGS__' \
+    'AUXLIBS=__POSTFIX_AUXLIBS__'
 make DEBUG="" OPT="$RPM_OPT_FLAGS"
 
 %pre
