@@ -11,6 +11,7 @@ postfix-etc-cron.daily-postfix
 postfix-etc-init.d-postfix
 postfix-makedefs.patch
 postfix-new-RPM-packages
+postfix-postqueue.patch
 postfix-smtp_sasl_proto.c.patch
 postfix-smtpd_multiline_greeting.patch
 postfix.spec.in

@@ -1,0 +1,33 @@
+Postqueue -s segfaults on Linux (and possibly elsewhere??) because
+optarg gets overwritten on each call to getopt().  The following
+patch corrects this problem.
+
+lamont
+--- postfix-1.1.0/src/postqueue/postqueue.c	3 Jan 2002 20:44:19 -0000	1.1.1.1
++++ postfix-1.1.0/src/postqueue/postqueue.c	22 Jan 2002 04:49:27 -0000
+@@ -354,20 +354,20 @@
+      */
+     if (site_to_flush != 0) {
+ 	if (*site_to_flush == '['
+-	    && *(last = optarg + strlen(site_to_flush) - 1) == ']') {
++	    && *(last = site_to_flush + strlen(site_to_flush) - 1) == ']') {
+ 	    *last = 0;
+-	    if (!valid_hostaddr(optarg + 1, DONT_GRIPE))
++	    if (!valid_hostaddr(site_to_flush + 1, DONT_GRIPE))
+ 		site_to_flush = 0;
+ 	    *last = ']';
+ 	} else {
+-	    if (!valid_hostname(optarg, DONT_GRIPE)
+-		&& !valid_hostaddr(optarg, DONT_GRIPE))
++	    if (!valid_hostname(site_to_flush, DONT_GRIPE)
++		&& !valid_hostaddr(site_to_flush, DONT_GRIPE))
+ 		site_to_flush = 0;
+ 	}
+ 	if (site_to_flush == 0)
+ 	    msg_fatal_status(EX_USAGE,
+ 	      "Cannot flush mail queue - invalid destination: \"%.100s%s\"",
+-			     optarg, strlen(optarg) > 100 ? "..." : "");
++			     site_to_flush, strlen(site_to_flush) > 100 ? "..." : "");
+     }
+ 
+     /*
