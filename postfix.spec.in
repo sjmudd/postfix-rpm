@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.35 2003/03/10 16:05:27 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.36 2003/03/18 10:03:39 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -70,7 +70,7 @@
 %define official 1
 %define ver 2.0.6
 %define mail_release_date 20021219
-%define rel 2
+%define rel 3
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -214,7 +214,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.35 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.36 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -530,6 +530,28 @@ sh %{config_dir}/post-install upgrade-package \
 	sample_directory=%{sample_dir} \
 	readme_directory=%{readme_dir} \
 || :
+
+# Check paths:
+#	mailq_path
+#	newaliases_path
+#	sendmail_path
+# Ensure that these values are correct. This only affects packages which have
+# been upgraded from pre-alternatives values.
+
+old_path=`postconf -h mailq_path`
+[ "$old_path" != "%{mailq_path}" ] && \
+    %whinge "Updating mailq_path: $old_path --> %{mailq_path}" && \
+    postconf -e "mailq_path=%{mailq_path}"
+
+old_path=`postconf -h newaliases_path`
+[ "$old_path" != "%{newaliases_path}" ] && \
+    %whinge "Updating newaliases_path: $old_path --> %{newaliases_path}" && \
+    postconf -e "newaliases_path=%{newaliases_path}"
+	 
+old_path=`postconf -h sendmail_path`
+[ "$old_path" != "%{sendmail_path}" ] && \
+    %whinge "Updating sendmail_path: $old_path --> %{sendmail_path}" && \
+    postconf -e "sendmail_path=%{sendmail_path}"
 
 %{_sbindir}/postalias %{config_dir}/aliases
 %{_sbindir}/postfix check || :
@@ -973,6 +995,12 @@ fi
 #
 
 %changelog
+
+* Tue Mar 18 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.6-3
+  - fix the sendmail_path, newaliases_path and mailq_path to link
+    to the real binaries. On packages which have been upgraded from
+    old versions of my package (pre-alternatives versions) then these
+    values may not be correct.   
 
 * Mon Mar 10 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.6-2
   - fix make-postfix.spec with SASL2 (the -devel package was wrong)
