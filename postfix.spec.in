@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.31 2002/04/30 07:41:07 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.32 2002/04/30 16:18:38 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -200,7 +200,7 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.31 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.32 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, VDA=%{VDA}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -572,7 +572,7 @@ done
 %if %{REQUIRES_DB3}
 %triggerin -- db3
 %{copy_cmd}
-for i in /lib/libdb-3.*so /lib/libdb.so; do
+for i in /lib/libdb-3.*so; do
   rm -f %{queue_dir}${i}
   copy ${i} %{queue_dir}/lib
 done
@@ -582,7 +582,7 @@ ldconfig -n %{queue_dir}/lib
 %if %{REQUIRES_DB4}
 %triggerin -- db4
 %{copy_cmd}
-for i in /lib/libdb-4.*so /lib/libdb.so; do
+for i in /lib/libdb-4.*so; do
   rm -f %{queue_dir}${i}
   copy ${i} %{queue_dir}/lib
 done
@@ -651,12 +651,12 @@ chroot_remove () {
             etc/host.conf etc/resolv.conf etc/nsswitch.conf \
 	    etc/hosts etc/passwd etc/services \
 %if %{REQUIRES_DB3}
-            lib/libdb-3.*so lib/libdb.so \
+            lib/libdb-3.*so \
 %endif
 %if %{REQUIRES_DB4}
-            lib/libdb-4.*so lib/libdb.so \
+            lib/libdb-4.*so \
 %endif
-	    lib/libnss_* lib/libresolv* lib/libdb*; do
+	    lib/libnss_* lib/libresolv*; do
         test -f %{queue_dir}/${i} && /bin/rm -f %{queue_dir}/${i}
     done
 
@@ -866,6 +866,13 @@ fi
 #
 
 %changelog
+
+* Tue Apr 30 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-6
+  - /lib/lidbdb.so is not needed within the chroot (it's used only by the 
+    db[34]-devel packages).  So remove it.  Symptom: error message
+    "cp: cannot stat `/lib/libdb.so" on machines which didn't have
+    db[34]-devel installed.
+    - Reported by Bill Landry <BillL@Pointshare.com>
 
 * Sun Apr 28 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-5
   - various changes suggested by Todd <Freedom_Lover@bigfoot.com>
