@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.268 2004/04/06 22:15:11 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.269 2004/04/07 16:59:43 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -237,7 +237,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.268 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.269 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -926,6 +926,13 @@ umask 022
 
 %files
 %defattr(-, root, root)
+
+%if %{sasl}
+%config(noreplace) %{sasl_lib_dir}/smtpd.conf
+%config(noreplace) %{_sysconfdir}/pam.d/smtp.postfix
+%config(noreplace) %{_sysconfdir}/sysconfig/saslauthd
+%endif
+
 %verify(not md5 size mtime) %config %dir %{_sysconfdir}/postfix
 %attr(0644, root, root)         %{_sysconfdir}/postfix/LICENSE
 %attr(0755, root, root) %config %{_sysconfdir}/postfix/postfix-script
@@ -1076,7 +1083,7 @@ umask 022
 - move the documentation files back to %{docdir} but
   maintain symlinks from /etc/postfix for convenience.
 - update postfinger to 1.29
-- include README-Postfix-SASL-RedHat.txt (borrowed from RedHat RPM)
+- update SASL information borrowing the stuff from the RedHat RPM
 
 * Mon Mar 15 2004 Simon J Mudd <sjmudd@pobox.com> 2.0.19-1
 - recognise rhel-3.0WS and also show the full distribution the rpm was built
