@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.107 2004/01/31 20:01:21 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.108 2004/03/09 22:53:18 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -83,8 +83,8 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 1
 %define ver 2.0.18
-%define mail_release_date 20021219
-%define rel 2
+%define mail_release_date notused
+%define rel 3
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -147,7 +147,7 @@ Source16: http://postfix.wl0.org/ftp/postfinger/%{postfinger}
 Patch1: postfix-dict_ldap.c.patch
 Patch2: postfix-smtp_sasl_proto.c.patch
 Patch3: postfix-files.patch
-Patch6: postfix-verisign.patch
+Patch6: ftp://ftp.porcupine.org/mirrors/postfix-release/official/postfix-2.0-ns-mx-acl-patch.gz
 
 # Optional patches
 Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}.patch.gz
@@ -235,7 +235,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.107 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.108 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -303,7 +303,10 @@ fi
 %patch2 -p1 -b .auth
 %patch3 -p1 -b .alternatives
 %patch7 -p1 -b .logrcpt
-%patch6 -p1 -b .verisign
+# apply verisign/blacklist patch
+test -e  %{SOURCE6} && \
+  gzip -dc %{SOURCE6} | patch -p1 -b --suffix .blacklist || \
+    die "%{SOURCE6} not found or patch failed"
 
 # Apply optional patches
 %if %{cdb}
@@ -946,6 +949,10 @@ umask 022
 #
 
 %changelog
+
+* Tue Mar 09 2004 Simon J Mudd <sjmudd@pobox.com> 2.0.18-3
+- replace verisign patch with Wietse's postfix-2.0-ns-mx-acl-patch.gz
+  - suggested by Alain NAKACHE <alain@cal.fr>
 
 * Sat Jan 31 2004 Simon J Mudd <sjmudd@pobox.com> 2.0.18-2
 - update some patches (vda and ipv6)

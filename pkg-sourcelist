@@ -1,8 +1,9 @@
 make-postfix.spec
 pfixtls-0.8.16-2.0.16-0.9.7b.tar.gz
 postfinger-1.26
-postfix-2.0.16.patch.gz
 postfix-2.0.16-20031026-multiline-greeting.patch
+postfix-2.0.16.patch.gz
+postfix-2.0-ns-mx-acl-patch.gz
 postfix-aliases
 postfix-bounce_notify_util.c.patch
 postfix-build
@@ -21,5 +22,4 @@ postfix-RPM-new-packages
 postfix-RPM-TODO
 postfix-smtp_sasl_proto.c.patch
 postfix.spec.in
-postfix-verisign.patch
 tls+ipv6-1.21-pf-2.0.18.patch.gz
