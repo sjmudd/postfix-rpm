@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.14 2003/09/11 19:53:33 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.15 2003/09/11 19:56:56 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
