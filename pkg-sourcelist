@@ -2,12 +2,14 @@ make-postfix.spec
 pfixtls-0.8.11a-1.1.11-20021031-0.9.6g.tar.gz
 pflogsumm-1.0.4.pl
 postfix-1.1.11-20020822_quota.patch.gz
+postfix-1.1.12-20021124-multiline-greeting.patch
 postfix-aliases
 postfix-bounce_notify_util.c.patch
 postfix-build
 postfix-chroot-setup.awk
 postfix-chroot_setup.patch
 postfix-config.patch
+postfix-dict_cdb.tar.gz
 postfix-etc-cron.daily-postfix
 postfix-etc-init.d-postfix
 postfix-files.patch
@@ -15,11 +17,9 @@ postfix-get-distribution
 postfix-log_recipient
 postfix-makedefs.patch
 postfix-new-RPM-packages
-postfix-pg-raw.patch
 postfix-pg.postfix-1.1.4.patch
+postfix-pg-raw.patch
 postfix-rbl_reply_maps.patch
 postfix-smtp_sasl_proto.c.patch
-postfix-smtpd_multiline_greeting.patch
 postfix.spec.in
-postfix-dict_cdb.tar.gz
 README.CDB
