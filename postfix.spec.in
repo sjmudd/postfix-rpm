@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.110 2001/05/13 18:04:06 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.109 2001/05/13 18:03:06 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -149,7 +149,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.110 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.109 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -225,8 +225,6 @@ adivse me so I can take appropriate steps.
 
 ENDTEXT
 	sleep 5
-else
-	echo "postfix.spec seems ok"
 fi
 
 
