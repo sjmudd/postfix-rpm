@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.187 2002/01/16 14:59:00 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.188 2002/01/16 15:29:27 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -174,7 +174,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.187 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.188 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -437,7 +437,7 @@ sh postfix-install -non-interactive \
 # RPM compresses man pages automatically.
 # - Edit postfix-files to reflect this, so post-install won't get confused
 #   when called during package installation.
-ed %{buildroot}%config_directory}/postfix-files <<EOF || exit 1
+ed %{buildroot}%{config_directory}/postfix-files <<EOF || exit 1
 %s/\(\/man[158]\/.*\.[158]\):/\1.gz:/
 w
 q
