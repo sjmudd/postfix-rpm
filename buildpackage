@@ -29,7 +29,7 @@ HERE=`pwd`
 cvs diff 2>&1 >/dev/null || { echo "WARNING please commit changes before building"; exit 1; }
 
 ./makelinks
-( cd ${SOURCEDIR}'` && \
+( cd ${SOURCEDIR} && \
   sh make-postfix.spec && \
   cd ${SPECDIR}` && \
   (( grep "^%define branch"	postfix.spec | awk '{ print $3 }' ) || true ) && \
