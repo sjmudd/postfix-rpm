@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/make-postfix.rpm,v 1.1.2.1 2004/08/24 17:24:21 sjmudd Exp $
+# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/make-postfix.rpm,v 1.1.2.2 2004/08/24 17:57:22 sjmudd Exp $
 #
 # Script to build a Postfix rpm
 # - perform an upgrade, including the same parameters as the running rpm
@@ -9,7 +9,7 @@
 
 [ -n "$DEBUG" ] && set -x
 myname=$(basename $0)
-version=$(echo '$Id: make-postfix.rpm,v 1.1.2.1 2004/08/24 17:24:21 sjmudd Exp $' | awk '{ print $2 }')
+version=$(echo '$Id: make-postfix.rpm,v 1.1.2.2 2004/08/24 17:57:22 sjmudd Exp $' | awk '{ print $3 }')
 
 # provide usage message
 usage () {
@@ -44,7 +44,7 @@ msg_error () {
 
 # clean the environment so that no optional parameters are available
 clean_environment () {
-	echo "- cleaning POSTFIX_ environment variables"
+	echo "- clearing POSTFIX_* environment variables"
 	unset POSTFIX_CDB
 	unset POSTFIX_DB
 	unset POSTFIX_IPV6
@@ -71,7 +71,8 @@ source_file () {
 	. $file
 }
 
-echo "$myname version $version (C) 2004 Simon J Mudd"
+echo "=== $myname version $version (C) 2004 Simon J Mudd ==="
+echo ""
 
 SOURCES=`rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;'`
 SPECS=`rpm --eval '%{_specdir}' | sed 's;%{name};postfix;'`

@@ -1,4 +1,4 @@
-# NOTE: $Id: postfix.spec.cf,v 1.1.2.1 2004/07/17 12:53:07 sjmudd Exp $
+# NOTE: $Id: postfix.spec.cf,v 1.1.2.2 2004/08/24 17:57:23 sjmudd Exp $
 # NOTE:
 # NOTE: (C) 2004 Simon J Mudd <sjmudd@pobox.com>
 # NOTE:
@@ -17,41 +17,44 @@
 # NOTE: Lines starting with # NOTE: will be trimmed from the installed
 # NOTE: postfix.spec.cf file.
 #
-# $Id: postfix.spec.cf,v 1.1.2.1 2004/07/17 12:53:07 sjmudd Exp $
+# $Id: postfix.spec.cf,v 1.1.2.2 2004/08/24 17:57:23 sjmudd Exp $
 #
 # 2. POSTFIX RPM [RE-]BUILDING INSTRUCTIONS
 #
 # To rebuild the rpm you MUST first download and install the Postfix source
-# RPM. Once you have done this do the following:
+# RPM. Options 2.1 and 2.2 assume that you have a recent version of my RPM
+# which includes /etc/postfix/postfix.spec.cf.
+#
+# Once you have installed the source RPM do the following:
 #
 # 2.1 Upgrading the build with the same options as your running system
 #
 #	# Create some temporary variables for building
 #	SRC=`rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;'`
-#	SPEC=`rpm --eval '%{_specdir}' | sed 's;%{name};postfix;'`
-#
-#	# Create the spec file
-#	( cd $SRC; . /etc/postfix/postfix.spec.cf; sh make-postfix.spec )
 #
 #	# Build the rpm
-#	( cd $SPEC; rpmbuild -ba postfix.spec )
+#	${SRC}/make-postfix.rpm -cu
 #
-# 2.2 Building postfix with specific options
+# 2.2 Upgrading the build with the same options as another running system
 #
 #	# Create some temporary variables for building
 #	SRC=`rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;'`
-#	SPEC=`rpm --eval '%{_specdir}' | sed 's;%{name};postfix;'`
+#
+#	# Build the rpm
+#	${SRC}/make-postfix.rpm -cf /path/to/postfix.spec.cf
+#
+# 2.3 Building postfix with specific options
+#
+#	# Create some temporary variables for building
+#	SRC=`rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;'`
 #
 #	# Set the appropriate environment variables for building the spec file
 #	export POSTFIX_TLS=1        # for example
 #	export POSTFIX_PCRE=1       # for example
 #
-#	# Create the spec file
-#	( cd $SRC; . /etc/postfix/postfix.spec.cf; sh make-postfix.spec )
-#
 #	# Build the rpm
-#	( cd $SPEC; rpmbuild -ba postfix.spec )
+#	${SRC}/make-postfix.rpm
 #
-# In both cases the result is a new source and binary rpm suitable for
+# In all cases the result is a new source and binary rpm suitable for
 # the distribution you are using.
 #

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.2.3 2004/07/24 16:23:24 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.2.4 2004/08/24 17:57:22 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -61,6 +61,7 @@
 # - postfix.spec[.in]	if you have the source rpm installed
 # - postfix.spec.cf	if you have the binary rpm installed
 
+[ -n "$DEBUG" ] && set -x
 myname=`basename $0`
 
 error() {
@@ -185,7 +186,7 @@ if [ "$POSTFIX_MYSQL_REDHAT" = 1 ]; then
     echo "  adding MySQL support (RedHat mysql* packages) to spec file"
     SUFFIX="${SUFFIX}.mysql"
 fi
-if [ -n "$POSTFIX_MYSQL_PATHS" ]; then
+if [ -n "$POSTFIX_MYSQL_PATHS" -a "$POSTFIX_MYSQL_PATHS" != 0 ]; then
     POSTFIX_MYSQL=0
     POSTFIX_MYSQL_REDHAT=0
     echo "  adding MySQL support (paths set to $POSTFIX_MYSQL_PATHS) to spec file"
