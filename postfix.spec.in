@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.70 2001/02/26 20:37:14 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.71 2001/02/26 20:55:36 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -39,8 +39,6 @@
 %define SASL __SASL__
 
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
-%define SAFE_MYNETWORKS __SAFE_MYNETWORKS__
-
 
 Name: postfix
 Summary: Postfix Mail Transport Agent
@@ -71,8 +69,6 @@ Patch3:  postfix-INSTALL.sh.patch
 # Optional patches - set the appropriate environment variables to include
 #                    them when building the package/spec file
 #
-# applied if %SAFE_MYNETWORKS=1
-Patch98: postfix-safe_mynetworks.patch
 # applied if %SMTPD_MULTILINE_GREETING=1
 Patch99: postfix-smtpd_multiline_greeting.patch
 
@@ -124,11 +120,10 @@ packages in this FAQ may still be incorrect.]
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.70 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.71 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
-SAFE_MYNETWORKS=__SAFE_MYNETWORKS__
 LDAP=__LDAP__
 PCRE=__PCRE__
 MYSQL=__MYSQL__
@@ -188,11 +183,6 @@ awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > co
 %patch3 -p1 -b .install
 
 # APPLY OPTIONAL PATCHES
-
-# Apply Daniel Roesen's safe mynetworks patch
-%if %{SAFE_MYNETWORKS}
-%patch98 -p1 -b .mynetworks
-%endif
 
 # Apply my SMTPD Multiline greeting patch
 %if %{SMTPD_MULTILINE_GREETING}
@@ -604,7 +594,8 @@ fi
 %changelog
 * Mon Feb 26 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20010225-1,  update to latest snapshot
-                        further minor changes to /etc/rc.d/init.d/postfix
+- remove references to POSTFIX_SAFE_MYNETWORKS optional patch as no longer
+  required.
 
 * Tue Feb 20 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20010222-1,  update to latest snapshot
