@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.16 2003/05/24 15:47:32 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.17 2003/06/16 17:38:41 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -18,8 +18,6 @@
 #			in mysql maps
 # POSTFIX_MYSQL_DICT_REG
 #			include support for mysql: dict_register patch
-# POSTFIX_PROXY_READ_MAPS
-#			include support for proxy_read_maps patch
 # POSTFIX_LDAP		include support for openldap packages
 # POSTFIX_PCRE		include support for pcre maps
 # POSTFIX_PGSQL		include support for PostGres database
@@ -103,10 +101,6 @@ echo ""
 
 if [ "$POSTFIX_MYSQL_DICT_REG" = 1 ]; then
     echo "including patch for dict_register fix for proxy:mysql:mysql-xxx.cf"
-fi
-
-if [ "$POSTFIX_PROXY_READ_MAPS" = 1 ]; then
-    echo "including patch for proxy read maps random error"
 fi
 
 if [ "$POSTFIX_CDB" = 1 ]; then
@@ -386,7 +380,6 @@ esac
 [ -z "$POSTFIX_MYSQL_PATHS" ]		   && POSTFIX_MYSQL_PATHS=0
 [ -z "$POSTFIX_MYSQL_QUERY" ]		   && POSTFIX_MYSQL_QUERY=0
 [ -z "$POSTFIX_MYSQL_DICT_REG" ]	   && POSTFIX_MYSQL_DICT_REG=0
-[ -z "$POSTFIX_PROXY_READ_MAPS" ]	   && POSTFIX_PROXY_READ_MAPS=0
 [ -z "$POSTFIX_PCRE" ]			   && POSTFIX_PCRE=0
 [ -z "$POSTFIX_PGSQL" ]			   && POSTFIX_PGSQL=0
 [ -z "$POSTFIX_PGSQL2" ]		   && POSTFIX_PGSQL2=0
@@ -422,7 +415,6 @@ s!__MYSQL_REDHAT__!$POSTFIX_MYSQL_REDHAT!g
 s!__MYSQL_PATHS__!$POSTFIX_MYSQL_PATHS!g
 s!__MYSQL_QUERY__!$POSTFIX_MYSQL_QUERY!g
 s!__MYSQL_DICT_REG__!$POSTFIX_MYSQL_DICT_REG!g
-s!__PROXY_READ_MAPS__!$POSTFIX_PROXY_READ_MAPS!g
 s!__PCRE__!$POSTFIX_PCRE!g
 s!__PGSQL__!$POSTFIX_PGSQL!g
 s!__PGSQL2__!$POSTFIX_PGSQL2!g

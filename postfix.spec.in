@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.58 2003/06/11 16:32:11 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.59 2003/06/16 17:38:41 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -17,7 +17,6 @@
 # mysql_query              - include support for writing full select statements
 #                            in mysql maps
 # mysql_dict_reg           - dict_register patch for proxy:mysql:mysql-xxx.cf
-# proxy_read_maps          - proxy_read_maps patch for random errors
 # pcre                     - include pcre support
 # pgsql                    - include Postgres database support
 # pgsql2                   - experimental postgres patches by George Barbarosie
@@ -51,7 +50,6 @@
 %define mysql_lib %(echo "%{mysql_paths}" | cut -d: -f2)
 %define mysql_query __MYSQL_QUERY__
 %define mysql_dict_reg __MYSQL_DICT_REG__
-%define proxy_read_maps __PROXY_READ_MAPS__
 %define pcre __PCRE__
 %define pgsql __PGSQL__
 %define pgsql2 __PGSQL2__
@@ -81,7 +79,7 @@
 %define official 1
 %define ver 2.0.12
 %define mail_release_date 20021219
-%define rel 1
+%define rel 1.1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -152,7 +150,6 @@ Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}.patch.gz
 Patch5: postfix-mysql_query.patch
 # Adapted from http://www.stahl.bau.tu-bs.de/~hildeb/postfix/duchovni/log_recipient.gz
 Patch7: postfix-log_recipient
-Patch8: http://webs.sinectis.com.ar/lesanti/postfix/postfix-2.0.9-proxy_read_maps.patch
 Patch9: http://webs.sinectis.com.ar/lesanti/postfix/postfix-2.0.9-dict_mysql_noregister.patch
 Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pgver}.patch
 Patch51: postfix-pg-raw.patch
@@ -229,11 +226,11 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.58 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.59 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
-ldap=%{ldap}, sasl=%{sasl}, pcre=%{pcre}, tls=%{tls}, tlsfix=%{tlsfix}, mysql=%{mysql}, mysql_redhat=%{mysql_redhat}, mysql_paths=%{mysql_paths}, mysql_dict_reg=%{mysql_dict_reg}, proxy_read_maps=%{proxy_read_maps}
+ldap=%{ldap}, sasl=%{sasl}, pcre=%{pcre}, tls=%{tls}, tlsfix=%{tlsfix}, mysql=%{mysql}, mysql_redhat=%{mysql_redhat}, mysql_paths=%{mysql_paths}, mysql_dict_reg=%{mysql_dict_reg}
 include_db=%{include_db}, requires_db=%{requires_db}, requires_init_d=%{requires_init_d}, cdb=%{cdb}, ipv6=%{ipv6}
 debug=%{?_with_debug:1}%{?!_with_debug:0}
 
@@ -315,9 +312,6 @@ sh dict_cdb.sh
 %endif
 %if %{mysql_dict_reg}
 %patch9 -p1 -b .mysql_dict_reg
-%endif
-%if %{proxy_read_maps}
-%patch8 -p1 -b .proxy_read_maps
 %endif
 
 # Apply the PostgreSQL patches only if required
@@ -1042,6 +1036,9 @@ umask 022
 #
 
 %changelog
+
+* Mon Jun 16 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.12-1.1
+  - remove POSTFIX_PROXY_READ_MAPS/proxy_read_maps as no longer necessary
 
 * Wed Jun 11 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.12-1
   - update VDA patch
