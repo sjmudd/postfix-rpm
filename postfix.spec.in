@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.62 2003/06/22 09:48:55 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.63 2003/06/22 09:51:23 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -81,7 +81,7 @@
 %define official 1
 %define ver 2.0.12
 %define mail_release_date 20021219
-%define rel 2
+%define rel 3
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -230,7 +230,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.62 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.63 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -1045,10 +1045,10 @@ umask 022
 
 %changelog
 
-* Sun Jun 22 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.12-2
+* Sun Jun 22 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.12-3
   - remove POSTFIX_PROXY_READ_MAPS/proxy_read_maps as no longer necessary
   - disable mysql_dict_reg in spec file as currently reported not to work
-  - add postfinger 1.26 to package
+  - add my postfinger(1.26) script to package
 
 * Wed Jun 11 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.12-1
   - update VDA patch
