@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.275 2004/04/17 17:01:02 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.276 2004/04/17 20:04:26 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -100,9 +100,6 @@
 
 # common directories
 %define docdir %{_docdir}/%{name}-%{version}
-# post-install complains if I replace README_FILES with readme (my bug?)
-%define readme_dir %{docdir}/README_FILES
-%define html_dir %{docdir}/html
 
 %define newaliases_path %{_bindir}/newaliases.postfix
 %define mailq_path %{_bindir}/mailq.postfix
@@ -237,7 +234,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.275 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.276 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -490,9 +487,9 @@ sh postfix-install -non-interactive \
        mailq_path=%{mailq_path} \
        mail_owner=postfix \
        setgid_group=postdrop \
-       html_directory=%{html_dir} \
+       html_directory=%{docdir}/html \
        manpage_directory=%{_mandir} \
-       readme_directory=%{readme_dir} || exit 1 
+       readme_directory=%{docdir}/README_FILES || exit 1 
 
 # RPM compresses man pages automatically.  Edit postfix-files to avoid
 # confusing post-install.
@@ -537,13 +534,13 @@ done
 install -c -m 755 %{_sourcedir}/%{postfinger} ${RPM_BUILD_ROOT}%{_bindir}/postfinger
 install -c -m 755 %{_sourcedir}/postfix-chroot.sh ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/
 
-[ -d "${RPM_BUILD_ROOT}%{html_dir}" ]   || mkdir -p ${RPM_BUILD_ROOT}%{html_dir}
-[ -d "${RPM_BUILD_ROOT}%{readme_dir}" ] || mkdir -p ${RPM_BUILD_ROOT}%{readme_dir}
-install -c -m 644 %{_sourcedir}/README-Postfix-SASL-RedHat.txt ${RPM_BUILD_ROOT}%{readme_dir}/
+[ -d "${RPM_BUILD_ROOT}%{docdir}/html" ]         || mkdir -p ${RPM_BUILD_ROOT}%{docdir}/html
+[ -d "${RPM_BUILD_ROOT}%{docdir}/README_FILES" ] || mkdir -p ${RPM_BUILD_ROOT}%{docdir}/README_FILES
+install -c -m 644 %{_sourcedir}/README-Postfix-SASL-RedHat.txt ${RPM_BUILD_ROOT}%{docdir}/README_FILES
 
 # added for convenience
-ln -sf %{html_dir}   ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/html
-ln -sf %{readme_dir} ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/readme
+ln -sf %{docdir}/html         ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/html
+ln -sf %{docdir}/README_FILES ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/readme
 
 # Install the smtpd.conf file for SASL support.
 %if %{sasl}
@@ -675,9 +672,9 @@ sh %{_sysconfdir}/postfix/post-install upgrade-package \
 	command_directory=%{_sbindir} \
 	mail_owner=postfix \
 	setgid_group=postdrop \
-	html_directory=%{html_dir} \
+	html_directory=%{docdir}/html \
 	manpage_directory=%{_mandir} \
-	readme_directory=%{readme_dir} \
+	readme_directory=%{docdir}/README_FILES \
 	sendmail_path=%{sendmail_path} \
 	newaliases_path=%{newaliases_path} \
 	mailq_path=%{mailq_path} \
@@ -728,12 +725,12 @@ else
     if [ ! -e %{_sbindir}/sendmail ]; then
         %whinge "Fresh Postfix Install, no %{_sbindir}/sendmail present: simulating RH alternatives"
         ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
-        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq
-        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases
-        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail
-        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps}
-        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps}
-        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps}
+        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
+        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
+        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
+        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps} 
+        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
+        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
         ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
     fi
 fi
@@ -768,12 +765,12 @@ else
     if [ ! -e %{_sbindir}/sendmail ]; then
         %whinge "Uninstalling sendmail, no %{_sbindir}/sendmail present: simulating RH alternatives"
         ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
-        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq
-        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases
-        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail
-        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps}
-        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps}
-        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps}
+        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
+        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
+        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
+        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps} 
+        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
+        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
         ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
     else
         :
@@ -803,12 +800,12 @@ else
     if [ ! -e %{_sbindir}/sendmail ]; then
         %whinge "Upgrading Postfix, no %{_sbindir}/sendmail present: simulating RH alternatives"
         ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
-        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq
-        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases
-        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail
-        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps}
-        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps}
-        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps}
+        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
+        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
+        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
+        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps} 
+        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
+        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
         ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
     else
         :
@@ -935,9 +932,11 @@ umask 022
 %attr(0644, root, root) %{_sysconfdir}/postfix/README.rpm
 %attr(0644, root, root) %{_sysconfdir}/postfix/postfix.spec.cf
 
+# convenience links
+%{_sysconfdir}/postfix/html
+%{_sysconfdir}/postfix/readme
+
 %attr(0755, root, root) %{_sysconfdir}/postfix/postfix-chroot.sh
-
-
 
 %attr(0755, root, root) %config %{init_directory}/postfix
 
@@ -954,11 +953,13 @@ umask 022
 %dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{_var}/spool/postfix/incoming
 %dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{_var}/spool/postfix/private
 %dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{_var}/spool/postfix/saved
-
 %dir %attr(0730, postfix, postdrop) %verify(not md5 size mtime) %{_var}/spool/postfix/maildrop
 %dir %attr(0710, postfix, postdrop) %verify(not md5 size mtime) %{_var}/spool/postfix/public
-
 %dir %attr(0755, root, root)        %verify(not md5 size mtime) %{_var}/spool/postfix/pid
+
+# these MUST correspond with %{readme_dir} and %{html_dir}
+%doc %dir html
+%doc %dir README_FILES
 
 %doc COPYRIGHT
 %doc COMPATIBILITY
@@ -983,12 +984,6 @@ umask 022
 %if %{ipv6}
 %doc IPv6-ChangeLog
 %endif
-
-%doc %dir %{html_dir}
-%doc %{html_dir}/*
-
-%doc %dir %{readme_dir}
-%doc %{readme_dir}/*
 
 %dir %attr(0755, root, root) %verify(not md5 size mtime) %{_libexecdir}/postfix
 %{_libexecdir}/postfix/anvil
