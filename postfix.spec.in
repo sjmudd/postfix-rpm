@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.20 2003/02/17 10:04:09 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.21 2003/02/17 11:02:32 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -70,7 +70,7 @@
 %define official 1
 %define ver 2.0.3
 %define mail_release_date 20021219
-%define rel 3
+%define rel 3.1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -214,7 +214,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.20 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.21 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -241,17 +241,16 @@ distribution=`sh ${tmpdir}/postfix-get-distribution`
 
 if [ "${distribution}" != "%{distribution}" ]; then
     cat <<ENDTEXT
-
-ERROR:
+*** ERROR ***
 
 This postfix.spec file was built for %{distribution}, while you are
 running ${distribution}.
 
 Rebuild the postfix.spec file for your distribution by performing the
-following steps, after having defined the POSTFIX_XXX variables according
-to your requirements:
+following steps:
 
 	cd `rpm --eval '%{_sourcedir}'`
+	# define the POSTFIX_XXX variables according to your requirements
 	sh make-postfix.spec
 
 Once you have rebuilt the spec file, you can build the RPM files as
@@ -261,7 +260,7 @@ follows:
 	rpmbuild -ba postfix.spec
 
 If this procedure does not allow you to produce a working package, please
-adivse me so I can take appropriate steps.
+let me know.
 ENDTEXT
 	exit 1
 fi
@@ -960,6 +959,11 @@ fi
 #
 
 %changelog
+
+* Mon Feb 17 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.3-3.1
+  - Internal stuff, don't allow building on another distribution
+    other than the one the spec file has been built for.  You must
+    now rerun sh make-postfix.spec first.
 
 * Thu Feb 13 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.3-3
   - correct URL shown in spec file.
