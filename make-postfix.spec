@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.35.2.16 2002/11/22 11:40:14 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.35.2.17 2002/11/22 12:45:23 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -39,15 +39,15 @@
 #
 # Red Hat Linux 8.x requires
 # REQUIRES_INIT_D	add /etc/init.d/ to requires list
-# POSTFIX_REQUIRES_DB=4	add db4 package to requires list
+# POSTFIX_DB=4		add db4 package to requires list
 #
 # Red Hat Linux 7.x requires
 # REQUIRES_INIT_D	add /etc/init.d/ to requires list
-# POSTFIX_REQUIRES_DB=3	add db3 package to requires list
+# POSTFIX_DB=3		add db3 package to requires list
 # TLSFIX		enable a fix for TLS support on RH 6.2 (see spec file)
 #
 # Red Hat Linux 6.x MAY require (according to configuration)
-# POSTFIX_REQUIRES_DB=3	add db3 package to requires list
+# POSTFIX_DB=3		add db3 package to requires list
 # POSTFIX_INCLUDE_DB=1	add /usr/include/db3 to the includes list
 #
 # To rebuild the spec file, set the appropriate environment
@@ -106,31 +106,33 @@ if [ "$POSTFIX_CDB" = 1 ]; then
 #   SUFFIX="${SUFFIX}.cdb"
 fi
 
-# LDAP support is provided by default on redhat >= 7.2, therefore if
-# adding LDAP support on these platforms don't bother to include the .ldap
-# suffix.  It is assumed.  We also automatically include LDAP support
+# LDAP support is provided by default on redhat >= 7.2, and yellowdog >= 2.3.
+# Therefore if adding LDAP support on these platforms don't bother to include
+# the .ldap suffix:  It is assumed.  We also automatically include LDAP support
 # on these platforms, if it's not been explicitly disabled.
-if [ -z "$POSTFIX_LDAP" ]; then
-    case ${releasename} in
-    redhat)
-        [ "${major}" -eq 7 -a "${minor}" -ge 2 ] && POSTFIX_LDAP=1
-        [ "${major}" -ge 8 ] && POSTFIX_LDAP=1
-        ;;
-    esac
-fi
-if [ "$POSTFIX_LDAP" = 1 ]; then
+
+DEFAULT_LDAP=0
+case ${releasename} in
+mandrake)
+    # Not sure from when Mandrake supported LDAP, but it's now the
+    # default.
+    DEFAULT_LDAP=1
+    ;;
+redhat)
+    [ "${major}" -eq 7 -a "${minor}" -ge 2 ] && DEFAULT_LDAP=1
+    [ "${major}" -ge 8 ] && DEFAULT_LDAP=1
+    ;;
+yellowdog)
+    [ "${major}" -eq 2 -a "${minor}" -ge 3 ] && DEFAULT_LDAP=1
+    [ "${major}" -ge 3 ] && DEFAULT_LDAP=1
+    ;;
+esac
+test -z "${POSTFIX_LDAP}" && POSTFIX_LDAP=${DEFAULT_LDAP}
+if [ "${POSTFIX_LDAP}" = 1 ]; then
     echo "  adding LDAP support to spec file"
-    addsuffix=1
-
-    case ${releasename} in
-    redhat)
-        [ "${major}" -eq 7 -a "${minor}" -ge 2 ] && addsuffix=0
-        [ "${major}" -ge 8 ] && addsuffix=0
-        ;;
-    esac
-
-    [ "$addsuffix" -eq 1 ] && SUFFIX="${SUFFIX}.ldap"
+    [ "${POSTFIX_LDAP}" != "${DEFAULT_LDAP}" ] && SUFFIX="${SUFFIX}.ldap"
 fi
+
 if [ "$POSTFIX_PCRE" = 1 ]; then
     echo "  adding PCRE  support to spec file"
     SUFFIX="${SUFFIX}.pcre"
@@ -155,11 +157,6 @@ if [ "$POSTFIX_REDHAT_MYSQL" = 1 ]; then
     echo "  adding MySQL support (RedHat mysql* packages) to spec file"
     SUFFIX="${SUFFIX}.mysql"
 fi
-if [ "$POSTFIX_REDHAT_DB3" = 1 ]; then
-    echo "  adding db3 support (RedHat 6.2 db3 packages) to spec file"
-    # SUFFIX="${SUFFIX}.db3"
-    # we'll change suffix later
-fi
 if [ "$POSTFIX_SASL" = 1 ]; then
     echo "  adding SASL  support to spec file"
     SUFFIX="${SUFFIX}.sasl"
@@ -175,10 +172,6 @@ fi
 if [ "$POSTFIX_VDA" = 1 ]; then
     # don't bother changing the suffix
     echo "  adding VDA support to spec file"
-fi
-if [ "$POSTFIX_DB4" = 1 ]; then
-    echo "  adding db4 support to spec file"
-    REQUIRES_DB4=1
 fi
 if [ "$POSTFIX_DISABLE_CHROOT" = 1 ]; then
     echo "  disabling chroot environment in spec file"
@@ -221,8 +214,8 @@ redhat)
     6)
 	# This may need checking
 	DEFAULT_DB=0
-	[ -z "$POSTFIX_REQUIRES_DB" ] && POSTFIX_REQUIRES_DB=${DEFAULT_DB}
-	[ "${POSTFIX_REQUIRES_DB}" != "${DEFAULT_DB}" ] && POSTFIX_INCLUDE_DB=1
+	[ -z "$POSTFIX_DB" ] && POSTFIX_DB=${DEFAULT_DB}
+	[ "${POSTFIX_DB}" != "${DEFAULT_DB}" ] && POSTFIX_INCLUDE_DB=1
 	DIST=".rh6x"
 	;;
 
@@ -259,10 +252,10 @@ mandrake)
 *)  ;;
 esac
 
-[ -z "${POSTFIX_REQUIRES_DB}" ] && POSTFIX_REQUIRES_DB=${DEFAULT_DB}
-[ "${POSTFIX_REQUIRES_DB}" != "${DEFAULT_DB}" ] && {
-    SUFFIX=".db${POSTFIX_REQUIRES_DB}${SUFFIX}"
-    echo "  adding db${POSTFIX_REQUIRES_DB} support to spec file"
+[ -z "${POSTFIX_DB}" ] && POSTFIX_DB=${DEFAULT_DB}
+[ "${POSTFIX_DB}" != "${DEFAULT_DB}" ] && {
+    SUFFIX=".db${POSTFIX_DB}${SUFFIX}"
+    echo "  adding db${POSTFIX_DB} support to spec file"
 }
 [ -n "${DIST}" ] && SUFFIX="${SUFFIX}${DIST}"
 
@@ -270,7 +263,7 @@ esac
 
 [ -z "$REQUIRES_INIT_D" ]		   && REQUIRES_INIT_D=0
 [ -z "$POSTFIX_INCLUDE_DB" ]		   && POSTFIX_INCLUDE_DB=0
-[ -z "$POSTFIX_REQUIRES_DB" ]		   && POSTFIX_REQUIRES_DB=0
+[ -z "$POSTFIX_DB" ]			   && POSTFIX_DB=0
 [ -z "$POSTFIX_LDAP" ]			   && POSTFIX_LDAP=0
 [ -z "$POSTFIX_MYSQL" ]			   && POSTFIX_MYSQL=0
 [ -z "$POSTFIX_REDHAT_MYSQL" ]		   && POSTFIX_REDHAT_MYSQL=0
@@ -298,7 +291,7 @@ cat > `rpm --eval '%{_specdir}'`/postfix.spec <<EOF
 EOF
 sed "
 s!__INCLUDE_DB__!$POSTFIX_INCLUDE_DB!g
-s!__REQUIRES_DB__!$POSTFIX_REQUIRES_DB!g
+s!__REQUIRES_DB__!$POSTFIX_DB!g
 s!__REQUIRES_INIT_D__!$REQUIRES_INIT_D!g
 s!__DISTRIBUTION__!$distribution!g
 s!__SMTPD_MULTILINE_GREETING__!$POSTFIX_SMTPD_MULTILINE_GREETING!g
