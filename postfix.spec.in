@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.286 2004/04/28 20:04:09 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.287 2004/04/28 21:34:57 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -146,6 +146,7 @@ Source5: postfix-aliases
 Source7: postfix.spec.in
 Source8: make-postfix.spec
 Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{tls_version}.tar.gz
+Source10: README-Postfix-SASL-RedHat.txt
 Source12: http://www.corpit.ru/ftp/postfix/postfix-dict_cdb-%{cdb_version}.tar.gz
 Source14: ftp://ftp.stack.nl/pub/postfix/tls+ipv6/current/%{ipv6_version}.patch.gz
 Source16: http://postfix.wl0.org/ftp/postfinger/%{postfinger}
@@ -241,7 +242,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.286 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.287 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -1069,6 +1070,7 @@ umask 022
 
 * Tue Apr 27 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.0-0.2
 - update TLS patches
+- add README-Postfix-SASL-RedHat.txt Source line
 
 * Tue Apr 27 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.0-0.1
 - update to 2.1.0
