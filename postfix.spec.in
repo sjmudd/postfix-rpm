@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.16 2003/02/13 13:56:07 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.17 2003/02/13 13:56:38 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -213,7 +213,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.16 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.17 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -963,7 +963,7 @@ fi
 
 %changelog
 
-*Mon Jan 27 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.3-2
+*Thu Feb 13 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.3-2
   - update IPv6 patches
 
 *Mon Jan 27 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.3-1

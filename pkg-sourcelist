@@ -18,4 +18,4 @@ postfix-pg-raw.patch
 postfix-rbl_reply_maps.patch
 postfix-smtp_sasl_proto.c.patch
 postfix.spec.in
-tls+ipv6-1.10-pf-2.0.0.2.patch.gz
+tls+ipv6-1.12-pf-2.0.3.patch.gz
