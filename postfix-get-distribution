@@ -15,12 +15,12 @@
 # - RedHat Enterprise Linux
 # - Fedora
 # - YellowDog Linux
-# - Whitebox Linux
+# - Whitebox Linux (reports as RedHat Enterprise Linux for building)
 # - Mandrake Linux
 
 # Provide a usage message
 function usage () {
-id='$Revision: 1.2.2.14 $'
+id='$Revision: 1.2.2.15 $'
 id=$(echo $id | sed -e 's/^.*: //g' -e 's/ .*$//g')
 cat <<EOF
 `basename $0` $id
@@ -67,6 +67,12 @@ if [ `rpm -q redhat-release >/dev/null 2>&1; echo $?` = 0 ]; then
     release=`rpm -q redhat-release | sed -e 's;^redhat-release-;;' \
                                          -e 's;-[0-9]*$;;' \
                                          -e 's;[EWA]S;;'`
+elif [ `rpm -q whitebox-release >/dev/null 2>&1; echo $?` = 0 ]; then
+    # whitebox SHOULD behave like rhel
+    # - do not (yet) distinguish between the two.
+    releasename=rhel
+    release=`rpm -q whitebox-release | sed -e 's;^whitebox-release-;;' \
+                                         -e 's;-[0-9]*$;;'`
 elif [ `rpm -q fedora-release >/dev/null 2>&1; echo $?` = 0 ]; then
     releasename=fedora
     release=`rpm -q fedora-release | sed -e 's;^fedora-release-;;' \
