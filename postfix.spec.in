@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73 2001/03/01 22:45:56 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.74 2001/03/05 19:51:54 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -114,13 +114,12 @@ at http://people.oven.com/bet/bent/.
 
 See http://www.redhat.com/support/docs/faqs/RH-postfix-FAQ/book1.html,
 a slightly outdated FAQ, which covers steps which should be taken prior
-to and after the installation of Postfix.  [Note: links to my postfix
-packages in this FAQ may still be incorrect.]
+to and after the installation of Postfix.
 
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.74 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
