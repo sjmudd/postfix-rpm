@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.27 2003/11/20 19:29:14 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.28 2003/11/26 18:46:33 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -47,6 +47,8 @@
 # Please advise me if any of these assumptions are incorrect.
 #
 # REQUIRES_INIT_D	1 by default, 0 for RH <=6, Mandrake <= 7
+# REQUIRES_ZLIB		0 by default, 1 when used with TLS on RH9 & RHEL3
+#			              1 when used with mysql_redhat/mysql
 #
 # All Red Hat Enterprise Linuxes will now be treated identically
 # and named rhelXX
@@ -240,6 +242,7 @@ if [ "$POSTFIX_MYSQL_QUERY" = 1 ]; then
     echo "  adding support for full mysql select statements to spec file"
     SUFFIX="${SUFFIX}.mysql_query"
 fi
+
 if [ "$POSTFIX_SASL" = 1 -o "$POSTFIX_SASL" = 2 ]; then
     echo "  adding SASL v${POSTFIX_SASL} support to spec file"
     SUFFIX="${SUFFIX}.sasl${POSTFIX_SASL}"
@@ -281,14 +284,20 @@ if [ "$POSTFIX_IPV6" = 1 ]; then
     SUFFIX="${SUFFIX}.ipv6"
 fi
 
+# --- REQUIRES_ZLIB --- do we require the zlib library?
+REQUIRES_ZLIB=
+[ $POSTFIX_MYSQL = 1 ]        && REQUIRES_ZLIB=1
+[ $POSTFIX_MYSQL_REDHAT = 1 ] && REQUIRES_ZLIB=1
+
 if [ "$POSTFIX_TLS" = 1 ]; then
     echo "  adding TLS support to spec file"
     SUFFIX="${SUFFIX}.tls"
 
     # Different fixes (see spec file)
-    [ ${releasename} = 'redhat' -a ${major} = 6 ] && TLSFIX=1
-    [ ${releasename} = 'redhat' -a ${major} = 9 ] && TLSFIX=2
-    [ ${releasename} = 'fedora' -a ${major} = 1 ] && TLSFIX=2
+    [ ${releasename} = 'redhat' -a ${major} -eq 6 ] && TLSFIX=1
+    [ ${releasename} = 'redhat' -a ${major} -eq 9 ] && { TLSFIX=2; REQUIRES_ZLIB=1; }
+    [ ${releasename} = 'fedora' -a ${major} -eq 1 ] && TLSFIX=2
+    [ ${releasename} = 'rhel'   -a ${major} -ge 3 ] && REQUIRES_ZLIB=1
 fi
 if [ "$POSTFIX_VDA" = 1 ]; then
     echo "  adding VDA support to spec file"
@@ -410,6 +419,7 @@ esac
 # set default values if they are still undefined
 
 [ -z "$REQUIRES_INIT_D" ]		   && REQUIRES_INIT_D=0
+[ -z "$REQUIRES_ZLIB" ]			   && REQUIRES_ZLIB=0
 [ -z "$POSTFIX_INCLUDE_DB" ]		   && POSTFIX_INCLUDE_DB=0
 [ -z "$POSTFIX_DB" ]			   && POSTFIX_DB=0
 [ -z "$POSTFIX_LDAP" ]			   && POSTFIX_LDAP=0
@@ -440,28 +450,29 @@ cat > `rpm --eval '%{_specdir}'`/postfix.spec <<EOF
 # --
 EOF
 sed "
+s!__CDB__!$POSTFIX_CDB!g
+s!__DISTRIBUTION__!$distribution!g
 s!__INCLUDE_DB__!$POSTFIX_INCLUDE_DB!g
+s!__IPV6__!$POSTFIX_IPV6!g
+s!__LDAP__!$POSTFIX_LDAP!g
+s!__MANPAGE_SUFFIX__!$MANPAGE_SUFFIX!g
+s!__MYSQL_DICT_REG__!$POSTFIX_MYSQL_DICT_REG!g
+s!__MYSQL_PATHS__!$POSTFIX_MYSQL_PATHS!g
+s!__MYSQL__!$POSTFIX_MYSQL!g
+s!__MYSQL_QUERY__!$POSTFIX_MYSQL_QUERY!g
+s!__MYSQL_REDHAT__!$POSTFIX_MYSQL_REDHAT!g
+s!__PCRE__!$POSTFIX_PCRE!g
+s!__PGSQL2__!$POSTFIX_PGSQL2!g
+s!__PGSQL__!$POSTFIX_PGSQL!g
 s!__REQUIRES_DB__!$POSTFIX_DB!g
 s!__REQUIRES_INIT_D__!$REQUIRES_INIT_D!g
-s!__DISTRIBUTION__!$distribution!g
+s!__REQUIRES_ZLIB__!$REQUIRES_ZLIB!g
+s!__SASL__!$POSTFIX_SASL!g
 s!__SMTPD_MULTILINE_GREETING__!$POSTFIX_SMTPD_MULTILINE_GREETING!g
 s!__SUFFIX__!$SUFFIX!g
-s!__LDAP__!$POSTFIX_LDAP!g
-s!__MYSQL__!$POSTFIX_MYSQL!g
-s!__MYSQL_REDHAT__!$POSTFIX_MYSQL_REDHAT!g
-s!__MYSQL_PATHS__!$POSTFIX_MYSQL_PATHS!g
-s!__MYSQL_QUERY__!$POSTFIX_MYSQL_QUERY!g
-s!__MYSQL_DICT_REG__!$POSTFIX_MYSQL_DICT_REG!g
-s!__PCRE__!$POSTFIX_PCRE!g
-s!__PGSQL__!$POSTFIX_PGSQL!g
-s!__PGSQL2__!$POSTFIX_PGSQL2!g
-s!__SASL__!$POSTFIX_SASL!g
-s!__TLS__!$POSTFIX_TLS!g
 s!__TLSFIX__!$TLSFIX!g
+s!__TLS__!$POSTFIX_TLS!g
 s!__VDA__!$POSTFIX_VDA!g
-s!__CDB__!$POSTFIX_CDB!g
-s!__MANPAGE_SUFFIX__!$MANPAGE_SUFFIX!g
-s!__IPV6__!$POSTFIX_IPV6!g
 " `rpm --eval '%{_sourcedir}'`/postfix.spec.in >> `rpm --eval '%{_specdir}'`/postfix.spec
 
 # end of make-postfix.spec
