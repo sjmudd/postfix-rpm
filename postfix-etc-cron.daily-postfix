@@ -3,3 +3,5 @@
 [ -x /usr/sbin/postfix ] || exit 0
 /usr/sbin/postfix check
 
+# Add the check suggested by /usr/share/doc/postfix-<version>/INSTALL
+/bin/egrep '(reject|warning|error|fatal|panic):' /var/log/maillog
