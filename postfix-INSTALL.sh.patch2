@@ -1,0 +1,19 @@
+--- postfix-20010228-pl01/INSTALL.sh	Sun Feb 25 00:42:44 2001
++++ postfix-20010228-pl02/INSTALL.sh	Fri Apr 27 19:47:23 2001
+@@ -166,15 +166,7 @@
+     done
+ }
+ 
+-test -f $CONFIG_DIRECTORY/install.cf && . $CONFIG_DIRECTORY/install.cf || {
+-    test -t 0 || {
+-	echo Non-interactive install needs the $CONFIG_DIRECTORY/install.cf 1>&2
+-	echo file from a previous Postfix installation. 1>&2
+-	echo 1>&2
+-	echo Use interactive installation instead. 1>&2
+-	exit 1
+-    }
+-}
++test -f $CONFIG_DIRECTORY/install.cf && . $CONFIG_DIRECTORY/install.cf
+ 
+ # Override default settings.
+ 

@@ -1,5 +1,6 @@
 make-postfix.spec
 postfix-INSTALL.sh.patch
+postfix-INSTALL.sh.patch2
 postfix-README_maildrop_security.txt
 postfix-README_rpm.txt
 postfix-RPM-TODO-list
