@@ -1,12 +1,12 @@
 #!/bin/sh
-# $Revision: 2.3 $
+# $Revision: 2.4 $
 # File to make links from this directory to the SOURCES directory for all files
 
 HERE=`pwd`
 BASE=/usr/src/redhat/SOURCES
 
 echo Linking files to directory $BASE
-for i in *; do
+for i in `cat postfix-filelist`; do
   test -f $i && test ! -x $i && \
     ln -s $HERE/$i $BASE/$i && echo "  $i"
 done

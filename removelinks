@@ -1,12 +1,12 @@
 #!/bin/sh
-# $Revision: 2.2 $
+# $Revision: 2.3 $
 # File to make links from this directory to the SOURCES directory for all files
 
 HERE=`pwd`
 BASE=/usr/src/redhat/SOURCES
 
 echo Removing links from $BASE
-for i in *; do
+for i in `cat postfix-filelist`; do
   test -L $BASE/$i && test -f $i && \
     rm $BASE/$i && echo "  $i"
 done
