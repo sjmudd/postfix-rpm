@@ -22,10 +22,10 @@ test_tls=1
 test_vda=1
  
 USAGE="Usage: $0 [name=value] [option]
-    --no_check              Do not check if the files have changed against the version stored in cvs.
-    --no_sign               Do not sign the package.
-    --no_test_tls           Do not test the TLS patches apply cleanly before building the package
-    --no_test_vda           Do not test the VDA patches apply cleanly before building the package
+    --no-check              Do not check if the files have changed against the version stored in cvs.
+    --no-sign               Do not sign the package.
+    --no-test-tls           Do not test the TLS patches apply cleanly before building the package
+    --no-test-vda           Do not test the VDA patches apply cleanly before building the package
     name=value              Specify an installation parameter".
  
 # Process command-line options and parameter settings. Work around
@@ -36,10 +36,10 @@ for arg
 do
     case $arg in
           *=*) IFS= eval $arg; IFS="$BACKUP_IFS";;
-   --no_check) no_check=1;;
-    --no_sign) sign=;;
---no_test_tls) test_tls=0;;
---no_test_vda) test_vda=0;;
+   --no-check) no_check=1;;
+    --no-sign) sign=;;
+--no-test-tls) test_tls=0;;
+--no-test-vda) test_vda=0;;
             *) echo $0: Error: $USAGE 1>&2; exit 1;;
     esac
     shift

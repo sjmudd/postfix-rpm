@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.82 2003/08/04 19:15:47 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.83 2003/11/15 10:17:45 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -66,7 +66,7 @@
 %define official 1 
 %define ver 1.1.13
 %define mail_release_date 20020115
-%define rel 2
+%define rel 3
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -144,7 +144,7 @@ Patch6: postfix-smtpd_chat.c.diff
 Patch7: postfix-log_recipient
 Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pgver}.patch
 Patch51: postfix-pg-raw.patch
-Patch99: ftp://ftp.wl0.org/SOURCES/postfix-1.1.11-multiline-greeting.patch
+Patch99: ftp://ftp.wl0.org/SOURCES/postfix-1.1.13-20031026-multiline-greeting.patch
 
 BuildRoot: %{_tmppath}/postfix-%{package_version}-buildroot
 
@@ -207,7 +207,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.82 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.83 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -958,6 +958,10 @@ fi
 #
 
 %changelog
+
+* Sat Nov 15 2003 S J Mudd <sjmudd@pobox.com> 1.1.13-3
+  - update smtpd multiline greeting patch as a memory leak can occur under
+    unusual circumstances.
 
 * Mon Aug 04 2003 S J Mudd <sjmudd@pobox.com> 1.1.13-2
   - update to Postfix-1.1.13
