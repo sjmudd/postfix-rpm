@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.23 2003/02/20 21:28:18 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.24 2003/03/03 12:53:11 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -19,7 +19,7 @@
 # pgsql                    - include Postgres database support
 # pgsql2                   - experimental postgres patches by George Barbarosie
 #                            <georgeb@intelinet.ro>: needs pgsql=1
-# sasl                     - include SASL/AUTH support
+# sasl                     - include SASL/AUTH support (include sasl v1 or v2)
 # cdb                      - include CDB support by Michael Tokarev
 #                            <mjt@corpit.ru>
 # ipv6                     - include IPV6 support
@@ -70,7 +70,7 @@
 %define official 1
 %define ver 2.0.4
 %define mail_release_date 20021219
-%define rel 1
+%define rel 2
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -214,7 +214,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.23 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.24 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -371,8 +371,14 @@ CCARGS="${CCARGS} -fsigned-char"
   AUXLIBS="${AUXLIBS} -lpq -lcrypt"
 %endif
 %if %{sasl}
-  CCARGS="${CCARGS} -DUSE_SASL_AUTH"
-  AUXLIBS="${AUXLIBS} -lsasl"
+  if [ %{sasl} = 1 ]; then
+      CCARGS="${CCARGS} -DUSE_SASL_AUTH"
+      AUXLIBS="${AUXLIBS} -lsasl"
+  fi
+  if [ %{sasl} = 2 ]; then
+      CCARGS="${CCARGS} -I/usr/include/sasl -DUSE_SASL_AUTH"
+      AUXLIBS="${AUXLIBS} -lsasl2"
+  fi
 %endif
 %if %{tls}
 # See http://www.openldap.org/lists/openldap-devel/200105/msg00008.html
@@ -962,6 +968,13 @@ fi
 #
 
 %changelog
+
+* Mon Mar 03 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.4-2
+  - update SASL support to include support for SASL v2.
+    You now choose between SASLv1 or v2 by setting POSTFIX_SASL=1 or
+    POSTFIX_SASL=2 according to your requirements.
+    Thanks to Steve Huston <huston@astro.Princeton.edu> and 
+    Ilya Kozhevnikov <ilya@ef.unn.ru> for helping me fix this.
 
 * Thu Feb 20 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.4-1
   - Internal stuff, don't allow building on another distribution

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.3 2003/01/22 11:59:49 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.4 2003/03/03 12:53:11 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -16,7 +16,7 @@
 # POSTFIX_PGSQL		include support for PostGres database
 # POSTFIX_PGSQL2	additional experimental patches provided by
 #			George Barbarosie <georgeb@intelinet.ro>
-# POSTFIX_SASL		include support for SASL
+# POSTFIX_SASL		include support for SASL (1, 2 or 0 to disable)
 # POSTFIX_TLS		include support for TLS
 # POSTFIX_IPV6		include support for IPv6
 # POSTFIX_VDA		include support for Virtual Delivery Agent
@@ -160,19 +160,23 @@ if [ "$POSTFIX_REDHAT_MYSQL" = 1 ]; then
     echo "  adding MySQL support (RedHat mysql* packages) to spec file"
     SUFFIX="${SUFFIX}.mysql"
 fi
+POSTFIX_SASL_LIBRARY=
+if [ "$POSTFIX_SASL" = 1 -o "$POSTFIX_SASL" = 2 ]; then
+    echo "  adding SASL v${POSTFIX_SASL} support to spec file"
+    SUFFIX="${SUFFIX}.sasl${POSTFIX_SASL}"
 
-# which is the "-devel" library used for SASL?
-case ${releasename} in
-mandrake)
-    POSTFIX_SASL_LIBRARY=libsasl-devel
-    ;;
-*)
-    POSTFIX_SASL_LIBRARY=cyrus-sasl-devel
-    ;;
-esac
-if [ "$POSTFIX_SASL" = 1 ]; then
-    echo "  adding SASL support to spec file"
-    SUFFIX="${SUFFIX}.sasl"
+    # which is the "-devel" library used for SASL?
+    case ${releasename} in
+    mandrake)
+        POSTFIX_SASL_LIBRARY=libsasl-devel
+        ;;
+    *)
+        [ "$POSTFIX_SASL" = 1 ] && POSTFIX_SASL_LIBRARY=cyrus-sasl-devel
+        [ "$POSTFIX_SASL" = 2 ] && POSTFIX_SASL_LIBRARY=cyrus-sasl2-devel
+        ;;
+    esac
+else
+    POSTFIX_SASL=
 fi
 if [ "$POSTFIX_IPV6" = 1 ]; then
     echo "  adding IPv6 support to spec file"
