@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.301 2004/06/21 16:31:50 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.302 2004/07/06 16:55:08 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -84,7 +84,7 @@
 %define official 1
 %define ver 2.1.3
 %define mail_release_date RC4-20040418
-%define rel 2__SUFFIX__
+%define rel 3__SUFFIX__
 %if %{official}
 %define tarball_version %{ver}
 %define ftp_dir official
@@ -240,7 +240,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.301 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.302 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -510,6 +510,7 @@ install -c %{_sourcedir}/postfix-etc-init.d-postfix \
                   ${RPM_BUILD_ROOT}%{init_directory}/postfix
 
 install -c auxiliary/rmail/rmail ${RPM_BUILD_ROOT}%{rmail_path}
+install -c auxiliary/qshape/qshape.pl ${RPM_BUILD_ROOT}/%{_bindir}/
 
 # copy new aliases files and generate a ghost aliases.db file
 cp -f %{_sourcedir}/postfix-aliases ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/aliases
@@ -1061,6 +1062,7 @@ umask 022
 %{newaliases_path}
 %attr(0755, root, root) %{rmail_path}
 %attr(0755, root, root) %{_bindir}/postfinger
+%attr(0755, root, root) %{_bindir}/qshape.pl
 
 %{_mandir}/*/*
 
@@ -1072,6 +1074,9 @@ umask 022
 #
 
 %changelog
+
+* Mon Jun 21 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.3-3
+  - add qshape.pl now included in tar ball.
 
 * Mon Jun 21 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.3-2
   - update TLS patch, reported by Steve Crook <steve@bananasplit.info>
