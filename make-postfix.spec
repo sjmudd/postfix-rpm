@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.22.2.1 2001/03/30 16:11:16 sjmudd Exp $
+#  $Id: make-postfix.spec,v 1.22.2.2 2001/04/03 13:05:09 sjmudd Exp $
 #
 
 SUFFIX=
