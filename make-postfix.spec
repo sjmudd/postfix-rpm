@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.19 2001/01/26 19:21:09 root Exp $
+#  $Id: make-postfix.spec,v 1.20 2001/01/26 19:55:00 root Exp $
 #
 
 SUFFIX=
@@ -8,6 +8,25 @@ REQUIRES=
 BUILDREQUIRES=
 DISTRIBUTION_PREREQ=
 DISTRIBUTION='Unknown Linux Distribution'
+
+# Ensure only one of POSTFIX_MYSQL and POSTFIX_REDHAT_MYSQL are defined
+test -n "$POSTFIX_MYSQL" && \
+  test -n "$POSTFIX_REDHAT_MYSQL" && {
+    cat <<EOF
+Postfix MySQL support
+---------------------
+
+There are MySQL packages available from two different sources built with
+different package names.  According to the MySQL package you are using
+choose to set _ONE_ of the following environment variables accordingly:
+
+POSTFIX_MYSQL = 1	# MySQL packages named MySQL... from www.mysql.com
+POSTFIX_REDHAT_MYSQL = 1# MySQL packages named mysql... from RedHat (7+)
+
+Please set the appropriate value and rerun make-postfix.spec again
+EOF
+    exit 1
+}
 
 # RedHat 6.2 and later include LDAP support, earlier versions don't
 # For this reason LDAP support is not compiled by default
@@ -23,14 +42,14 @@ if [ "$POSTFIX_PCRE" = 1 ]; then
     SUFFIX="${SUFFIX}+pcre"
 fi
 if [ "$POSTFIX_MYSQL" = 1 ]; then
-        echo -n "  adding MySQL support "
-    if [ "$POSTFIX_REDHAT_MYSQL" = 1 ]; then
-        echo "(RedHat mysql* packages) to spec file"
-        SUFFIX="${SUFFIX}+mysql"
-    else
-        echo "(www.mysql.com MySQL* packages) to spec file"
-        SUFFIX="${SUFFIX}+MySQL"
-    fi
+    POSTFIX_REDHAT_MYSQL=0
+    echo "  adding MySQL support (www.mysql.com MySQL* packages) to spec file"
+    SUFFIX="${SUFFIX}+MySQL"
+fi
+if [ "$POSTFIX_REDHAT_MYSQL" = 1 ]; then
+    POSTFIX_MYSQL=0
+    echo "  adding MySQL support (RedHat mysql* packages) to spec file"
+    SUFFIX="${SUFFIX}+mysql"
 fi
 if [ "$POSTFIX_SASL" = 1 ]; then
     echo "  adding SASL  support to spec file"
@@ -56,7 +75,6 @@ if [ -z "$POSTFIX_LDAP" ]; then
 fi
 if [ -z "$POSTFIX_MYSQL" ]; then
     POSTFIX_MYSQL=0
-    POSTFIX_REDHAT_MYSQL=0
 fi
 if [ -z "$POSTFIX_REDHAT_MYSQL" ]; then
     POSTFIX_REDHAT_MYSQL=0
