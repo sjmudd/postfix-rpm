@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.12 2001/01/04 21:36:23 root Exp $
+#  $Id: make-postfix.spec,v 1.13 2001/01/04 22:32:19 root Exp $
 #
 
 POSTFIX_SUFFIX=
@@ -76,27 +76,6 @@ cat > ../SPECS/postfix.spec <<EOF
 # It is generated automatically from postfix.spec.in
 # in the SOURCES directory.
 #
-# If you need to make changes do them to the postfix.spec.in
-# file and regenerate the spec file with
-#
-#     cd ../SOURCES
-#     sh make-postfix.spec
-#
-# after defining the relevent options you wish to use in
-# the spec file
-#
-# This spec file generated with the following options:
-#
-# POSTFIX_SMTPD_MULTILINE_GREETING=$POSTFIX_SMTPD_MULTILINE_GREETING
-# POSTFIX_SAFE_MYNETWORKLS=$POSTFIX_SAFE_MYNETWORKS
-# POSTFIX_BROKEN_AUTH=$POSTFIX_BROKEN_AUTH
-# POSTFIX_LDAP=$POSTFIX_LDAP
-# POSTFIX_PCRE=$POSTFIX_PCRE
-# POSTFIX_MYSQL=$POSTFIX_MYSQL
-# POSTFIX_SASL=$POSTFIX_SASL
-#
-# Built on $DISTRIBUTION
-#
 EOF
 sed "
 s!__POSTFIX_SUFFIX__!$POSTFIX_SUFFIX!g
@@ -106,6 +85,13 @@ s!__POSTFIX_REQUIRES__!$POSTFIX_REQUIRES!g
 s!__POSTFIX_BUILDREQUIRES__!$POSTFIX_BUILDREQUIRES!g
 s!__DISTRIBUTION__!$DISTRIBUTION!g
 s!__DISTRIBUTION_PREREQ__!$DISTRIBUTION_PREREQ!g
+s!__POSTFIX_SMTPD_MULTILINE_GREETING=$POSTFIX_SMTPD_MULTILINE_GREETING!g
+s!__POSTFIX_SAFE_MYNETWORKLS!$POSTFIX_SAFE_MYNETWORKS!g
+s!__POSTFIX_BROKEN_AUTH!$POSTFIX_BROKEN_AUTH!g
+s!__POSTFIX_LDAP!$POSTFIX_LDAP!g
+s!__POSTFIX_PCRE!$POSTFIX_PCRE!g
+s!__POSTFIX_MYSQL!$POSTFIX_MYSQL!g
+s!__POSTFIX_SASL!$POSTFIX_SASL!g
 " postfix.spec.in >> ../SPECS/postfix.spec
 
 #echo " "

@@ -1,11 +1,35 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.44 2001/01/04 21:41:40 root Exp $
+# $Id: postfix.spec.in,v 2.45 2001/01/04 22:32:19 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
 #
 # Please send bugfixes and comments to the packager.
+#
+##############################################################################
+#
+# If you need to make changes do them to the postfix.spec.in
+# file and regenerate the spec file with
+#
+#     cd ../SOURCES
+#     sh make-postfix.spec
+#
+# after defining the relevent options you wish to use in
+# the spec file
+#
+# This spec file generated with the following options:
+#
+# POSTFIX_SMTPD_MULTILINE_GREETING=__POSTFIX_SMTPD_MULTILINE_GREETING__
+# POSTFIX_SAFE_MYNETWORKLS=__POSTFIX_SAFE_MYNETWORKS__
+# POSTFIX_BROKEN_AUTH=__POSTFIX_BROKEN_AUTH__
+# POSTFIX_LDAP=__POSTFIX_LDAP__
+# POSTFIX_PCRE=__POSTFIX_PCRE__
+# POSTFIX_MYSQL=__POSTFIX_MYSQL__
+# POSTFIX_SASL=__POSTFIX_SASL__
+#
+# Built on $DISTRIBUTION
+# 
 ##############################################################################
 
 Name: postfix
@@ -17,7 +41,7 @@ PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
 Version: 20001217
-Release: 7__POSTFIX_SUFFIX__
+Release: 8__POSTFIX_SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Vendor: None -- Built under __DISTRIBUTION__
 Distribution: Experimental
@@ -78,6 +102,19 @@ Please contact him for information related to these platforms.
 
 I have received reports that this package builds on the sparc platform
 too. If anyone want to provide binary rpms please let me know.
+
+This package has been built with the following options:
+
+POSTFIX_SMTPD_MULTILINE_GREETING=__POSTFIX_SMTPD_MULTILINE_GREETING__
+POSTFIX_SAFE_MYNETWORKLS=__POSTFIX_SAFE_MYNETWORKS__
+POSTFIX_BROKEN_AUTH=__$POSTFIX_BROKEN_AUTH__
+POSTFIX_LDAP=__POSTFIX_LDAP__
+POSTFIX_PCRE=__POSTFIX_PCRE__
+POSTFIX_MYSQL=__POSTFIX_MYSQL__
+POSTFIX_SASL=__POSTFIX_SASL__
+
+The source package contains information about rebuilding with alternative
+options.
 
 
 %define setupdir %{name}-%{version}
