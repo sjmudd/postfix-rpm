@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.23 2003/09/30 17:16:56 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.24 2003/11/05 16:56:01 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -282,6 +282,7 @@ if [ "$POSTFIX_TLS" = 1 ]; then
     # Different fixes (see spec file)
     [ ${releasename} = 'redhat' -a ${major} = 6 ] && TLSFIX=1
     [ ${releasename} = 'redhat' -a ${major} = 9 ] && TLSFIX=2
+    [ ${releasename} = 'fedora' -a ${major} = 1 ] && TLSFIX=2
 fi
 if [ "$POSTFIX_VDA" = 1 ]; then
     echo "  adding VDA support to spec file"
@@ -301,6 +302,11 @@ rhes|rhas)
     [ ${releasename} = "rhes" ] && DIST=".rhes21"
     [ ${releasename} = "rhas" ] && DIST=".rhas21"
     ;;
+
+fedora)
+	DEFAULT_DB=4
+	DIST=".fc1"
+	;;
 
 redhat)
     case ${major} in

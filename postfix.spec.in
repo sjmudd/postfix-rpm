@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.97 2003/09/30 17:21:48 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.98 2003/11/05 16:56:01 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -87,7 +87,7 @@
 %define official 1
 %define ver 2.0.16
 %define mail_release_date 20021219
-%define rel 4
+%define rel 5
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -165,8 +165,8 @@ Patch99: ftp://ftp.wl0.org/SOURCES/postfix-1.1.12-20021124-multiline-greeting.pa
 BuildRoot: %{_tmppath}/postfix-%{package_version}-buildroot
 
 # Determine packaging requirements
-BuildRequires: gawk, perl, sed, ed, patch, rpm >= 4
-Requires: gawk, perl, sed, ed
+BuildRequires: gawk, sed, ed, patch, rpm >= 4
+Requires: gawk, sed, ed
 
 %if %{requires_db}
 Requires: db%{requires_db}
@@ -233,7 +233,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.97 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.98 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -451,17 +451,17 @@ umask 022
 # Use perl rather than looking in /etc/passwd or /etc/group as this works
 # in a wider NIS or LDAP environment
 
-perl -e '$gid=getgrnam("postdrop"); exit 1 if ! defined( $gid )' || {
+/usr/bin/getent group postdrop >/dev/null || {
     %whinge "Adding postdrop group to system"
     %{_sbindir}/groupadd -r postdrop
 }
 
-perl -e '$gid=getgrnam("postfix"); exit 1 if ! defined( $gid )' || {
+/usr/bin/getent group postfix >/dev/null || {
     %whinge "Adding postfix group to system"
     %{_sbindir}/groupadd -r postfix
 }
 
-perl -e '$uid=getpwnam("postfix"); exit 1 if ! defined( $uid )' || {
+/usr/bin/getent passwd postfix >/dev/null || {
     %whinge "Adding postfix user to system"
     %{_sbindir}/useradd -d %{_var}/spool/postfix -s /bin/true -g postfix -G mail -M -r postfix
 }
@@ -552,7 +552,11 @@ install -c -m 755 %{_sourcedir}/postfix-chroot.sh ${RPM_BUILD_ROOT}%{_sysconfdir
 
 # fix path to perl
 %if %{tls}
-perl -pi -e "s,/usr/local/bin/perl,/usr/bin/perl,g" TLS/loadCAcert.pl
+ed TLS/loadCAcert.pl <<EOF || exit 1
+s,/usr/local/bin/perl,/usr/bin/perl,g
+w
+q
+EOF
 %endif
 
 %post
@@ -942,6 +946,11 @@ umask 022
 #
 
 %changelog
+
+* Wed Nov 05 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.16-5
+  - remove perl dependencies
+  - add preliminary support for Fedora core.
+    - Tom Diehl <tdiehl@rogueind.com>
 
 * Tue Sep 30 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.16-4
   - update 2.0.16 IPv6 patches and comment in make-postfix.spec
