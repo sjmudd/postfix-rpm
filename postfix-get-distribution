@@ -20,7 +20,7 @@
 # - Mandrake Linux
 
 [ -n "$DEBUG" ] && set -x
-version=$(echo '$Revision: 1.12.4.1 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
+version=$(echo '$Revision: 1.12.4.2 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
 myname=$(basename $0)
 
 # Provide a usage message
@@ -64,7 +64,10 @@ get_release () {
 	if [ -n "${debug_full_release}" ]; then
 		echo "${debug_full_release}"
 	else
-		rpm -q ${release}
+		# if you have installed the XXX-release rpm more than once
+		# this will ensure that only one of the instances is
+		# recognised.
+		rpm -q ${release} | tail -1
 	fi
 }
 
