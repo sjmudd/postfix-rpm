@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.2 2002/12/25 09:52:20 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.3 2002/12/27 17:55:04 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -22,6 +22,7 @@
 # sasl                     - include SASL/AUTH support
 # cdb                      - include CDB support by Michael Tokarev
 #                            <mjt@corpit.ru>
+# ipv6                     - include IPV6 support
 # tls                      - include TLS support
 # tlsfix                   - include TLS fix (apparently needed for rh6.2)
 # REQUIRES_INIT_D          - Required by RedHat 7.x
@@ -53,6 +54,7 @@
 %define vda __VDA__
 %define vda 0
 %define disable_chroot __DISABLE_CHROOT__
+%define ipv6 __IPV6__
 
 # start to support the conditional builds via rpm's
 # --with debug
@@ -62,12 +64,13 @@
 %define vdaver 1.1.11-20020822
 %define pfixtls pfixtls-0.8.12-2.0.0.1-0.9.6h
 %define pgver 1.1.4
+%define pfixipv6 tls+ipv6-1.10-pf-2.0.0.1
 
 # If set to 1 if official version, 0 if snapshot
 %define official 1
 %define ver 2.0.0.1
 %define mail_release_date 20021219
-%define rel 1
+%define rel 2
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -131,6 +134,7 @@ Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{pfixtls}.tar.gz
 Source11: postfix-build
 Source12: http://www.corpit.ru/ftp/postfix/postfix-dict_cdb.tar.gz
 Source13: http://www.corpit.ru/ftp/postfix/README.CDB
+Source14: ftp://ftp.stack.nl/pub/postfix/tls+ipv6/1.10/%{pfixipv6}.patch.gz
 
 # Obligatory Patches
 Patch1: postfix-makedefs.patch
@@ -206,12 +210,12 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.2 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.3 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
 ldap=%{ldap}, sasl=%{sasl}, pcre=%{pcre}, tls=%{tls}, tlsfix=%{tlsfix}, mysql=%{mysql}, redhatmysql=%{redhatmysql}
-include_db=%{include_db}, requires_db=%{requires_db}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}, cdb=%{cdb}
+include_db=%{include_db}, requires_db=%{requires_db}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}, cdb=%{cdb}, ipv6=%{ipv6}
 debug=%{?_with_debug:1}%{?!_with_debug:0}
 
 To use postfix with alternative options download the source package and
@@ -263,9 +267,13 @@ fi
 
 %setup -q -n postfix-%{tarball_version} -a 9
 
-# Apply the TLS patch, must be at first, because the changes of master.cf
-%if %{tls}
-patch -p1 <%{pfixtls}/pfixtls.diff
+# Apply the TLS patch first, because of the changes to master.cf
+# Note: IPv6 patches include the TLS patches
+%if %{tls} && ! %{ipv6}
+  patch -p1 <%{pfixtls}/pfixtls.diff
+%endif
+%if %{ipv6}
+  gzip -dc %{SOURCE14} | patch -p1 -b --suffix .ipv6
 %endif
 
 # Apply obligatory patches
@@ -281,7 +289,7 @@ cp $RPM_SOURCE_DIR/README.CDB .
 sh dict_cdb.sh
 %endif
 %if %{vda}
-gunzip < %{_sourcedir}/postfix-%{vdaver}_quota.patch.gz | patch -p1 -b --suffix .vda -s
+  gzip -dc %{_sourcedir}/postfix-%{vdaver}_quota.patch.gz | patch -p1 -b --suffix .vda -s
 %endif
 # Apply the PostgreSQL patches only if required
 %if %{pgsql}
@@ -893,6 +901,10 @@ fi
 %doc %{pfixtls}/contributed/make-postfix-cert.sh
 %endif
 
+%if %{ipv6}
+%doc IPv6-ChangeLog
+%endif
+
 %doc html
 %doc examples
 
@@ -951,6 +963,9 @@ fi
 #
 
 %changelog
+
+* Thu Dec 26 2002 Kaj J. Niemi <kajtzu@fi.basen.net> 2.0.0.1-2
+  - Added Dean Stirk's IPv6 patch to the mix, v. 1.10.
 
 * Tue Dec 24 2002 Simon J Mudd <sjmudd@pobox.com> 2.0.0.1-1
   - update to 2.0.0.1

@@ -1,3 +1,4 @@
+README.CDB
 make-postfix.spec
 pfixtls-0.8.12-2.0.0.1-0.9.6h.tar.gz
 postfix-1.1.11-20020822_quota.patch.gz
@@ -14,9 +15,9 @@ postfix-get-distribution
 postfix-log_recipient
 postfix-makedefs.patch
 postfix-new-RPM-packages
-postfix-pg.postfix-1.1.4.patch
 postfix-pg-raw.patch
+postfix-pg.postfix-1.1.4.patch
 postfix-rbl_reply_maps.patch
 postfix-smtp_sasl_proto.c.patch
 postfix.spec.in
-README.CDB
+tls+ipv6-1.10-pf-2.0.0.1.patch.gz
