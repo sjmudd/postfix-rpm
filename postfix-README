@@ -1,17 +1,74 @@
-Information related to the Postfix packages I build
----------------------------------------------------
+                        postfix-README
 
-The postfix packages were built on redhat-6.2 and haven't been tested on
-other redhat releases.
+          Information related to the Postfix packages I build
+          ---------------------------------------------------
 
-These packages won't work on redhat 5.x due to library dependency problems.
-I think that all that is needed to build redhat 5.x packages is to follow
-the following steps:
+1. General Information
+
+This RPM uses the standard Postfix installation paths:
+
+	1. config files in compiled-in default /etc/postfix/
+	2a commands in /usr/sbin/
+        2b daemons in /usr/libexec/postfix/
+        2c newaliases and mailq in /usr/bin/
+	3. spool queue in /var/spool/postfix/, set up to be the root for
+	   clients to chroot(2)
+	4. documentation /usr/share/doc/postfix-<version>
+
+Note that assumptions (2) and (3) are specified in
+/etc/postfix/main.cf. By editing that file you can change all _kinds_
+of useful things about the way Postfix works and where it looks for
+things and so on. The favourite parameters to frob are included in that
+file, with comments describing them; the authoritative documentation for
+all possible parameters is available in the man page mail_params(3H);
+to read it type
+
+	man 3H mail_params
+
+This rpm installs a userID "postfix", with UID and GID 89, if there isn't
+already a "postfix" user in /etc/passwd. It doesn't try and search for
+an ``available'' UID; if 89 is already taken on your system, and there
+isn't a "postfix" user already installed, then the installation fails.
+
+During installation and removal such actions as creating or deleting
+the postfix userID in /etc/passwd generate commentary via logger(1)
+with syslog.  In a standard RedHat system this will be recorded in
+/var/log/maillog.  The following command should extract them:
+
+	grep postfix-rpm /var/log/maillog
+
+2. Information Relating to different RedHat Releases
+
+All binary packages share a common postfix-<version>.src.rpm.
+
+The postfix packages without a suffix were built under RedHat 7.0.
+
+Postfix packages with a specific 'rh6' suffix were built specifically
+for this version of RedHat Linux.
+
+Note the postfix.spec file is generated from a postfix.spec.in file
+using the make-postfix.spec command in the SOURCES directory.
+
+These packages probably won't work on redhat 5.x due to library dependency
+problems, but you could try and rebuild the package from the src.rpm.
+It might work.
+
+Packages built on RedHat 7 may unfortunately be unreadable if you use
+redhat 6, due to changes in the rpm database format.  I think that if
+you upgrade rpm to the latest 3.0.x version then rpm will be able to
+read the packages.
+
+To rebuild the package from the src rpm follow the following steps, which
+are slightly different from a standard rpm package build.
 
 1. download source rpm package: postfix.....src.rpm
 2. install it (this doesn't affect the binary packages that are installed):
 	rpm -Uvh postfix...src.rpm
    this puts files in /usr/src/redhat/ ready to build a package
+3. create the rh6 or rh7 specific postfix.spec file
+	cd /usr/src/redhat/SOURCES
+	# set build options (if required)
+	sh make-postfix.spec # this creates ../SPECS/postfix.spec
 3. build the binary rpms (locally)
 	cd /usr/src/redhat/SPECS
 	rpm -ba postfix.spec
@@ -21,21 +78,28 @@ the following steps:
 4. install the binary rpms
 	rpm -Uvh /usr/src/redhat/RPMS/i386/postfix...i386.rpm
 
+IMPORTANT: If upgrading from a packge built on redhat-6 to redhat-7 you will
+need to rebuild _ALL_ the alias and map files you use, otherwise postfix will
+not work.  This is due to changes in the .db format used between redhat 6 and
+redhat 7.
+
 If you have any further questions regarding this package please let me know.
 Package building errors are mine alone, and not Wietse's.
 
-Alternative rpms are available.
-	Redhat
-		seem to have some somewhere, though I can't find a URL
-	cloud9.net
-		seem to have some too
-	moongroup.com
-		seem to have some too
-	Bennett Todd
+Alternative rpms are available from various sources, but not published
+in a consistent manner.
+
+	Redhat provide a powertools CD with a modified version of
+	my package.  It was rather out of date and not as sophisticated as
+	the package I produce.
+
+	Bennett Todd produces a simple but working Postfix RPM.
 		http://people.oven.com/bet/bent/
 
-It would be nice if there were one "good" redhat rpm for postfix, but that
-doesn't appear to be the case at the moment.  Mine isn't perfect either.
+It would be nice if there were one "good" common standard rpm for postfix,
+but that doesn't appear to be the case at the moment.  It would be nice
+if the version of postfix used by SuSE, Mandrake and other rpm based
+linux distributions was common.  Unfortunately this isn't the case.
 
-Simon J Mudd
-25/11/00
+Simon J Mudd <sjmudd@pobox.com>
+04/03/2001
