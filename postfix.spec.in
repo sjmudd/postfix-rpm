@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.179 2002/01/08 22:27:25 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.180 2002/01/09 14:52:32 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -51,7 +51,7 @@
 #Used when we have patchlevels, as can't include '-' in the package name
 #define version1 %{vers}-%{patchlevel}
 #define version2 %{vers}_%{patchlevel}
-%define rel 0.1
+%define rel 1
 
 %define tlsno pfixtls-0.7.14-snap20020107-0.9.6c
 %define pflogno -1.0.3
@@ -148,7 +148,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.179 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.180 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -160,13 +160,14 @@ download the source package and rebuild the required binary package.
 Information on how to do this is included with the source package.
 
 
-# Define a unique uid & gid for Postfix's exclusive use
+# Postfix now requires one exlusive uid/gid and a second
+# exclusive gid for its own use.
+# - please let me know if the second gid collides with another package.
 # Be careful: Redhat's 'mail' user & group isn't unique!
-%define postfix_uid 89
-%define postfix_gid 89
-# Add a second exclusive gid.
-# - please let me know if this collides with another package's use.
-%define maildrop_gid 90
+%define postfix_uid    89
+%define postfix_gid    89
+%define maildrop_group postdrop
+%define maildrop_gid   90
 
 %define config_directory /etc/postfix
 %define daemon_directory %{_libexecdir}/postfix
@@ -382,12 +383,12 @@ check_myhostname || check_hostname || stop_install
 # create postfix user and group, and maildrop group on INSTALL machine if necessary
 
 # Add the maildrop group if not found
-perl -e '$gid=getgrnam("maildrop"); exit 1 unless defined( $gid )' || {
+perl -e '$gid=getgrnam("%{maildrop_group}"); exit 1 unless defined( $gid )' || {
     perl -e '$nam=getgrgid(%{maildrop_gid}); exit 1 unless defined( $nam )' && die \
             'gid collision, aborting install' \
-	    'either add "maildrop" group or delete the group using GID %{maildrop_gid}'
-    %whinge "Adding maildrop to /etc/group."
-    %{_sbindir}/groupadd -g %{maildrop_gid} -r maildrop
+	    'either add "%{maildrop_group}" group or delete the group using GID %{maildrop_gid}'
+    %whinge "Adding %{maildrop_group} to /etc/group."
+    %{_sbindir}/groupadd -g %{maildrop_gid} -r %{maildrop_group}
 }
 
 # Add the postfix group if not found
@@ -429,7 +430,7 @@ export install_root=%{buildroot} \
        newaliases_path=%{newaliases_path} \
        mailq_path=%{mailq_path} \
        manpage_path=%{_mandir} \
-       setgid_group=%{maildrop_gid} \
+       setgid_group=%{maildrop_group} \
        rpm_install=yes
 
 sh INSTALL.sh -non-interactive
@@ -507,6 +508,43 @@ ldap_chroot_setup() {
     done
 }
 
+# taken from INSTALL.sh
+upgrade_master_cf() {
+    grep 'flush.*flush' %{config_directory}/master.cf >/dev/null || {
+	%whinge "adding missing entry for flush service to master.cf"
+	cat >>%{config_directory}/master.cf <<EOF
+flush     unix  -       -       n       1000?   0       flush
+EOF
+}
+
+    grep "^pickup[ 	]*fifo[ 	]*n[ 	]*n" \
+    %{config_directory}/master.cf >/dev/null && {
+	%whinge "changing master.cf, making the pickup service unprivileged"
+	ed %{config_directory}/master.cf <<EOF
+/^pickup[ 	]*fifo[ 	]*n[ 	]*n/
+s/\(n[ 	]*\)n/\1-/
+p
+w
+q
+EOF
+}
+
+for name in cleanup flush
+do
+    grep "^$name[ 	]*unix[ 	]*-" \
+	%{config_directory}/master.cf >/dev/null && {
+	    %whinge "changing master.cf, making the $name service public"
+	    ed %{config_directory}/master.cf <<EOF
+/^$name[ 	]*unix[ 	]*-/
+s/-/n/
+p
+w
+q
+EOF
+}
+done
+}
+
 /sbin/chkconfig --add postfix
 
 # ensure clean upgrade from RedHat's postfix, which uses mail_owner=mail
@@ -521,41 +559,8 @@ ldap_chroot_setup() {
 # Ensure that we make various changes to master.cf which are required for
 # postfix >= 20020106.  These are really only required when doing an
 # upgrade from an earlier version of postfix.
-
 if [ "%{vers}" -ge "20020106" ]; then
-
-# taken from INSTALL.sh
-grep 'flush.*flush' %{config_directory}/master.cf >/dev/null || {
-	%whinge "adding missing entry for flush service to master.cf"
-	cat >>%{config_directory}/master.cf <<EOF
-flush     unix  -       -       n       1000?   0       flush
-EOF
-}
-
-grep "^pickup[ 	]*fifo[ 	]*n[ 	]*n" \
-    %{config_directory}/master.cf >/dev/null && {
-	%whinge "changing master.cf, making the pickup service unprivileged"
-	ed %{config_directory}/master.cf <<EOF
-/^pickup[ 	]*fifo[ 	]*n[ 	]*n/
-s/\(n[ 	]*\)n/\1-/
-p
-w
-q
-EOF
-}
-for name in cleanup flush
-do
-    grep "^$name[ 	]*unix[ 	]*-" \
-	%{config_directory}/master.cf >/dev/null && {
-	    %whinge "changing master.cf, making the $name service public"
-	    ed %{config_directory}/master.cf <<EOF
-/^$name[ 	]*unix[ 	]*-/
-s/-/n/
-p
-w
-q
-EOF
-
+    upgrade_master_cf
 fi
 
 # setup missing directory structures, but hide the warning message
@@ -714,10 +719,10 @@ fi
 %dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_directory}/deferred
 %dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_directory}/flush
 %dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_directory}/incoming
-%dir %attr(0730, postfix, maildrop) %verify(not md5 size mtime) %{queue_directory}/maildrop
+%dir %attr(0730, postfix, %{maildrop_group}) %verify(not md5 size mtime) %{queue_directory}/maildrop
 %dir %attr(0755, root, root)        %verify(not md5 size mtime) %{queue_directory}/pid
 %dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_directory}/private
-%dir %attr(0710, postfix, maildrop) %verify(not md5 size mtime) %{queue_directory}/public
+%dir %attr(0710, postfix, %{maildrop_group}) %verify(not md5 size mtime) %{queue_directory}/public
 %dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_directory}/saved
 
 %attr(0755, root, root) %verify(not md5 size mtime) %config(noreplace) %{cron_directory}/1postfix
@@ -791,8 +796,8 @@ fi
 %{command_directory}/postalias
 %{command_directory}/postcat
 %{command_directory}/postconf
-%attr(2755,root,maildrop) %{command_directory}/postdrop
-%attr(2755,root,maildrop) %{command_directory}/postqueue
+%attr(2755,root,%{maildrop_group}) %{command_directory}/postdrop
+%attr(2755,root,%{maildrop_group}) %{command_directory}/postqueue
 %{command_directory}/postfix
 %{command_directory}/postkick
 %{command_directory}/postlock
@@ -821,7 +826,7 @@ fi
 
 %changelog
 
-* Tue Jan 08 2002 Simon J Mudd <sjmudd@pobox.com>
+* Wed Jan 09 2002 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20020107-1, update to latest snapshot
   (candidate for next official postfix release)
 
