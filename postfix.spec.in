@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.59 2001/02/05 20:44:03 root Exp $
+# $Id: postfix.spec.in,v 2.60 2001/02/05 21:09:54 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -48,9 +48,9 @@ URL: http://www.postfix.org
 Copyright: IBM Public License
 PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
 Provides: MTA smtpd smtpdaemon
-Conflicts: sendmail, exim, qmail
-Version: 20010128
-Release: 3__SUFFIX__
+Conflicts: sendmail, exim, qmail, smail
+Version: 20010204
+Release: 1__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Vendor: Built under __DISTRIBUTION__
 Distribution: Experimental
@@ -380,9 +380,9 @@ postfix_running () {
 stop_postfix () {
     echo "Stopping the Postfix mail system"
     if [ -f %{queue_directory}/pid/master.pid ]; then
-        kill `sed 1q %{queue_directory}/pid/master.pid`
+        kill `sed 1q %{queue_directory}/pid/master.pid` 2>/dev/null || true
     else
-        echo "BUG: postfix.spec (preun) - please inform packager" 2>/dev/null
+        echo "BUG: postfix.spec (preun) - please inform packager"
     fi
 }
 
@@ -467,9 +467,9 @@ postfix_running () {
 restart_postfix () {
     echo "Stopping   the Postfix mail system"
     if [ -f %{queue_directory}/pid/master.pid ]; then
-        kill `sed 1q %{queue_directory}/pid/master.pid`
+        kill `sed 1q %{queue_directory}/pid/master.pid` 2>/dev/null
     else
-        echo "BUG: postfix.spec (postun) - please inform packager" 2>/dev/null
+        echo "BUG: postfix.spec (postun) - please inform packager"
     fi
     sleep 2 # to give things time to stop
     %{daemon_directory}/master &
@@ -588,6 +588,11 @@ rm -rf ${RPM_BUILD_ROOT}
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Mon Feb 05 2001 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20010204-1, upgrade to latest snapshot
+- fix problem when upgrading with postfix stopped
+  (due to chroot-setup-LINUX2 having a call to postfix reload)
+
 * Sun Feb 04 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20010128-2, fix mysql build which had an error
 
