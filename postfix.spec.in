@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.26 2001/04/20 15:47:53 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.27 2001/04/23 21:46:21 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -136,7 +136,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.26 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.27 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -641,9 +641,10 @@ fi
 #       Tim Powers <timp@redhat.com>
 
 %changelog
-* Thu Apr 19 2001 Simon Mudd <sjmudd@pobox.com>
+* Mon Apr 24 2001 Simon Mudd <sjmudd@pobox.com>
 - postfix-20010228_pl01release-4, minor update to keep in synch
   snapshot and release files.
+- add egrep check, suggested in INSTALL to /etc/cron.d/postfix
 
 * Tue Apr 17 2001 Simon Mudd <sjmudd@pobox.com>
 - postfix-20010228_pl01release-3, update the TLS patch for pl01
