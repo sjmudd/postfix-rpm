@@ -7,8 +7,6 @@ postfix-2.0.9-dict_mysql_noregister.patch
 postfix-aliases
 postfix-bounce_notify_util.c.patch
 postfix-build
-postfix-chroot-setup.awk
-postfix-chroot_setup.patch
 postfix-dict_cdb-1.1.11-20021104.tar.gz
 postfix-etc-init.d-postfix
 postfix-files.patch
@@ -23,3 +21,4 @@ postfix-RPM-TODO
 postfix-smtp_sasl_proto.c.patch
 postfix.spec.in
 tls+ipv6-1.15a-pf-2.0.13.patch.gz
+postfix-chroot.sh

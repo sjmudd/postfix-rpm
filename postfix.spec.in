@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.73 2003/07/13 15:27:39 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.74 2003/07/22 19:23:27 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -33,7 +33,6 @@
 # include_db               - include the dbX library when compiling (rh6.x with db3)
 # smtpd_multiline_greeting - my patch to allow multiline banner
 # vda                      - add virtual delivery agent patch
-# disable_chroot           - disable setup of chroot environment
 # mps			   - man page suffix, .gz except Mandrake 8 which uses .bz2
 #
 # Please send bugfixes and comments to the packager.
@@ -64,7 +63,6 @@
 %define requires_init_d __REQUIRES_INIT_D__
 %define smtpd_multiline_greeting __SMTPD_MULTILINE_GREETING__
 %define vda __VDA__
-%define disable_chroot __DISABLE_CHROOT__
 %define ipv6 __IPV6__
 
 # start to support the conditional builds via rpm's --with debug
@@ -81,7 +79,7 @@
 %define official 1
 %define ver 2.0.13
 %define mail_release_date 20021219
-%define rel 3.1
+%define rel 3.99.1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -105,11 +103,6 @@
 %define postfinger postfinger-1.26
 %define whinge /usr/bin/logger -p mail.info -t postfix/rpm
 %define die_cmd die(){ %whinge "$*"; exit 1; }
-
-# Link source file to destination directory if possible. If the link is a
-# symbolic link, make a copy of the link in the destination directory,
-# otherwise copy the file.  Log to /var/log/maillog what we are doing.
-%define copy_cmd copy() { %{whinge} "copy $1 to $2"; file=`basename $1`; ln -f $1 $2/$file 2>/dev/null || { test -L $1 2>/dev/null && { dest=`ls -l $1| awk '{print $11}'`; ln -sf $dest $2/$file; } || cp -dpf $1 $2/$file; }; }
 
 Name: postfix
 Group: System Environment/Daemons
@@ -135,7 +128,6 @@ Source1: postfix-RPM-new-packages
 Source2: postfix-get-distribution
 Source3: postfix-etc-init.d-postfix
 Source5: postfix-aliases
-Source6: postfix-chroot-setup.awk
 Source7: postfix.spec.in
 Source8: make-postfix.spec
 Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{pfixtls}.tar.gz
@@ -218,8 +210,7 @@ BuildRequires: openssl-devel
 %description
 Postfix is a Mail Transport Agent (MTA), intended to be an alternative
 to the widely-used sendmail.  This package includes optional support for
-LDAP, pcre, mysql, SMTP AUTH (SASL) and TLS; by default it sets up
-chroot for added security.
+LDAP, pcre, mysql, SMTP AUTH (SASL) and TLS.
 
 See http://www.redhat.com/support/docs/faqs/RH-postfix-FAQ/book1.html,
 a slightly outdated FAQ, which covers the steps involved in installing
@@ -230,10 +221,10 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.73 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.74 $,
 with the following options:
 
-smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
+smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
 ldap=%{ldap}, sasl=%{sasl}, pcre=%{pcre}, tls=%{tls}, tlsfix=%{tlsfix}, mysql=%{mysql}, mysql_redhat=%{mysql_redhat}, mysql_paths=%{mysql_paths}, mysql_dict_reg=%{mysql_dict_reg}
 include_db=%{include_db}, requires_db=%{requires_db}, requires_init_d=%{requires_init_d}, cdb=%{cdb}, ipv6=%{ipv6}
 debug=%{?_with_debug:1}%{?!_with_debug:0}
@@ -337,12 +328,6 @@ mv %{pfixtls}/doc/* TLS
 for i in ACKNOWLEDGEMENTS CHANGES INSTALL README TODO; do
   mv %{pfixtls}/$i $i.TLS
 done
-%endif
-
-# setup master.cf to be chrooted
-%if ! %{disable_chroot}
-mv conf/master.cf conf/master.cf-nochroot
-awk -f %{_sourcedir}/postfix-chroot-setup.awk < conf/master.cf-nochroot > conf/master.cf
 %endif
 
 # Modify master.cf: rmail --> rmail.postfix
@@ -526,15 +511,6 @@ bin/postconf -c ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix -e \
 mkdir -p ${RPM_BUILD_ROOT}%{init_directory}
 install -c %{_sourcedir}/postfix-etc-init.d-postfix \
                   ${RPM_BUILD_ROOT}%{init_directory}/postfix
-
-# Copy the Linux chroot setup script to %{_sysconfdir}/postfix, ready to use,
-# later, removing the 'postfix reload' call from this script
-%if ! %{disable_chroot}
-# These set up the chroot directory structure
-mkdir -p ${RPM_BUILD_ROOT}%{_var}/spool/postfix/etc
-mkdir -p ${RPM_BUILD_ROOT}%{_var}/spool/postfix/lib
-mkdir -p ${RPM_BUILD_ROOT}%{_var}/spool/postfix/usr/lib/zoneinfo
-%endif
 
 install -c auxiliary/rmail/rmail ${RPM_BUILD_ROOT}%{rmail_path}
 
@@ -735,119 +711,8 @@ else
     fi
 fi
 
-# cleanup on upgrade: previous versions of my package installed /etc/passwd
-# into the chroot.  As the proxymap daemon now makes this unnecessary remove
-# the chrooted password file if it exists.
-dir=`postconf -h queue_directory`
-file=${dir}/etc/passwd
-[ -e ${file} ] && \
-    [ -n "${dir}" ] && \
-    [ `postconf -h local_recipient_maps | grep -q proxy:unix:passwd.byname; echo $?` = 0 ] && \
-        %whinge "remove etc/passwd from chroot ${dir}: no longer needed as proxymap enabled" && \
-        rm -f ${file}
-
-# Ensure the trigger script returns 0. the previous function may cause it to
-# return a different value which makes RPM barf.
-:
-
-# Generate chroot jails on the fly when needed things are installed/upgraded
-%if ! %{disable_chroot}
-
-%triggerin -- glibc
-%{copy_cmd}
-# kill off old versions
-rm -f %{_var}/spool/postfix/lib/libnss* %{_var}/spool/postfix/lib/libresolv*
-# determine glibc version
-LIBCVER=`ls -l /lib/libc.so.6* | sed "s/.*libc-\(.*\).so$/\1/g"`
-# copy the relevant parts of glibc into the chroot
-for i in compat dns files hesoid ldap nis nisplus winbind wins; do
-  [ -e /lib/libnss_${i}-${LIBCVER}.so ] && copy /lib/libnss_${i}-${LIBCVER}.so %{_var}/spool/postfix/lib
-  [ -e /lib/libnss_${i}.so ]            && copy /lib/libnss_${i}.so            %{_var}/spool/postfix/lib
-  [ -e /lib/libnss_${i}.so.2 ]          && copy /lib/libnss_${i}.so.2          %{_var}/spool/postfix/lib
-done
-[ -e /lib/libnss_db.so.2.0.0 ] && copy /lib/libnss_db.so.2.0.0 %{_var}/spool/postfix/lib
-[ -e /lib/libresolv-${LIBCVER}.so ]   && copy /lib/libresolv-${LIBCVER}.so   %{_var}/spool/postfix/lib
-[ -e /lib/libresolv-${LIBCVER}.so.2 ] && copy /lib/libresolv-${LIBCVER}.so.2 %{_var}/spool/postfix/lib
-ldconfig -n %{_var}/spool/postfix/lib
-# copy real files into chroot environment
-for i in /etc/localtime /usr/lib/zoneinfo/localtime \
-	/etc/host.conf /etc/resolv.conf /etc/nsswitch.conf \
-	/etc/hosts /etc/services; do
-    [ -e ${i} ] && rm -f %{_var}/spool/postfix${i} && copy ${i} `/usr/bin/dirname %{_var}/spool/postfix${i}`
-done
-%endif
-
-%if %{requires_db} && ! %{disable_chroot}
-%triggerin -- db%{requires_db}
-%{copy_cmd}
-for i in /lib/libdb-%{requires_db}.*so; do
-  rm -f %{_var}/spool/postfix${i}
-  copy ${i} %{_var}/spool/postfix/lib
-done
-ldconfig -n %{_var}/spool/postfix/lib
-%endif
-
-%if %{ldap} && ! %{disable_chroot}
-%triggerin -- openldap
-%{copy_cmd}
-rm -f %{_var}/spool/postfix%{_libdir}/libldap*.so*
-rm -f %{_var}/spool/postfix%{_libdir}/liblber.so*
-for i in %{_libdir}/libldap*.so* \
-         %{_libdir}/libldap_r.so* \
-         %{_libdir}/liblber.so*; do
-      [ -e $i ] && copy $i %{_var}/spool/postfix%{_libdir}
-done
-ldconfig -n %{_var}/spool/postfix%{_libdir}
-
-# remove ldap chroot environment
-%triggerun -- openldap
-[ $2 = 0 ] || exit 0
-rm -f %{_var}/spool/postfix%{_libdir}/libldap*.so*
-rm -f %{_var}/spool/postfix%{_libdir}/liblber.so*
-%endif
-
-%if %{pgsql} && ! %{disable_chroot}
-%triggerin -- postgresql-libs
-%{copy_cmd}
-rm -f %{_var}/spool/postfix%{_libdir}/libpq*
-copy %{_libdir}/libpq.so.2 %{_var}/spool/postfix%{_libdir}
-ldconfig -n %{_var}/spool/postfix%{_libdir}
-%endif
-
-%if ! %{disable_chroot}
-%triggerin -- setup
-%{copy_cmd}
-rm -f %{_var}/spool/postfix%{_sysconfdir}/services
-copy %{_sysconfdir}/services %{_var}/spool/postfix%{_sysconfdir}
-%endif
-
 %preun
 umask 022
-
-# remove chroot jail when uninstalling the package
-# WE MUST BE IN /var/spool/postfix before calling this routine
-
-chroot_remove () {
-%if %{ldap}
-    rm -f %{_var}/spool/postfix%{_libdir}/libldap*.so*
-    rm -f %{_var}/spool/postfix%{_libdir}/liblber.so*
-%endif
-
-    for i in etc/localtime usr/lib/zoneinfo/localtime \
-            etc/host.conf etc/resolv.conf etc/nsswitch.conf \
-	    etc/hosts etc/services \
-%if %{requires_db}
-            lib/libdb-%{requires_db}.*so \
-%endif
-	    lib/libnss_* lib/libresolv*; do
-	test -f %{_var}/spool/postfix/${i} -o -L %{_var}/spool/postfix/${i} && rm -f %{_var}/spool/postfix/${i}
-    done
-
-    for dir in usr/lib/zoneinfo usr/lib usr lib etc; do
-        test -d $dir && rmdir $dir || \
-	    %whinge "WARNING: preun - unable to remove directory %{_var}/spool/postfix/$dir"
-    done
-}
 
 # remove the directory and depth levels of subdirectories
 
@@ -909,11 +774,7 @@ queue_directory_remove () {
     %{_sbindir}/groupdel postdrop || %whinge "WARNING: failed to remove group postdrop"
 
     cd %{_var}/spool/postfix && {
-        %if ! %{disable_chroot}
-          chroot_remove
-        %endif
-        
-        queue_directory_remove
+        queue_directory_remove || :
     } || :
 } || :
 
@@ -948,6 +809,7 @@ umask 022
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/relocated
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/transport
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/virtual
+%attr(0755, root, root) %{_sysconfdir}/postfix/postfix-chroot.sh
 
 %dir %attr(-, root, root) %{sample_dir}
 %attr(0644,   root, root) %{sample_dir}/*
@@ -957,11 +819,6 @@ umask 022
 %attr(0755, root, root) %config %{init_directory}/postfix
 
 %dir                      %verify(not md5 size mtime) %{_var}/spool/postfix
-%if ! %{disable_chroot}
-  %dir %attr(-, root, root) %verify(not md5 size mtime) %{_var}/spool/postfix/etc
-  %dir %attr(-, root, root) %verify(not md5 size mtime) %{_var}/spool/postfix/lib
-  %attr(-, root, root)      %verify(not md5 size mtime) %{_var}/spool/postfix/usr
-%endif
 
 # For correct directory permissions check postfix-install script
 %dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{_var}/spool/postfix/active
@@ -1063,6 +920,12 @@ umask 022
 #
 
 %changelog
+
+* Mon Jul 21 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.13-3.2
+  - Remove chroot from package (Wietse's suggested it is better that way
+    for new users)
+  - add new script postfix-chroot.sh to allow this to be done by hand by the
+    user.
 
 * Sun Jul 13 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.13-3.1
   - Add preliminary support for RedHat Linux Advanced Server 2.1 (looks
