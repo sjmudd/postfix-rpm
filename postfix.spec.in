@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.92 2001/04/04 20:03:57 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.93 2001/04/06 17:03:10 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -39,6 +39,8 @@
 %define PCRE __PCRE__
 %define SASL __SASL__
 %define TLS __TLS__
+# The TLS patch doesn't currently work, need a more up to date patch
+%define TLS 0
 
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
 
@@ -140,7 +142,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.92 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.93 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
