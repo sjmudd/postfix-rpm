@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.43 2001/01/04 21:36:10 root Exp $
+# $Id: postfix.spec.in,v 2.44 2001/01/04 21:41:40 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -453,7 +453,7 @@ rm -rf ${RPM_BUILD_ROOT}
 #       Tim Powers <timp@redhat.com>
 
 %changelog
-* Thu Jan 04 2000 Simon Mudd <sjmudd@pobox.com>
+* Thu Jan 04 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001217-7, minor touches
 
 * Mon Dec 31 2000 Simon Mudd <sjmudd@pobox.com>
