@@ -4,7 +4,14 @@ echo Building postfix...
 
 HERE=`pwd`
 
+
+./makelinks
 ( cd /usr/src/redhat/SOURCES && \
   sh make-postfix.spec && \
   cd /usr/src/redhat/SPECS && \
+  (( grep Name:    postfix.spec | awk '{ print $2 }' ) || true ) && \
+  (( grep Version: postfix.spec | awk '{ print $2 }' ) || true ) && \
+  (( grep Release: postfix.spec | awk '{ print $2 }' ) || true ) && \
+  sleep 2 && \
   rpm -ba postfix.spec )
+./removelinks
