@@ -3,11 +3,11 @@ Ensure that postfix-files is *NOT* marked as a configuration file as this is
 used to install the files in their correct locations.  Marking it as such will
 mean that RPM may not overwrite the current file with the *needed* new file
 location list.
---- postfix-2.0.0-20021223/conf/postfix-files.orig	2002-12-22 07:23:42.000000000 +0900
-+++ postfix-2.0.0-20021223/conf/postfix-files	2002-12-31 18:51:28.000000000 +0900
-@@ -102,8 +102,8 @@
- $config_directory/virtual:f:root:-:644:p
- $config_directory/postfix-script:f:root:-:755
+--- postfix-2.0.18-20040122/conf/postfix-files.orig  2004-01-31 20:13:30.000000000 +0100
++++ postfix-2.0.18-20040122/conf/postfix-files       2004-01-31 20:17:01.000000000 +0100
+@@ -117,8 +117,8 @@
+ $config_directory/postfix-script-sgid:f:root:-:755:o
+ $config_directory/postfix-script-nosgid:f:root:-:755:o
  $config_directory/post-install:f:root:-:755
 -$manpage_directory/man1/mailq.1:f:root:-:644
 -$manpage_directory/man1/newaliases.1:f:root:-:644
@@ -16,7 +16,7 @@ location list.
  $manpage_directory/man1/postalias.1:f:root:-:644
  $manpage_directory/man1/postcat.1:f:root:-:644
  $manpage_directory/man1/postconf.1:f:root:-:644
-@@ -115,9 +115,9 @@
+@@ -130,9 +130,9 @@
  $manpage_directory/man1/postmap.1:f:root:-:644
  $manpage_directory/man1/postqueue.1:f:root:-:644
  $manpage_directory/man1/postsuper.1:f:root:-:644
@@ -25,6 +25,6 @@ location list.
  $manpage_directory/man5/access.5:f:root:-:644
 -$manpage_directory/man5/aliases.5:f:root:-:644
 +$manpage_directory/man5/aliases.postfix.5:f:root:-:644
+ $manpage_directory/man5/body_checks.5:f:root:-:644
  $manpage_directory/man5/canonical.5:f:root:-:644
- $manpage_directory/man5/pcre_table.5:f:root:-:644
- $manpage_directory/man5/regexp_table.5:f:root:-:644
+ $manpage_directory/man5/cidr_table.5:f:root:-:644
