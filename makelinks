@@ -1,9 +1,9 @@
 #!/bin/sh
-# $Revision: 2.3.2.1 $
+# $Revision: 2.3.2.2 $
 # File to make links from this directory to the SOURCES directory for all files
 
 HERE=`pwd`
-BASE=/usr/src/redhat/SOURCES
+BASE=`rpm --eval '%{_sourcedir}'`
 
 echo Linking files to directory $BASE
 for i in `cat postfix-filelist`; do
