@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.56 2001/01/29 22:07:17 root Exp $
+# $Id: postfix.spec.in,v 2.57 2001/02/04 22:48:45 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -50,7 +50,7 @@ PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail, exim, qmail
 Version: 20010128
-Release: 1__SUFFIX__
+Release: 2__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Vendor: Built under __DISTRIBUTION__
 Distribution: Experimental
@@ -253,8 +253,9 @@ AUXLIBS=
 %endif
 
 export CCARGS AUXLIBS
-
 make -f Makefile.init makefiles
+
+unset CCARGS AUXLIBS
 make DEBUG="" OPT="$RPM_OPT_FLAGS"
 
 %pre
@@ -556,6 +557,12 @@ rm -rf ${RPM_BUILD_ROOT}
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Sun Feb 04 2001 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20010128-2, fix mysql build which had an error
+
+* Mon Jan 30 2001 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20010128-1, update for latest snapshot
+
 * Fri Jan 26 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001217-13, Mysql support was incorrect - fixed
   Ramiro Morales <rmrpms@usa.net>
