@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.256 2003/11/14 22:22:32 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.257 2003/11/20 19:09:53 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -83,7 +83,7 @@
 %define official 0
 %define ver 2.0.16
 %define mail_release_date 20031113
-%define rel 0.1
+%define rel 0.2
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -158,7 +158,7 @@ Patch99: ftp://ftp.wl0.org/SOURCES/postfix-2.0.16-20031026-multiline-greeting.pa
 BuildRoot: %{_tmppath}/postfix-%{package_version}-buildroot
 
 # Determine packaging requirements
-BuildRequires: gawk, sed, ed, patch, rpm >= 4
+BuildRequires: /usr/bin/cc, gawk, sed, ed, patch, rpm >= 4
 Requires: gawk, sed, ed
 
 %if %{requires_db}
@@ -226,7 +226,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.256 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.257 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -945,7 +945,10 @@ umask 022
 
 %changelog
 
-* Fri Nov 14 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.16-20031113-1
+* Thu Nov 20 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.16-20031113-0.2
+  - add /usr/bin/cc as requirement
+
+* Fri Nov 14 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.16-20031113-0.1
   - update to latest snapshot
   - add anvil daemon
   - add missing documentation files
