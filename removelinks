@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Revision: 2.4.2.3 $
+# $Revision: 2.4.2.4 $
 # Simple script to make links from this directory to the SOURCES directory for all files
 
 quiet=0
@@ -23,6 +23,6 @@ HERE=`pwd`
 sourcedir=`rpm --eval '%{_sourcedir}'`
 
 [ "${quiet}" = 0 ] && echo "===> removing links from ${sourcedir}"
-for file in `cat postfix-filelist`; do
+for file in `cat pkg-sourcelist`; do
   test -L ${sourcedir}/${file} && test -f ${file} && rm ${sourcedir}/${file} && [ "${quiet}" = 0 ] && echo "	${file}"
 done
