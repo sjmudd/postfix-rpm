@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.172 2001/11/29 12:56:53 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.173 2001/11/29 14:09:36 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -148,7 +148,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.172 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.173 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -340,7 +340,7 @@ check_myhostname() {
     ok=1
     test -f %{config_directory}/main.cf && \
         test -x %{command_directory}/postconf && \
-        %{command_irectory}/postconf myhostname >/dev/null 2>/dev/null && \
+        %{command_directory}/postconf myhostname >/dev/null 2>&1 && \
         test "`%{command_directory}/postconf myhostname | grep -c '\.'`" = "1" && \
         ok=0
     return ${ok}
