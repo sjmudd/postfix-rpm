@@ -20,3 +20,4 @@ postfix-smtpd.c.patch
 postfix-smtpd_check.c.patch
 postfix-smtpd_multiline_greeting.patch
 postfix.spec.in
+postfix-smtp_sasl_proto.c.patch
