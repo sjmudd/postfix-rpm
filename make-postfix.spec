@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.2.6 2004/12/08 18:39:24 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.2.7 2005/02/07 18:29:56 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -9,6 +9,7 @@
 # 
 # The following external variables if set to 1 affect the behaviour
 #
+# POSTFIX_ALT_PRIO	allow the alternative's priority to be changed (default 30)
 # POSTFIX_CDB		support for Constant Database, CDB, by Michael Tokarev
 #			<mjt@corpit.ru>, as originally devised by djb.
 # POSTFIX_IPV6		include support for IPv6
@@ -368,8 +369,13 @@ esac
 }
 [ -n "${DIST}" ] && SUFFIX="${SUFFIX}${DIST}"
 
+[ -n "${POSTFIX_ALT_PRIO}" ] && {
+    echo "  setting alternatives priority to ${POSTFIX_ALT_PRIO}"
+}
+
 # set default values if they are still undefined
 
+[ -z "$POSTFIX_ALT_PRIO" ]	           && POSTFIX_ALT_PRIO=30
 [ -z "$POSTFIX_CDB" ]	                   && POSTFIX_CDB=0
 [ -z "$POSTFIX_DB" ]			   && POSTFIX_DB=0
 [ -z "$POSTFIX_IPV6" ]			   && POSTFIX_IPV6=0
@@ -405,6 +411,7 @@ s!__REQUIRES_DB__!$POSTFIX_DB!g
 s!__REQUIRES_ZLIB__!$REQUIRES_ZLIB!g
 s!__SMTPD_MULTILINE_GREETING__!$POSTFIX_SMTPD_MULTILINE_GREETING!g
 s!__SUFFIX__!$SUFFIX!g
+s!__WITH_ALT_PRIO__!$POSTFIX_ALT_PRIO!g
 s!__WITH_CDB__!$POSTFIX_CDB!g
 s!__WITH_IPV6__!$POSTFIX_IPV6!g
 s!__WITH_LDAP__!$POSTFIX_LDAP!g
