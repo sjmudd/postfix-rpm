@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.162 2001/11/16 11:40:41 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.163 2001/11/19 10:05:30 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -26,7 +26,7 @@
 # PCRE	- include pcre support
 # SASL	- include SASL/AUTH support
 # Choose at most ONE of the following:
-# MYSQL	      - include MySQL support using MySQL's (www.mysql.com) 'MySQL*rpm' packages
+# MYSQL	      - include MySQL support using MySQL's (www.mysql.com) 'MySQL*.rpm' packages
 # REDHATMYSQL - include MySQL support use RedHat's 'mysql*.rpm' packages
 # TLS  - include TLS support
 
@@ -49,9 +49,9 @@
 #Used when we have patchlevels, as can't include '-' in the package name
 #define version1 %{vers}-%{patchlevel}
 #define version2 %{vers}_%{patchlevel}
-%define rel 1
+%define rel 2
 
-%define tlsno pfixtls-0.7.12-snap20011104-0.9.6b
+%define tlsno pfixtls-0.7.13-snap20011115-0.9.6b
 %define pflogno -1.0.3
 
 Name: postfix
@@ -148,7 +148,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.162 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.163 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -717,6 +717,10 @@ fi
 #
 
 %changelog
+
+* Mon Nov 16 2001 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20011115-2
+  - update TLS patches to pfixtls-0.7.13-snap20011115-0.9.6b
 
 * Mon Nov 16 2001 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20011115-1
