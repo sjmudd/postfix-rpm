@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.9 2003/01/16 15:12:32 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.10 2003/01/22 12:05:28 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -261,7 +261,7 @@ mandrake)
 	MANPAGE_SUFFIX=".bz2"
 	DIST=".mdk8x"
 	;;
-    9)	DEFAULT=DB=4
+    9)	DEFAULT_DB=4
 	MANPAGE_SUFFIX=".bz2"
 	DIST=".mdk9x"
 	;;
