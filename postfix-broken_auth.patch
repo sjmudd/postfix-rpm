@@ -1,0 +1,47 @@
+diff -ur snapshot-20001217.orig/src/global/mail_params.h snapshot-20001217/src/global/mail_params.h
+--- snapshot-20001217.orig/src/global/mail_params.h	Sat Dec 16 17:22:27 2000
++++ snapshot-20001217/src/global/mail_params.h	Thu Dec 21 12:18:10 2000
+@@ -726,6 +726,10 @@
+ #define DEF_SMTPD_SASL_REALM	"$myhostname"
+ extern char *var_smtpd_sasl_realm;
+ 
++#define VAR_SMTPD_SASL_BROKEN_AUTH	"smtpd_sasl_broken_auth"
++#define DEF_SMTPD_SASL_BROKEN_AUTH	0
++extern bool var_smtpd_sasl_broken_auth;
++
+  /*
+   * SASL authentication support, client side.
+   */
+diff -ur snapshot-20001217.orig/src/smtpd/smtpd.c snapshot-20001217/src/smtpd/smtpd.c
+--- snapshot-20001217.orig/src/smtpd/smtpd.c	Fri Dec 15 17:07:07 2000
++++ snapshot-20001217/src/smtpd/smtpd.c	Thu Dec 21 13:55:57 2000
+@@ -340,6 +340,7 @@
+ bool    var_allow_untrust_route;
+ int     var_smtpd_junk_cmd_limit;
+ bool    var_smtpd_sasl_enable;
++bool	var_smtpd_sasl_broken_auth;
+ char   *var_smtpd_sasl_opts;
+ char   *var_smtpd_sasl_realm;
+ char   *var_filter_xport;
+@@ -439,8 +440,11 @@
+ 	smtpd_chat_reply(state, "250-SIZE");
+     smtpd_chat_reply(state, "250-ETRN");
+ #ifdef USE_SASL_AUTH
+-    if (var_smtpd_sasl_enable)
+-	smtpd_chat_reply(state, "250-AUTH %s", state->sasl_mechanism_list);
++    if (var_smtpd_sasl_enable) {
++		if (var_smtpd_sasl_broken_auth)
++			smtpd_chat_reply(state, "250-AUTH=%s", state->sasl_mechanism_list);
++		smtpd_chat_reply(state, "250-AUTH %s", state->sasl_mechanism_list);
++	}
+ #endif
+     smtpd_chat_reply(state, "250 8BITMIME");
+     return (0);
+@@ -1447,6 +1451,7 @@
+ 	VAR_DISABLE_VRFY_CMD, DEF_DISABLE_VRFY_CMD, &var_disable_vrfy_cmd,
+ 	VAR_ALLOW_UNTRUST_ROUTE, DEF_ALLOW_UNTRUST_ROUTE, &var_allow_untrust_route,
+ 	VAR_SMTPD_SASL_ENABLE, DEF_SMTPD_SASL_ENABLE, &var_smtpd_sasl_enable,
++	VAR_SMTPD_SASL_BROKEN_AUTH, DEF_SMTPD_SASL_BROKEN_AUTH, &var_smtpd_sasl_broken_auth,
+ 	0,
+     };
+     static CONFIG_STR_TABLE str_table[] = {
