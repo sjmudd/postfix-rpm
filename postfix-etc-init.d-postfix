@@ -6,11 +6,41 @@
 # chkconfig: 2345 80 30
 # description: Postfix is a Mail Transport Agent, which is the program \
 #              that moves mail from one machine to another.
-# processname: postfix
+# processname: master
 # config: /etc/postfix/
-# pidfile: /var/run/postfix.pid
 
-# Hacked by jam 25 Feb 99.  Mostly s/sendmail/postfix/g :-)
+# Written by Package Author: Simon J Mudd <sjmudd@pobox.com>
+# 25/02/99: Hacked by jam.  Mostly s/sendmail/postfix/g :-)
+# 23/11/00: Further changes, suggestions of Ajay Ramaswamy <ajayr@bigfoot.com>
+
+cond_copy() {
+  # find files as per pattern in $1
+  # if any, copy to directory $2
+  dir=`dirname "$1"`
+  pat=`basename "$1"`
+  lr=`find "$dir" -name "$pat"`
+  if test ! -d "$2" ; then exit 1 ; fi
+  if test "x$lr" != "x" ; then cp -p $1 "$2" ; fi
+}
+
+setup_chroot() {
+  set -e
+  umask 022
+
+  POSTFIX_DIR=${POSTFIX_DIR-/var/spool/postfix}
+  cd ${POSTFIX_DIR}
+
+  mkdir -p etc lib
+
+  lt=/etc/localtime
+  if test ! -f $lt ; then echo "cannot find localtime" ; exit 1 ; fi
+  cp -p -f $lt /etc/services /etc/resolv.conf /etc/nsswitch.conf etc
+  cp -p -f /etc/host.conf /etc/hosts /etc/passwd etc
+  ln -s -f /etc/localtime usr/lib/zoneinfo
+
+  cond_copy '/lib/libnss_*' lib
+  cond_copy '/lib/libresolv*' lib
+}
 
 # Source function library.
 . /etc/rc.d/init.d/functions
@@ -30,6 +60,11 @@ case "$1" in
   start)
 	# Start daemons.
 	echo -n "Starting postfix: "
+# remove the comments if you want the chroot jail and aliases rebuilt
+# each time you start postfix.  I'm not sure this should be here,
+# others may disagree. SJM 23/11/00
+#	setup_chroot
+#	newaliases
 	/usr/sbin/postfix start
 	RETVAL=$?
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/postfix
@@ -45,26 +80,50 @@ case "$1" in
   restart)
 	$0 stop
 	$0 start
+	RETVAL=$?
 	;;
   reload)
 	/usr/sbin/postfix reload
-        exit $?
+	RETVAL=$?
 	;;
   abort)
 	/usr/sbin/postfix abort
-        exit $?
+	RETVAL=$?
 	;;
   flush)
 	/usr/sbin/postfix flush
-        exit $?
+	RETVAL=$?
 	;;
   check)
 	/usr/sbin/postfix check
-        exit $?
+	RETVAL=$?
+	;;
+  status)
+  	status master
+	RETVAL=$?
 	;;
   *)
-	echo "Usage: postfix {start|stop|restart|reload|abort|flush|check}"
+	echo "Usage: postfix {start|stop|restart|reload|abort|flush|check|status}"
 	exit 1
 esac
 
 exit $RETVAL
+
+
+
+
+
+
+
+
+
+ # Source function library.
+ . /etc/rc.d/init.d/functions
+
+@@ -30,6 +58,8 @@
+   start)
+ 	# Start daemons.
+ 	echo -n "Starting postfix: "
+ 	/usr/sbin/postfix start
+ 	RETVAL=$?
+ 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/postfix
