@@ -1,17 +1,18 @@
 #!/bin/sh
 #
-# postfix      This shell script takes care of starting and stopping
-#               postfix.
+# postfix      Postfix Mail Transfer Agent
 #
 # chkconfig: 2345 80 30
 # description: Postfix is a Mail Transport Agent, which is the program \
 #              that moves mail from one machine to another.
 # processname: master
+# pidfile: /var/spool/postfix/pid/master.pid
 # config: /etc/postfix/
 
 # Written by Package Author: Simon J Mudd <sjmudd@pobox.com>
 # 25/02/99: Hacked by jam.  Mostly s/sendmail/postfix/g :-)
 # 23/11/00: Further changes, suggestions of Ajay Ramaswamy <ajayr@bigfoot.com>
+# 20/01/01: Changes to fall in line with RedHat 7.0 style
 
 # Source function library.
 . /etc/rc.d/init.d/functions
@@ -20,57 +21,94 @@
 . /etc/sysconfig/network
 
 # Check that networking is up.
-[ ${NETWORKING} = "no" ] && exit 0
+if [ ${NETWORKING} = "no" ]; then
+        exit 0
+fi
 
 [ -f /usr/sbin/postfix ] || exit 0
+[ -d /etc/postfix ] || exit 0
+[ -d /var/spool/postfix ] || exit 0
 
 RETVAL=0
 
-# See how we were called.
-case "$1" in
-  start)
-	# Start daemons.
+start() {
 	echo -n "Starting postfix: "
 	/usr/sbin/postfix start
 	RETVAL=$?
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/postfix
-        echo 
-	;;
-  stop)
-	# Stop daemons.
+        echo
+	return $RETVAL
+}
+
+stop() {
 	echo -n "Shutting down postfix: "
 	/usr/sbin/postfix stop
 	RETVAL=$?
 	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/postfix
 	echo
-	;;
-  restart)
-	$0 stop
-	$0 start
-	RETVAL=$?
-	;;
-  reload)
+	return $RETVAL
+}
+
+reload() {
+	echo -n "Reloading postfix: "
 	/usr/sbin/postfix reload
 	RETVAL=$?
-	;;
-  abort)
+	echo
+	return $RETVAL
+}
+
+abort() {
 	/usr/sbin/postfix abort
 	RETVAL=$?
-	;;
-  flush)
+	return $RETVAL
+}
+
+flush() {
 	/usr/sbin/postfix flush
 	RETVAL=$?
-	;;
-  check)
+	return $RETVAL
+}
+
+check() {
 	/usr/sbin/postfix check
 	RETVAL=$?
+	return $RETVAL
+}
+
+# See how we were called.
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  restart)
+	stop
+	start
+	;;
+  reload)
+	reload
+	;;
+  abort)
+	abort
+	;;
+  flush)
+	flush
+	;;
+  check)
+	check
 	;;
   status)
   	status master
-	RETVAL=$?
+	;;
+  condrestart)
+	if [ -f /var/lock/subsys/postfix ]; then
+		restart
+	fi
 	;;
   *)
-	echo "Usage: postfix {start|stop|restart|reload|abort|flush|check|status}"
+	echo "Usage: postfix {start|stop|restart|reload|abort|flush|check|status|condrestart}"
 	exit 1
 esac
 
