@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.65 2003/07/10 18:58:25 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.66 2003/07/10 20:04:31 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -230,7 +230,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.65 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.66 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -602,6 +602,15 @@ old_path=`postconf -h sendmail_path`
 [ "$old_path" != "%{sendmail_path}" ] && \
     %whinge "Updating sendmail_path: $old_path --> %{sendmail_path}" && \
     postconf -e "sendmail_path=%{sendmail_path}"
+
+# Previous versions of my package installed /etc/passwd into the chroot.
+# The proxymap daemon now makes this unnecessary, so remove the chrooted
+# password file if it exists.
+[ `postconf -h local_recipient_maps | grep -q proxy:unix:passwd.byname; echo $?` = 0 ] && \
+    %whinge "Removing /etc/passwd from chroot (no longer needed as proxymap enabled)" && \
+    file=`postconf -h queue_directory`/etc/passwd && \
+    [ ${file} != /etc/passwd ] && \
+    [ -e ${file} ] && rm -f ${file}
 
 %{_sbindir}/postalias %{_sysconfdir}/postfix/aliases
 %{_sbindir}/postfix check || :
@@ -1051,6 +1060,9 @@ umask 022
   - update TLS patch
   - update IPv6 patch
   - update VDA patch
+  - cleanup: now that the proxymap daemon exists remove the chrooted password
+    file installed from earlier versions of my package IFF
+    local_recipient_maps uses the proxymap (default value)
 
 * Fri Jul 04 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.13-1
   - update to 2.0.13
