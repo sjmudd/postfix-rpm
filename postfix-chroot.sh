@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# # $Id: postfix-chroot.sh,v 1.1.2.3 2003/07/24 19:30:33 sjmudd Exp $
+# # $Id: postfix-chroot.sh,v 1.1.2.4 2003/07/29 20:58:37 sjmudd Exp $
 #
 # postfix-chroot.sh - enable or disable Postfix chroot
 #
@@ -47,7 +47,7 @@ EOF
 # otherwise copy the file.
 
 copy() {
-    info "  $1 -> $2"
+    info 1 "  $1 -> $2"
     file=`basename $1`
     ln -f $1 $2/$file 2>/dev/null || {
         [ -L $1 2>/dev/null ] && {
@@ -57,17 +57,20 @@ copy() {
     }
 }
 
+# print an error message and exit
 error () {
     echo "Error: $1" >&2
     exit 1
 }
 
+# print a warning message
 warn () {
     echo "Warning: $1" >&2
 }
 
+# if $1==1 print message ($2) otherwise do nothing
 info () {
-    echo "$1"
+    [ "$1" = 1 ] && echo "$2" || :
 }
 
 # Count the files in a particular location given by the input pattern
@@ -79,69 +82,77 @@ count_files_in () {
 #
 # remove chroot jail
 #
+# if we pass $1=quiet then do not backup master.cf or say much more than 
+# we are removing the existing chroot (which is before enabling a new chroot)
+#
 
 remove_chroot () {
+    verbose=1
+
+    [ -n "$1" ] && [ "$1" = quiet ] && verbose=0
+
     # safety - double check before starting the chroot is valid
     [ -z "${chroot}"  ] && error "chroot (${chroot}) is not defined, exiting"
     [ "${chroot}" = / ] && error "chroot (${chroot}) is set to /, exiting"
 
-    info "removing chroot from: ${chroot}"
+    info 1 "removing chroot from: ${chroot}"
 
     # remove Postgres libraries
     pattern="${chroot}${libdir}/libpq*"
-    [ $(count_lines_in ${pattern}) != 0 ] && {
-        info "removng Postgres files from chroot"
-        echo only rm -f ${pattern}
+    [ $(count_files_in ${pattern}) != 0 ] && {
+        info $verbose "removng Postgres files from chroot"
+        rm -f ${pattern}
     }
 
     # remove LDAP libraries
     pattern="${chroot}${libdir}/libldap*.so* ${chroot}${libdir}/liblber.so*"
-    [ $(count_lines_in ${pattern}) != 0 ] && {
-        info "remove LDAP files from chroot"
-        echo only rm -f ${pattern}
+    [ $(count_files_in ${pattern}) != 0 ] && {
+        info $verbose "remove LDAP files from chroot"
+        rm -f ${pattern}
     }
 
     # remove db libraries
     pattern="${chroot}/lib/libdb*.so*"
-    [ $(count_lines_in ${pattern}) != 0 ] && {
-        info "remove db files from chroot"
-        echo only rm -f ${pattern}
+    [ $(count_files_in ${pattern}) != 0 ] && {
+        info $verbose "remove db files from chroot"
+        rm -f ${pattern}
     }
 
     # we must be in ${chroot} before calling this routine
     cd ${chroot} && {
         # remove system files
-        info "remove system files from chroot:"
+        info $verbose "remove system files from chroot"
         for i in etc/localtime usr/lib/zoneinfo/localtime \
                 etc/host.conf etc/resolv.conf etc/nsswitch.conf \
                 etc/hosts etc/passwd etc/services \
                 lib/libdb-*so* \
                 lib/libnss_* lib/libresolv*; do
             [ -f ${chroot}/${i} -o -L ${chroot}/${i} ] && \
-                info "  ${chroot}/${i}" && \
+                info $verbose "  ${chroot}/${i}" && \
                 rm -f ${chroot}/${i}
         done
 
-        info "remove system directories from chroot:"
+        info $verbose "remove system directories from chroot"
         for dir in usr/lib/zoneinfo usr/lib usr lib etc; do
             [ -d ${chroot}/${dir} ] && \
-                info "  ${chroot}/${dir}" && \
+                info $verbose "  ${chroot}/${dir}" && \
                 rmdir ${chroot}/${dir}
         done
     }
 
-    # remove chroot settings from master.cf
-    info "backing up ${confdir}/master.cf to ${confdir}/master.cf-old"
-    cp ${confdir}/master.cf ${confdir}/master.cf-old && \
-    awk '
+    if [ $verbose = 1 ]; then
+        # remove chroot settings from master.cf
+        info "backing up ${confdir}/master.cf to ${confdir}/master.cf-old.$$"
+        cp ${confdir}/master.cf ${confdir}/master.cf-old.$$ && \
+        awk '
 BEGIN                   { IFS="[ \t]+"; OFS="\t"; }
 /^#/                    { print; next; }
 /^ /                    { print; next; }
 $8 ~ /(proxymap|local|pipe|virtual)/    { print; next; }
 $5 == "y"               { $5="n"; print $0; next; }
                         { print; }
-' ${confdir}/master.cf-old > ${confdir}/master.cf
-
+' ${confdir}/master.cf-old.$$ > ${confdir}/master.cf
+    fi
 }
 
 #
@@ -152,19 +163,21 @@ $5 == "y"               { $5="n"; print $0; next; }
 # setup chroot jail
 
 setup_chroot() {
+    verbose=1
+
     # Check master.cf is where we expect it
     [ -f ${confdir}/master.cf ] || error "${confdir}/master.cf missing, exiting"
-    info "setting up chroot at: ${chroot}"
+    info $verbose "setting up chroot at: ${chroot}"
 
     # setup the chroot directory structure
-    info "setup chroot directory structure"
+    info $verbose "setup chroot directory structure"
     for i in /etc /lib /usr/lib/zoneinfo; do
-        info "  ${chroot}${i}"
+        info $verbose "  ${chroot}${i}"
         mkdir -p ${chroot}${i}
     done
 
     # copy system files into chroot environment
-    info "copy system files into chroot"
+    info $verbose "copy system files into chroot"
     for i in /etc/localtime /usr/lib/zoneinfo/localtime \
             /etc/host.conf /etc/resolv.conf /etc/nsswitch.conf \
             /etc/hosts /etc/services; do
@@ -172,14 +185,10 @@ setup_chroot() {
     done
 
     # copy /etc/passwd file if needed
-###    [ `postconf -h local_recipient_maps | grep -q proxy:unix:passwd.byname; echo $?` = 0 ] || { \
-###
-
-        info "copy (cleaned) /etc/passwd into chroot"
+    [ `postconf -h local_recipient_maps | grep -q proxy:unix:passwd.byname; echo $?` = 0 ] || { \
+        info $verbose "copy (cleaned) /etc/passwd into chroot"
         awk -F: '{ print $1 ":*:" $3 ":" $4 "::/no/home:/bin/false" }' /etc/passwd > ${chroot}/etc/passwd
-
-
-###    } || :
+    } || :
 
     # check smtpd's dependencies to determine which libraries need to
     # copied into the chroot
@@ -189,14 +198,14 @@ setup_chroot() {
 
     # determine if the postgresql library is needed
     echo ${dependencies} | grep -q libpq && {
-        info "copy Postgresql libraries into chroot"
+        info $verbose "copy Postgresql libraries into chroot"
         copy ${libdir}/libpq.so.2 ${chroot}${libdir}/
         ldconfig -n ${chroot}${libdir}		# not convinced this is necessary
     }
 
     # determine if the LDAP libraries are needed
     echo ${dependencies} | grep -q libldap && {
-        info "copy LDAP libraries into chroot"
+        info $verbose "copy LDAP libraries into chroot"
         for i in ${libdir}/libldap*.so* \
                  ${libdir}/libldap_r.so* \
                  ${libdir}/liblber.so*; do
@@ -208,13 +217,13 @@ setup_chroot() {
     # determine which db is needed
     dbdeps=`/usr/bin/ldd ${smtpd} | awk '{print $1}' | grep libdb`
     [ -n "${dbdeps}" ] && {
-        info "copy db library (${dbdeps}) into chroot"
+        info $verbose "copy db library (${dbdeps}) into chroot"
         copy /lib/${dbdeps} ${chroot}/lib/
         ldconfig -n ${chroot}/lib		# not convinced this is necessary
     }
 
     # copy system files into chroot environment
-    info "copy system files into chroot"
+    info $verbose "copy system files into chroot"
 
     # determine glibc version
     LIBCVER=`ls -l /lib/libc.so.6* | sed "s/.*libc-\(.*\).so$/\1/g"`
@@ -231,8 +240,8 @@ setup_chroot() {
 
     # chroot master.cf change all lines except pipe, local, proxymap and
     # virtual
-    info "backing up ${confdir}/master.cf to ${confdir}/master.cf-old"
-    cp ${confdir}/master.cf ${confdir}/master.cf-old && \
+    info $verbose "backing up ${confdir}/master.cf to ${confdir}/master.cf-old.$$"
+    cp ${confdir}/master.cf ${confdir}/master.cf-old.$$ && \
     awk '
 BEGIN                   { IFS="[ \t]+"; OFS="\t"; }
 /^#/                    { print; next; }
@@ -240,8 +249,7 @@ BEGIN                   { IFS="[ \t]+"; OFS="\t"; }
 $8 ~ /(proxymap|local|pipe|virtual)/    { print; next; }
 $5 == "n"               { $5="y"; print $0; next; }
                         { print; }
-' ${confdir}/master.cf-old > ${confdir}/master.cf
-
+' ${confdir}/master.cf-old.$$ > ${confdir}/master.cf
 }
 
 # end setup chroot jail
@@ -254,7 +262,9 @@ $5 == "n"               { $5="y"; print $0; next; }
 
 stop_postfix () {
     ${daemondir}/master -t 2>/dev/null && return
-    info "Stopping Postfix, please restart it after checking the changes"
+    info 1 "Stopping Postfix, please restart it after checking the changes"
+    ( cd ${chroot} && kill `sed 1q pid/master.pid` )
+    sleep 3
 }
 
 #
@@ -270,13 +280,15 @@ postconf=/usr/sbin/postconf
 [ -d ${confdir}  ] || error "no postfix directory ${confdir}"
 [ -x ${postconf} ] || error "can not find postconf"
 chroot=`${postconf} -c ${confdir} -h queue_directory`
+[ -d ${chroot}   ] || error "no postfix queue_directory ${chroot}"
 daemondir=`${postconf} -c ${confdir} -h daemon_directory`
 
 # See how we were called.
 case "$1" in
   enable)
         stop_postfix
-        remove_chroot
+# quiet doesn't backup master.cf or say much at all
+        remove_chroot quiet
         setup_chroot
         ;;
   disable)
