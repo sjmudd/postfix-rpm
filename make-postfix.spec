@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.15 2001/01/14 17:32:08 root Exp $
+#  $Id: make-postfix.spec,v 1.16 2001/01/19 20:59:23 root Exp $
 #
 
 SUFFIX=
@@ -39,7 +39,7 @@ if [ `rpm -q redhat-release` ]; then
     if [ "$A" = 0 ]; then
         REQUIRES="Requires: db3"
         BUILDREQUIRES="BuildRequires: db3, db3-devel"
-        DISTRIBUTION_PREREQ=', /etc/init.d'
+        DISTRIBUTION_PREREQ=', /etc/init.d, /sbin/service'
     fi
     DISTRIBUTION=`rpm -q redhat-release` 
 fi
@@ -58,7 +58,8 @@ if [ -z "$POSTFIX_SASL" ]; then
     POSTFIX_SASL=0
 fi
 
-SUFFIX=`echo "${SUFFIX}" | sed -e 's;^\+;;' -e 's;+$;;'` 
+# Remove leading '+' from package suffix (if exists)
+SUFFIX=`echo "${SUFFIX}" | sed -e 's;^\+;;'`
 
 cat > ../SPECS/postfix.spec <<EOF
 ##############################################################################

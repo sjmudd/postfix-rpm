@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.47 2001/01/14 17:32:23 root Exp $
+# $Id: postfix.spec.in,v 2.48 2001/01/19 20:59:09 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -42,9 +42,9 @@ PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
 Version: 20001217
-Release: 9__SUFFIX__
+Release: 10__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
-Vendor: None -- Built under __DISTRIBUTION__
+Vendor: Built under __DISTRIBUTION__
 Distribution: Experimental
 Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{version}.tar.gz
 Source1: postfix-README_rpm.txt
@@ -62,7 +62,7 @@ Patch2:  postfix-chroot_chk.patch
 Patch3:  postfix-INSTALL.sh.patch
 #
 # Optional patches - set the appropriate environment variables to include
-#                    them when building the package
+#                    them when building the package/spec file
 #
 # applied if %BROKEN_AUTH=1
 Patch97: postfix-broken_auth.patch
@@ -83,14 +83,14 @@ Requires: openldap >= 1.2.9
 BuildRequires: openldap >= 1.2.9, openldap-devel >= 1.2.9
 %endif
 
-%if %{MYSQL}
-Requires: mysql, mysqlclient9
-BuildRequires: mysql, mysqlclient9, mysql-devel
-%endif
-
 %if %{PCRE}
 Requires: pcre
 BuildRequires: pcre, pcre-devel
+%endif
+
+%if %{MYSQL}
+Requires: mysql, mysqlclient9
+BuildRequires: mysql, mysqlclient9, mysql-devel
 %endif
 
 %if %{SASL}
@@ -103,8 +103,8 @@ Postfix is a Mail Transport Agent (MTA), intended to be an alternative
 to the widely-used sendmail.  This is a reasonably sophisticated package
 which includes many patches and optional support for LDAP, pcre, mysql,
 and SMTP AUTH (SASL); it sets up chroot for added security; and it
-starts and stops the daemon on install/remove.  An alternative simple
-and straightforward rpm is available from Todd Bennett, for download
+starts and stops the daemon on install/remove.
+An alternative simple rpm is available from Todd Bennett, for download
 at http://people.oven.com/bet/bent/.
 
 Read the (outdated) FAQ at http://www.moongroup.com/postfix-faq/c22.html
@@ -138,8 +138,8 @@ options.
 
 %define mailq_path /usr/bin/mailq
 %define rmail_path /usr/bin/rmail
-# We need a uid and gid for postfix's exclusive use
-# Redhat's mail group isn't unique!
+# Postfix requires a unique uid & gid for its exclusive use
+# Redhat's 'mail' user & group isn't unique!
 %define uid 89
 %define gid 89
 
@@ -187,7 +187,7 @@ awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > co
 %patch98 -p1 -b .mynetworks
 %endif
 
-# Apply my SMTPD Multiline greeting
+# Apply my SMTPD Multiline greeting patch
 %if %{SMTPD_MULTILINE_GREETING}
 %patch99 -p1 -b .multiline
 %endif
@@ -243,7 +243,6 @@ AUXLIBS=
 
 export CCARGS AUXLIBS
 
-#make tidy
 make -f Makefile.init makefiles
 make DEBUG="" OPT="$RPM_OPT_FLAGS"
 
@@ -321,8 +320,6 @@ mkdir -p ${RPM_BUILD_ROOT}%{cron_directory}
 install -c ${RPM_SOURCE_DIR}/postfix-etc-cron.daily-postfix ${RPM_BUILD_ROOT}%{cron_directory}/postfix
 install -c auxiliary/rmail/rmail ${RPM_BUILD_ROOT}%{rmail_path}
 
-#gzip -9f ${RPM_BUILD_ROOT}%{_mandir}/man{1,5,8}/* ||:
-
 #
 # copy new aliases files and generate a ghost aliases.db file
 #
@@ -337,9 +334,7 @@ touch ${RPM_BUILD_ROOT}/%{config_directory}/aliases.db
 # we put things that invoke files we just installed, and populate the
 # directories we've created with local-dependent files.
 %post
-
 umask 022
-
 /sbin/chkconfig --add postfix
 
 # setup missing directory structures
@@ -348,8 +343,19 @@ umask 022
 # this is the correct place to build the alias.db file
 %{command_directory}/postalias %{config_directory}/aliases
 
-# setup chroot structure
+# setup chroot structure - basic structure
 %{config_directory}/chroot-setup-LINUX2
+
+# setup chroot structure - when using LDAP
+# Note: not entirely sure this is ok: missing .so and .so.1.0.0
+%if %{LDAP}
+for i in usr/lib/libldap.so.1 usr/lib/liblber.so.1; do
+    if [ -e /$i ]; then
+        cmp -s /$i %{queue_directory}/$i 2>/dev/null || \
+            install -c /$i %{queue_directory}/$i
+    fi
+done
+%endif
 
 %preun
 umask 022
@@ -367,10 +373,18 @@ if [ "$1" = 0 ]; then
     userdel postfix || : %whinge "WARNING: failed to remove user postfix"
 
     # safety check
-    test "%{queue_directory}Z" = "Z" && echo "WARNING: chroot removal buggy - check .spec file" && exit 0
+    test "%{queue_directory}" = "" && echo "WARNING: chroot removal buggy - check .spec file" && exit 0
 
     # cd to %{queue_directory} before removing unwanted files
     cd %{queue_directory} && {
+
+# remove LDAP chroot files
+%if %{LDAP}
+        for i in usr/lib/libldap.so.1 usr/lib/liblber.so.1; do
+            test -f %{queue_directory}/$i && \
+                rm -f %{queue_directory}/$i
+        done
+%endif
 
         # remove chroot jail when uninstalling the package
         for i in etc/localtime usr/lib/zoneinfo/localtime \
@@ -524,6 +538,9 @@ rm -rf ${RPM_BUILD_ROOT}
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Fri Jan 19 2001 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001217-10, include LDAP chroot jail support
+
 * Fri Jan 12 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001217-9, change description making it briefer and including
   URL to Bennett Todd's packages.
