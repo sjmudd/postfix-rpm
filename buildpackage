@@ -60,7 +60,7 @@ add_to_pkg_sourcelist {
     if [ -z "${add}" ]; then
         echo ${file} >> ${filelist} && \
         sort < ${filelist} > ${filelist}.n && \
-            mv ${filelist}.n ${filelist || {
+            mv ${filelist}.n ${filelist} || {
                 echo 'Failed to update ${filelist}!'
                 exit 1
         }
