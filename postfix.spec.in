@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.39 2000/12/22 22:55:27 root Exp $
+# $Id: postfix.spec.in,v 2.40 2000/12/22 23:06:53 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -44,7 +44,7 @@ Patch97: postfix-broken_auth.patch
 # applied if POSTFIX_SAFE_MYNETWORKS=1
 Patch98: postfix-safe_mynetworks.patch
 # applied if POSTFIX_SMTPD_MULTILINE_GREETING=1
-Patch99: postfix-smtpd_reply_multiline.patch
+Patch99: postfix-smtpd_multiline_greeting.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 
@@ -444,6 +444,8 @@ rm -rf ${RPM_BUILD_ROOT}
 %changelog
 * Fri Dec 22 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001217-5
+- include Requires: /etc/init.d if built on rh7
+- change POSTFIX_SMTPD_MULTILINE to POSTFIX_SMTPD_MULTILINE_GREETING
 
 * Fri Dec 22 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001217-3, support for rh7 building
