@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.71 2001/11/19 09:20:00 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.72 2001/11/19 09:23:50 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -26,8 +26,8 @@
 # PCRE	- include pcre support
 # SASL	- include SASL/AUTH support
 # Choose at most ONE of the following:
-# MYSQL       - include MySQL support - use www.mysql.com - MySQL* packages
-# REDHATMYSQL - include MySQL support - use RedHat - mysql* packages
+# MYSQL       - include MySQL support using MySQL's (www.mysql.com) 'MySQL*.rpm' packages
+# REDHATMYSQL - include MySQL support use RedHat's 'mysql*.rpm' packages
 # TLS  - include TLS support
 
 %define distribution __DISTRIBUTION__
@@ -145,7 +145,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.71 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.72 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
