@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.20 2003/09/11 19:07:55 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.21 2003/09/30 16:50:14 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -182,6 +182,13 @@ if [ "$POSTFIX_PGSQL2" = 1 ]; then
     echo "  including additional experimental PostGres patches"
 fi
 if [ "$POSTFIX_MYSQL" = 1 ]; then
+    [ -n "$POSTFIX_MYSQL_REDHAT" ] && {
+        cat <<-END
+	ERROR: You can only select ONE of POSTFIX_MYSQL_REDHAT and POSTFIX_MYSQL.
+	  Select the variable you want and unset the other one.
+	END
+	exit 1
+    }
     POSTFIX_MYSQL_REDHAT=0
     POSTFIX_MYSQL_PATHS=
     echo "  adding MySQL support (www.mysql.com MySQL* packages) to spec file"
