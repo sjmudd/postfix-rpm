@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.56 2001/08/30 12:27:07 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.57 2001/09/03 08:28:56 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -46,7 +46,7 @@
 %define patchlevel pl04
 %define version1 %{vers}-%{patchlevel}
 %define version2 %{vers}_%{patchlevel}
-%define rel  2
+%define rel  3
 
 %define tlsno pfixtls-0.7.8-20010228-pl04-0.9.6b
 %define pflogno -1.0.3
@@ -145,7 +145,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.56 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.57 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -284,20 +284,21 @@ cp %{_sourcedir}/postfix-README_maildrop_security.txt postfix-README_maildrop_se
 # create postfix user and group on BUILD machine if necessary
 
 # Add the postfix group if not found
-grep -q ^postfix: /etc/group || {
-    groupadd -g %{gid} -r postfix || die \
+perl -e '$gid=getgrnam("postfix"); exit 1 unless defined( $gid )' || {
+    perl -e '$nam=getgrgid(%{gid}); exit 1 unless defined( $nam )' && die \
             'gid collision, aborting install' \
 	    'either add "postfix" group or delete the group using GID %{gid}'
     %whinge "Adding postfix to /etc/group."
+    /usr/sbin/groupadd -g %{gid} -r postfix
 }
 
 # Add the postfix user if not found
-grep -q ^postfix: /etc/passwd || {
-    grep -q "^.*:.*:%{uid}:" /etc/passwd && die \
+perl -e '$uid=getpwnam("postfix"); exit 1 unless defined( $uid )' || {
+    perl -e '$nam=getpwuid(%{uid}); exit 1 unless defined( $nam )' && die \
           'uid collision, aborting install' \
           'either add "postfix" user or delete the user using UID %{uid}'
     %whinge "Adding postfix to /etc/passwd."
-    useradd -d %{queue_directory} -s /bin/true -g postfix -M -r -u %{uid} postfix
+    /usr/sbin/useradd -d %{queue_directory} -s /bin/true -g postfix -M -r -u %{uid} postfix
 }
 
 %build
@@ -351,20 +352,21 @@ die(){ %whinge "$*"; exit 1; }
 # create postfix user and group on INSTALL machine if necessary
 
 # Add the postfix group if not found
-grep -q ^postfix: /etc/group || {
-    groupadd -g %{gid} -r postfix || die \
+perl -e '$gid=getgrnam("postfix"); exit 1 unless defined( $gid )' || {
+    perl -e '$nam=getgrgid(%{gid}); exit 1 unless defined( $nam )' && die \
             'gid collision, aborting install' \
 	    'either add "postfix" group or delete the group using GID %{gid}'
     %whinge "Adding postfix to /etc/group."
+    groupadd -g %{gid} -r postfix
 }
 
 # Add the postfix user if not found
-grep -q ^postfix: /etc/passwd || {
-    grep -q "^.*:.*:%{uid}:" /etc/passwd && die \
+perl -e '$uid=getpwnam("postfix"); exit 1 unless defined( $uid )' || {
+    perl -e '$nam=getpwuid(%{uid}); exit 1 unless defined( $nam )' && die \
           'uid collision, aborting install' \
           'either add "postfix" user or delete the user using UID %{uid}'
     %whinge "Adding postfix to /etc/passwd."
-    useradd -d %{queue_directory} -s /bin/true -g postfix -M -r -u %{uid} postfix
+    /usr/sbin/useradd -d %{queue_directory} -s /bin/true -g postfix -M -r -u %{uid} postfix
 }
 
 
@@ -689,6 +691,11 @@ fi
 #
 
 %changelog
+
+* Mon Sep 03 2001 Simon J Mudd <sjmudd@pobox.com>
+- postfix-20010228-pl04-3, include patch by Chris Audley <Christopher.D.Audley@jhu.edu>
+  to allow the installation to see postfix accounts via pam and not exclusively
+  through the /etc/passwd and /etc/group files.
 
 * Thu Aug 30 2001 Simon J Mudd <sjmudd@pobox.com>
 - postfix-20010228-pl04-2, update TLS patch
