@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.189 2002/01/16 18:27:04 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.190 2002/01/16 19:18:34 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -174,7 +174,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.189 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.190 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -533,10 +533,13 @@ ldap_chroot_setup() {
 # upgrade configuration files if necessary
 sh %{config_directory}/post-install \
 	config_directory=%{config_directory} \
+	daemon_directory=%{daemon_directory} \
+	command_directory=%{command_directory} \
 	mail_owner=postfix \
 	setgid_group=%{maildrop_group} \
-        sample_directory=%{config_directory}/samples \
-        readme_directory=%{config_directory}/README_FILES \
+	manpage_directory=%{_mandir} \
+	sample_directory=%{config_directory}/samples \
+	readme_directory=%{config_directory}/README_FILES \
 	upgrade-package
 
 # build the aliases.db file on the INSTALL machine
