@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.94 2001/04/06 17:09:56 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.95 2001/04/06 17:14:17 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -142,7 +142,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.94 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.95 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -195,7 +195,7 @@ ENDTEXT
     exit 1
 fi
 
-%setup -q -n snapshot-%{version} -a 9
+%setup -q -n snapshot-%{version1} -a 9
 
 # Apply the TLS patch, must be at first, because the changes of master.cf
 %if %{TLS}
