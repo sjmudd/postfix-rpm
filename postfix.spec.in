@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.34 2003/03/10 15:50:03 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.35 2003/03/10 16:05:27 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -214,7 +214,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.34 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.35 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -354,6 +354,11 @@ CCARGS="${CCARGS} -fsigned-char"
   # -I option required for pcre 3.4 (and later?)
   CCARGS="${CCARGS} -DHAS_PCRE -I/usr/include/pcre"
   AUXLIBS="${AUXLIBS} -lpcre"
+%endif
+%if ! %{pcre}
+  # we need to explicitly disable pcre unless asked for, otherwise it will
+  # be included if present on the build system. This may cause problems.
+  CCARGS="${CCARGS} -DNO_PCRE"
 %endif
 # Careful:
 # - Redhat's mysql package doesn't seem to need zlib support (postfix compiles without it)
@@ -972,6 +977,9 @@ fi
 * Mon Mar 10 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.6-2
   - fix make-postfix.spec with SASL2 (the -devel package was wrong)
     - reported by Tom Estep <teastep@shorewell.net>
+  - On RH8 if pcre is available Postfix's makedefs compiles it in
+    automatically.  This may not be appropriate for everyone so I disable
+    pcre unless explicitly enabled.
 
 * Fri Mar 07 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.6-1
   - update to 2.0.6
