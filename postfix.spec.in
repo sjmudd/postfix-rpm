@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.37 2002/06/30 22:20:09 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.38 2002/07/03 09:23:30 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -62,7 +62,7 @@
 %define official 1 
 %define ver 1.1.11
 %define mail_release_date 20020115
-%define rel 2pre3
+%define rel 2pre4
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -130,7 +130,7 @@ Source11: postfix-build
 # Obligatory Patches
 Patch1: postfix-config.patch
 Patch2: postfix-smtp_sasl_proto.c.patch
-Patch3: postfix-alternatives.patch
+Patch3: postfix-files.patch
 
 # Optional patches
 Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}_quota.patch 
@@ -204,7 +204,7 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.37 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.38 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, VDA=%{VDA}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -407,6 +407,13 @@ umask 022
 
 %{?!debug:strip -R .comment --strip-unneeded bin/* libexec/*}
 
+# Rename man pages so they we don't conflict with sendmail's
+# Binaries are handled in the defines in preamble of specfile
+mv man/man1/mailq.1      man/man1/mailq.postfix.1
+mv man/man1/newaliases.1 man/man1/newaliases.postfix.1
+mv man/man1/sendmail.1   man/man1/sendmail.postfix.1
+mv man/man5/aliases.5    man/man5/aliases.postfix.5
+
 # install postfix into %{buildroot}
 sh postfix-install -non-interactive \
        install_root=%{buildroot} \
@@ -481,12 +488,6 @@ for i in qmqp-source smtp-sink smtp-source; do
   install -m 755 bin/$i %{buildroot}%{_sbindir}/$i
 done
 
-# Move man pages around so we don't conflict with sendmail
-# Binaries are handled in the defines in preamble of specfile
-mv %{buildroot}%{_mandir}/man1/mailq.1      %{buildroot}%{_mandir}/man1/mailq.postfix.1
-mv %{buildroot}%{_mandir}/man1/newaliases.1 %{buildroot}%{_mandir}/man1/newaliases.postfix.1
-mv %{buildroot}%{_mandir}/man5/aliases.5    %{buildroot}%{_mandir}/man5/aliases.postfix.5
-
 # Executed after the package has been installed.
 # - activate postfix, setup chroot environment if necessary
 %post
@@ -506,20 +507,6 @@ sh %{config_dir}/post-install upgrade-package \
 	readme_directory=%{readme_dir} \
 || :
 
-# add alternatives support (available in rh7.3), or perform the equivalent
-# functionality by hand if needed.
-
-if [ -x %{_sbindir}/alternatives ]; then
-    %whinge "using RH alternatives"
-    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{_sbindir}/sendmail.postfix 30 \
-        --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
-        --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
-        --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
-        --slave %{_mandir}/man1/mailq.1.gz mta-mailqman %{_mandir}/man1/mailq.postfix.1.gz \
-        --slave %{_mandir}/man1/newaliases.1.gz mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1.gz \
-        --slave %{_mandir}/man5/aliases.5.gz mta-aliasesman %{_mandir}/man5/aliases.postfix.5.gz
-# if we are not using 7.3 the trigger scripts will kick in
-fi
 
 # build the aliases.db file on the INSTALL machine
 %{_sbindir}/postalias %{config_dir}/aliases
@@ -546,13 +533,25 @@ fi
 
 %triggerpostun -- sendmail
 
-# if removing sendmail and not using alternatives: replace with postfix equivalents
+# If removing sendmail and not using alternatives: replace with postfix equivalents
 %whinge "triggerpostun -- sendmail: final number of sendmail packages=$2"
 [ $2 = 0 ] || exit 0
-if [ ! -x %{_sbindir}/alternatives ]; then
-#    %whinge "triggerpostun -- sendmail: no alternatives"
+
+if [ -x %{_sbindir}/alternatives ]; then
+    # DOUBT: should I _always be doing this or only if /usr/sbin/sendmail doesn't exist?
+    # For the moment do it always.
+    %whinge "Uninstalling sendmail, so setup Postfix: using RH alternatives"
+    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{_sbindir}/sendmail.postfix 30 \
+        --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
+        --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
+        --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
+        --slave %{_mandir}/man1/mailq.1.gz mta-mailqman %{_mandir}/man1/mailq.postfix.1.gz \
+        --slave %{_mandir}/man1/newaliases.1.gz mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1.gz \
+        --slave %{_mandir}/man5/aliases.5.gz mta-aliasesman %{_mandir}/man5/aliases.postfix.5.gz
+else
+#   %whinge "triggerpostun -- sendmail: no alternatives"
     if [ ! -e %{_sbindir}/sendmail ]; then
-        %whinge "no %{_sbindir}/sendmail present: simulating RH alternatives"
+        %whinge "Uninstalling sendmail, no %{_sbindir}/sendmail present: simulating RH alternatives"
         ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
         ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
         ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
@@ -567,15 +566,29 @@ fi
 
 %triggerpostun -- postfix
  
-# if upgrading postfix some versions are pre-alternatives and thus use /usr/sbin/sendmail.
+# If upgrading postfix some versions are pre-alternatives and thus use /usr/sbin/sendmail.
 # After uninstalling the old package this file will be missing and we need to link to the
 # new postfix sendmail binary
 %whinge "triggerpostun -- postfix: final number of Postfix packages=$2"
 [ $2 -gt 0 ] || exit 0
-if [ ! -x %{_sbindir}/alternatives ]; then
-#    %whinge "triggerpostun -- postfix: no alternatives"
+
+# add alternatives support (available in rh7.3), or perform the equivalent
+# functionality by hand if needed.
+
+if [ -x %{_sbindir}/alternatives ]; then
+    # DOUBT: should I _always be doing this or only if /usr/sbin/sendmail doesn't exist?
+    # For the moment do it always.
+    %whinge "Upgrading Postfix: using RH alternatives"
+    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{_sbindir}/sendmail.postfix 30 \
+        --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
+        --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
+        --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
+        --slave %{_mandir}/man1/mailq.1.gz mta-mailqman %{_mandir}/man1/mailq.postfix.1.gz \
+        --slave %{_mandir}/man1/newaliases.1.gz mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1.gz \
+        --slave %{_mandir}/man5/aliases.5.gz mta-aliasesman %{_mandir}/man5/aliases.postfix.5.gz
+else
     if [ ! -e %{_sbindir}/sendmail ]; then
-        %whinge "no %{_sbindir}/sendmail present: simulating RH alternatives"
+        %whinge "Upgrading Postfix, no %{_sbindir}/sendmail present: simulating RH alternatives"
         ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
         ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
         ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
@@ -583,8 +596,8 @@ if [ ! -x %{_sbindir}/alternatives ]; then
         ln -sf %{_mandir}/man1/mailq.postfix.1.gz      %{_mandir}/man1/mailq.1.gz 
         ln -sf %{_mandir}/man1/newaliases.postfix.1.gz %{_mandir}/man1/newaliases.1.gz 
         ln -sf %{_mandir}/man5/aliases.postfix.5.gz    %{_mandir}/man5/aliases.5.gz
-#    else
-#        %whinge "%{_sbindir}/sendmail present: do nothing"
+#   else
+#       %whinge "%{_sbindir}/sendmail present: do nothing"
     fi
 fi
 

@@ -3,7 +3,7 @@ pfixtls-0.8.10-1.1.10-0.9.6d.tar.gz
 pflogsumm-1.0.4.pl
 postfix-1.1.6_quota.patch
 postfix-aliases
-postfix-alternatives.patch
+postfix-files.patch
 postfix-bounce_notify_util.c.patch
 postfix-build
 postfix-chroot-setup.awk
