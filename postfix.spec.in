@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.46 2001/01/04 22:47:00 root Exp $
+# $Id: postfix.spec.in,v 2.47 2001/01/14 17:32:23 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -10,14 +10,6 @@
 ##############################################################################
 #
 # This spec file generated with the following options:
-#
-# POSTFIX_SMTPD_MULTILINE_GREETING=__POSTFIX_SMTPD_MULTILINE_GREETING__
-# POSTFIX_SAFE_MYNETWORKS=__POSTFIX_SAFE_MYNETWORKS__
-# POSTFIX_BROKEN_AUTH=__POSTFIX_BROKEN_AUTH__
-# POSTFIX_LDAP=__POSTFIX_LDAP__
-# POSTFIX_PCRE=__POSTFIX_PCRE__
-# POSTFIX_MYSQL=__POSTFIX_MYSQL__
-# POSTFIX_SASL=__POSTFIX_SASL__
 #
 # Built on __DISTRIBUTION__
 # 
@@ -31,6 +23,16 @@
 #
 ##############################################################################
 
+# defines according to our taste
+%define LDAP __LDAP__
+%define MYSQL __MYSQL__
+%define PCRE __PCRE__
+%define SASL __SASL__
+
+%define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
+%define SAFE_MYNETWORKS __SAFE_MYNETWORKS__
+%define BROKEN_AUTH __BROKEN_AUTH__
+
 Name: postfix
 Summary: Postfix Mail Transport Agent
 Group: System Environment/Daemons
@@ -40,7 +42,7 @@ PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
 Version: 20001217
-Release: 8__POSTFIX_SUFFIX__
+Release: 9__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Vendor: None -- Built under __DISTRIBUTION__
 Distribution: Experimental
@@ -51,7 +53,7 @@ Source3: postfix-etc-rc.d-init.d-postfix
 Source4: postfix-etc-cron.daily-postfix
 Source5: postfix-aliases
 Source6: postfix-chroot-setup.awk
-Source7: postfix-RPM-TODO-list
+#Source7: postfix-RPM-TODO-list -- does anyone care about my TODO list?
 Source8: postfix.spec.in
 Source9: make-postfix.spec
 Patch1:  postfix-config.patch
@@ -62,55 +64,65 @@ Patch3:  postfix-INSTALL.sh.patch
 # Optional patches - set the appropriate environment variables to include
 #                    them when building the package
 #
-# applied if POSTFIX_BROKEN_AUTH=1
+# applied if %BROKEN_AUTH=1
 Patch97: postfix-broken_auth.patch
-# applied if POSTFIX_SAFE_MYNETWORKS=1
+# applied if %SAFE_MYNETWORKS=1
 Patch98: postfix-safe_mynetworks.patch
-# applied if POSTFIX_SMTPD_MULTILINE_GREETING=1
+# applied if %SMTPD_MULTILINE_GREETING=1
 Patch99: postfix-smtpd_multiline_greeting.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 
-# Requires for different packages - added automatically
-__POSTFIX_REQUIRES__
-# BuildRequires for different packages - added automatically
-__POSTFIX_BUILDREQUIRES__
+# Requires for different packages - added automatically (optional)
+__REQUIRES__
+# BuildRequires for different packages - added automatically (optional)
+__BUILDREQUIRES__
 
+%if %{LDAP}
+Requires: openldap >= 1.2.9
+BuildRequires: openldap >= 1.2.9, openldap-devel >= 1.2.9
+%endif
+
+%if %{MYSQL}
+Requires: mysql, mysqlclient9
+BuildRequires: mysql, mysqlclient9, mysql-devel
+%endif
+
+%if %{PCRE}
+Requires: pcre
+BuildRequires: pcre, pcre-devel
+%endif
+
+%if %{SASL}
+Requires: cyrus-sasl
+BuildRequires: cyrus-sasl
+%endif
 
 %description
-Postfix aims to be an alternative to the widely-used sendmail program,
-which is responsible for 70 percent of all e-mail delivered on the
-Internet.
+Postfix is a Mail Transport Agent (MTA), intended to be an alternative
+to the widely-used sendmail.  This is a reasonably sophisticated package
+which includes many patches and optional support for LDAP, pcre, mysql,
+and SMTP AUTH (SASL); it sets up chroot for added security; and it
+starts and stops the daemon on install/remove.  An alternative simple
+and straightforward rpm is available from Todd Bennett, for download
+at http://people.oven.com/bet/bent/.
 
-Although IBM supported the Postfix development, it abstains from control
-over its evolution.  The goal is to have Postfix installed on as many
-systems as possible.  To this end, the software is given away with no
-strings attached, so that it can evolve with input from and under control
-of its users.
-
-Be sure to read http://www.moongroup.com/postfix-faq/c22.html which
-covers steps which should be taken prior to and after the installation
-of Postfix.  Note this faq this is rather out of date.
+Read the (outdated) FAQ at http://www.moongroup.com/postfix-faq/c22.html
+which covers steps which should be taken prior to and after the installation
+of Postfix.
 
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-Binary RPMS for alpha and S/390-Linux architectures were built by
-Klaus Jaehne <klaus.jaehne@to.com>.
-Please contact him for information related to these platforms.
+This package/specfile was built with the following options:
 
-I have received reports that this package builds on the sparc platform
-too. If anyone want to provide binary rpms please let me know.
-
-This package has been built with the following options:
-
-POSTFIX_SMTPD_MULTILINE_GREETING=__POSTFIX_SMTPD_MULTILINE_GREETING__
-POSTFIX_SAFE_MYNETWORKS=__POSTFIX_SAFE_MYNETWORKS__
-POSTFIX_BROKEN_AUTH=__POSTFIX_BROKEN_AUTH__
-POSTFIX_LDAP=__POSTFIX_LDAP__
-POSTFIX_PCRE=__POSTFIX_PCRE__
-POSTFIX_MYSQL=__POSTFIX_MYSQL__
-POSTFIX_SASL=__POSTFIX_SASL__
+SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
+SAFE_MYNETWORKS=__SAFE_MYNETWORKS__
+BROKEN_AUTH=__BROKEN_AUTH__
+LDAP=__LDAP__
+PCRE=__PCRE__
+MYSQL=__MYSQL__
+SASL=__SASL__
 
 The source package contains information about rebuilding with alternative
 options.
@@ -141,11 +153,13 @@ options.
 
 # warn before we start if we aren't root
 if [ `id -u` != "0" ]; then
-    echo "ERROR: Not building postfix package as the superuser"
-    echo "ERROR: You MUST be the superuser to build the postfix package"
-    echo "ERROR: as part of the package build process requires superuser privileges"
-    echo ""
-    echo "Please su - root and try again"
+    cat <<-ENDTEXT
+	ERROR: Your are not building postfix package as the superuser.
+	ERROR: You MUST be the superuser to build the postfix package
+	ERROR: as part of the package build process requires superuser privileges
+	
+	Please su - root and try again"
+ENDTEXT
     exit 1
 fi
 
@@ -163,20 +177,20 @@ awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > co
 
 # APPLY OPTIONAL PATCHES
 
-# Optionally apply Daniel Roesen's support patch for 250-AUTH= ESMTP banner
-if [ "$POSTFIX_BROKEN_AUTH" = 1 ]; then
+# Apply Daniel Roesen's support patch for 250-AUTH= ESMTP banner
+%if %{BROKEN_AUTH}
 %patch97 -p1 -b .brokenauth
-fi
+%endif
 
-# Optionally apply Daniel Roesen's safe mynetworks patch
-if [ "$POSTFIX_SAFE_MYNETWORKS" = 1 ]; then
+# Apply Daniel Roesen's safe mynetworks patch
+%if %{SAFE_MYNETWORKS}
 %patch98 -p1 -b .mynetworks
-fi
+%endif
 
-# Optionally apply my SMTPD Multiline greeting
-if [ "$POSTFIX_SMTPD_MULTILINE_GREETING" = 1 ]; then
+# Apply my SMTPD Multiline greeting
+%if %{SMTPD_MULTILINE_GREETING}
 %patch99 -p1 -b .multiline
-fi
+%endif
 
 # Copy README files allowing us to just go %doc below, and have rpm(1)
 # automatically tuck it in alongside the READMEs and COPYRIGHTs.
@@ -206,10 +220,31 @@ grep -q ^postfix: /etc/passwd || {
 %build
 
 umask 022
-make tidy
-make -f Makefile.init makefiles \
-    'CCARGS=__POSTFIX_CCARGS__' \
-    'AUXLIBS=__POSTFIX_AUXLIBS__'
+
+CCARGS=
+AUXLIBS=
+
+%if %{LDAP}
+  CCARGS="${CCARGS} -DHAS_LDAP"
+  AUXLIBS="${AUXLIBS} -L/usr/lib -lldap -llber"  
+%endif
+%if %{PCRE}
+  CCARGS="${CCARGS} -DHAS_PCRE"
+  AUXLIBS="${AUXLIBS} -lpcre"
+%endif
+%if %{MYSQL}
+  CCARGS="${CCARGS} -DHAS_MYSQL -I/usr/include/mysql"
+  AUXLIBS="${AUXLIBS} -L/usr/lib/mysql -lmysqlclient -lm"
+%endif
+%if %{SASL}
+  CCARGS="${CCARGS} -DUSE_SASL_AUTH"
+  AUXLIBS="${AUXLIBS} -lsasl"
+%endif
+
+export CCARGS AUXLIBS
+
+#make tidy
+make -f Makefile.init makefiles
 make DEBUG="" OPT="$RPM_OPT_FLAGS"
 
 %pre
@@ -489,6 +524,11 @@ rm -rf ${RPM_BUILD_ROOT}
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Fri Jan 12 2001 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001217-9, change description making it briefer and including
+  URL to Bennett Todd's packages.
+- Reduce dependency on postfix.spec.in, by using %if declarations
+
 * Thu Jan 04 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001217-8, minor touches to build procedure
 

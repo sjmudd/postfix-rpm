@@ -1,12 +1,11 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.14 2001/01/04 22:47:00 root Exp $
+#  $Id: make-postfix.spec,v 1.15 2001/01/14 17:32:08 root Exp $
 #
 
-POSTFIX_SUFFIX=
-POSTFIX_CCARGS=
-POSTFIX_AUXLIBS=
-POSTFIX_REQUIRES=
+SUFFIX=
+REQUIRES=
+BUILDREQUIRES=
 DISTRIBUTION_PREREQ=
 DISTRIBUTION='Unknown Linux Distribution'
 
@@ -16,36 +15,20 @@ DISTRIBUTION='Unknown Linux Distribution'
 echo ""
 echo "Generating Postfix spec file: ../SPECS/postfix.spec"
 if [ "$POSTFIX_LDAP" = 1 ]; then
-    echo "  adding LDAP support to spec file"
-    POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+ldap"
-    POSTFIX_CCARGS="${POSTFIX_CCARGS} -DHAS_LDAP"
-    POSTFIX_AUXLIBS="${POSTFIX_AUXLIBS} -L/usr/lib -lldap -llber"
-    POSTFIX_REQUIRES="openldap >= 1.2.9"
-    POSTFIX_BUILDREQUIRES="openldap-devel >= 1.2.9"
+    echo "  adding LDAP  support to spec file"
+    SUFFIX="${SUFFIX}+ldap"
 fi
 if [ "$POSTFIX_PCRE" = 1 ]; then
-    echo "  adding PCRE support to spec file"
-    POSTFIX_CCARGS="${POSTFIX_CCARGS} -DHAS_PCRE"
-    POSTFIX_AUXLIBS="${POSTFIX_AUXLIBS} -lpcre"
-    POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+pcre"
-    POSTFIX_REQUIRES="${POSTFIX_REQUIRES},pcre"
-    POSTFIX_BUILDREQUIRES="${POSTFIX_BUILDREQUIRES},pcre"
+    echo "  adding PCRE  support to spec file"
+    SUFFIX="${SUFFIX}+pcre"
 fi
 if [ "$POSTFIX_MYSQL" = 1 ]; then
     echo "  adding MySQL support to spec file"
-    POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+mysql"
-    POSTFIX_CCARGS="${POSTFIX_CCARGS} -DHAS_MYSQL -I/usr/include/mysql"
-    POSTFIX_AUXLIBS="${POSTFIX_AUXLIBS} -L/usr/lib/mysql -lmysqlclient -lm"
-    POSTFIX_REQUIRES="${POSTFIX_REQUIRES},MySQL,MySQL-client"
-    POSTFIX_BUILDREQUIRES="${POSTFIX_BUILDREQUIRES},MySQL,MySQL-client"
+    SUFFIX="${SUFFIX}+mysql"
 fi
 if [ "$POSTFIX_SASL" = 1 ]; then
-    echo "  adding SASL support to spec file"
-    POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+sasl"
-    POSTFIX_CCARGS="${POSTFIX_CCARGS} -DUSE_SASL_AUTH"
-    POSTFIX_AUXLIBS="${POSTFIX_AUXLIBS} -lsasl"
-    POSTFIX_REQUIRES="${POSTFIX_REQUIRES},cyrus-sasl"
-    POSTFIX_BUILDREQUIRES="${POSTFIX_BUILDREQUIRES},cyrus-sasl"
+    echo "  adding SASL  support to spec file"
+    SUFFIX="${SUFFIX}+sasl"
 fi
 
 # rh7 db3 crap - this is rather ugly
@@ -54,19 +37,28 @@ if [ `rpm -q redhat-release` ]; then
     # check for RedHat 7 and change Requires for new db3 if necessary
     A=`rpm -q redhat-release | grep -q 7; echo $?`
     if [ "$A" = 0 ]; then
-        POSTFIX_REQUIRES="${POSTFIX_REQUIRES},db3"
-        POSTFIX_BUILDREQUIRES="${POSTFIX_BUILDREQUIRES},db3,db3-devel"
+        REQUIRES="Requires: db3"
+        BUILDREQUIRES="BuildRequires: db3, db3-devel"
         DISTRIBUTION_PREREQ=', /etc/init.d'
     fi
     DISTRIBUTION=`rpm -q redhat-release` 
 fi
 
-if [ -n "$POSTFIX_REQUIRES" ]; then
-    POSTFIX_REQUIRES="Requires: ${POSTFIX_REQUIRES}"
+# ensure if undefined the value is 0
+if [ -z "$POSTFIX_LDAP" ]; then
+    POSTFIX_LDAP=0
 fi
-if [ -n "$POSTFIX_BUILDREQUIRES" ]; then
-    POSTFIX_BUILDREQUIRES="BuildRequires: ${POSTFIX_BUILDREQUIRES}"
+if [ -z "$POSTFIX_MYSQL" ]; then
+    POSTFIX_MYSQL=0
 fi
+if [ -z "$POSTFIX_PCRE" ]; then
+    POSTFIX_PCRE=0
+fi
+if [ -z "$POSTFIX_SASL" ]; then
+    POSTFIX_SASL=0
+fi
+
+SUFFIX=`echo "${SUFFIX}" | sed -e 's;^\+;;' -e 's;+$;;'` 
 
 cat > ../SPECS/postfix.spec <<EOF
 ##############################################################################
@@ -80,23 +72,19 @@ sed "
 s!__DISTRIBUTION_PREREQ__!$DISTRIBUTION_PREREQ!g
 s!__DISTRIBUTION__!$DISTRIBUTION!g
 
-s!__POSTFIX_SMTPD_MULTILINE_GREETING__!$POSTFIX_SMTPD_MULTILINE_GREETING!g
-s!__POSTFIX_SAFE_MYNETWORKS__!$POSTFIX_SAFE_MYNETWORKS!g
-s!__POSTFIX_BROKEN_AUTH__!$POSTFIX_BROKEN_AUTH!g
+s!__SMTPD_MULTILINE_GREETING__!$POSTFIX_SMTPD_MULTILINE_GREETING!g
+s!__SAFE_MYNETWORKS__!$POSTFIX_SAFE_MYNETWORKS!g
+s!__BROKEN_AUTH__!$POSTFIX_BROKEN_AUTH!g
 
-s!__POSTFIX_CCARGS__!$POSTFIX_CCARGS!g
-s!__POSTFIX_AUXLIBS__!$POSTFIX_AUXLIBS!g
-s!__POSTFIX_REQUIRES__!$POSTFIX_REQUIRES!g
-s!__POSTFIX_BUILDREQUIRES__!$POSTFIX_BUILDREQUIRES!g
+s!__REQUIRES__!$REQUIRES!g
+s!__BUILDREQUIRES__!$BUILDREQUIRES!g
 
-s!__POSTFIX_SUFFIX__!$POSTFIX_SUFFIX!g
+s!__SUFFIX__!$SUFFIX!g
 
-s!__POSTFIX_LDAP__!$POSTFIX_LDAP!g
-s!__POSTFIX_MYSQL__!$POSTFIX_MYSQL!g
-s!__POSTFIX_PCRE__!$POSTFIX_PCRE!g
-s!__POSTFIX_SASL__!$POSTFIX_SASL!g
+s!__LDAP__!$POSTFIX_LDAP!g
+s!__MYSQL__!$POSTFIX_MYSQL!g
+s!__PCRE__!$POSTFIX_PCRE!g
+s!__SASL__!$POSTFIX_SASL!g
 " postfix.spec.in >> ../SPECS/postfix.spec
 
-#echo " "
-#
-#( cd ../SPECS; rpm -ba postfix.spec )
+# end of make-postfix.spec
