@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.35.2.6 2002/03/12 12:41:24 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.35.2.7 2002/04/09 15:14:33 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -62,8 +62,14 @@ echo "  - if the script gets stuck here:"
 echo "    check and remove /var/lib/rpm/__db.00? files"
 
 # Determine the distribution (is there a better way of doing this)
-DISTRIBUTION=`rpm -qa | grep -- -release | egrep '(redhat-|mandrake-)'`
-[ -z "$DISTRIBUTION" ] && DISTRIBUTION='Unknown Distribution'
+
+tmpdir=`rpm --eval '%{_sourcedir}'`
+distribution=`sh ${tmpdir}/postfix-get-distribution`
+releasename=`echo $distribution | sed -e 's;-.*$;;'`
+major=`echo $distribution | sed -e 's;[a-z]*-;;' -e 's;\.[0-9]*$;;'`
+minor=`echo $distribution | sed -e 's;[a-z]*-;;' -e 's;[0-9]*\.;;'`
+echo "  Distribution is: ${distribution}"
+echo ""
 
 # Ensure only one of POSTFIX_MYSQL and POSTFIX_REDHAT_MYSQL are defined
 [ -n "$POSTFIX_MYSQL" ] && \
@@ -83,23 +89,6 @@ Please set the appropriate value and rerun make-postfix.spec again
 EOF
     exit 1
 }
-
-# Get release information (if possible)
-if [ `rpm -q redhat-release >/dev/null 2>&1; echo $?` = 0 ]; then
-    releasename=redhat
-    release=`rpm -q redhat-release | sed -e 's;^redhat-release-;;' -e 's;-[0-9]*$;;'`
-elif [ `rpm -q mandrake-release >/dev/null 2>&1; echo $?` = 0 ]; then
-    releasename=mandrake
-    release=`rpm -q mandrake-release | sed -e 's;^mandrake-release-;;' -e 's;-[0-9]*mdk$;;'`
-else
-    releasename=unknown
-    release=0.0
-fi
-major=`echo $release | sed -e 's;\.[0-9]*$;;'`
-minor=`echo $release | sed -e 's;^[0-9]*\.;;'`
-
-echo "  Distribution is: ${releasename} ${major}.${minor}"
-echo ""
 
 if [ "$POSTFIX_LDAP" = 1 ]; then
     echo "  adding LDAP  support to spec file"
@@ -229,7 +218,7 @@ sed "
 s!__REQUIRES_DB3__!$REQUIRES_DB3!g
 s!__REQUIRES_DB4__!$REQUIRES_DB4!g
 s!__REQUIRES_INIT_D__!$REQUIRES_INIT_D!g
-s!__DISTRIBUTION__!$DISTRIBUTION!g
+s!__DISTRIBUTION__!$distribution!g
 s!__SMTPD_MULTILINE_GREETING__!$POSTFIX_SMTPD_MULTILINE_GREETING!g
 s!__SUFFIX__!$SUFFIX!g
 s!__LDAP__!$POSTFIX_LDAP!g

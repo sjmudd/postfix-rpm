@@ -89,34 +89,34 @@ build () {
 # Check postfix tar ball has been download
 
 version=`grep '^%define ver ' postfix.spec.in | awk '{ print $3 } '`
-release_date=`grep '^%define releasedate' postfix.spec.in | awk '{ print $3 } '`
+mail_release_date=`grep '^%define mail_release_date' postfix.spec.in | awk '{ print $3 } '`
 rpm_release=`grep '^%define rel ' postfix.spec.in | awk '{ print $3 } '`
 
 RC=`grep -q '%define official 1' postfix.spec.in; echo $?`
 if [ ${RC} = "0" ]; then
     ftpdir=official
 else
-    version="${version}-${release_date}"
+    version="${version}-${mail_release_date}"
     ftpdir=experimental
 fi
 
 # convert 
-#	Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_directory}/postfix-%{version1}.tar.gz
+#	Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_dir}/postfix-%{version1}.tar.gz
 # into one of
 #	ftp://ftp.porcupine.org/mirrors/postfix-release/official/postfix-1.1.0.tar.gz
 #	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/postfix-1.1.0-20020115.tar.gz
 
-source0=`grep "^Source0:" postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{ftp_directory};${ftpdir};" -e "s;%{version1};${version};"`
+source0=`grep "^Source0:" postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{ftp_dir};${ftpdir};" -e "s;%{version1};${version};"`
 
-file=`echo ${source0} | sed -e 's;.*/;;'`
+file="postfix-${version}.tar.gz"
 base=`dirname ${source0}`
 srcdir=`rpm --eval '%{_sourcedir}'`
 specdir=`rpm --eval '%{_specdir}'`
 
 cat <<EOF
 Information extracted from postfix.spec.in:
-	postfix version: ${major_version}.${minor_version}.${patch_level}
-	Release Date:		${release_date}
+	postfix version:	${version}
+	Release Date:		${mail_release_date}
 	Postfix tarball name:	${file}
 	URL location:		${base}
 	RPM Release:		${rpm_release}
@@ -132,17 +132,17 @@ echo "Checking for postfix tar ball..."
 download_if_necessary ${srcdir} ${base} ${file}
 
 # Look for the TLS patches
-#	Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{tlsno}.tar.gz  
+#	Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{pfixtls}.tar.gz  
 
-tlsno=`grep '^%define tlsno' postfix.spec.in | awk '{ print $3 } '`
-source0=`grep '^Source9: ftp://ftp.aet.tu-cottbus.de' postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{tlsno};${tlsno};"`
+pfixtls=`grep '^%define pfixtls' postfix.spec.in | awk '{ print $3 } '`
+source0=`grep '^Source9: ftp://ftp.aet.tu-cottbus.de' postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{pfixtls};${pfixtls};"`
 
 base=`dirname ${source0}`
 file=`echo ${source0} | sed -e 's;.*/;;'`
 
 cat <<EOF
 Checking TLS patches...
-	tlsno:			${tlsno}
+	pfixtls:		${pfixtls}
 	TLS patch tarball name:	${file}
 	URL location:		${base}
 
