@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.183 2002/01/11 19:46:34 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.184 2002/01/12 09:40:31 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -174,7 +174,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.183 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.184 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -492,7 +492,7 @@ mkdir -p %{buildroot}%{queue_directory}/public
 mkdir -p %{buildroot}%{queue_directory}/pid
 
 # install smtp-sink/smtp-source by hand
-for i in smtp-sink smtp-source do
+for i in smtp-sink smtp-source; do
   install -c -m 755 bin/$i %{buildroot}%{command_directory}/
 done
 
