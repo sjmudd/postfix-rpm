@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.70 2003/07/12 08:59:25 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.71 2003/07/12 10:44:44 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -81,7 +81,7 @@
 %define official 1
 %define ver 2.0.13
 %define mail_release_date 20021219
-%define rel 3
+%define rel 3.1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -230,7 +230,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.70 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.71 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -700,7 +700,6 @@ else
     fi
 fi
 
-
 %triggerpostun -- postfix
 
 # If upgrading postfix some versions are pre-alternatives and use
@@ -737,13 +736,15 @@ else
 fi
 
 # cleanup on upgrade: previous versions of my package installed /etc/passwd
-# into the chroot.  The proxymap daemon now makes this unnecessary, so remove
+# into the chroot.  As the proxymap daemon now makes this unnecessary remove
 # the chrooted password file if it exists.
-[ `postconf -h local_recipient_maps | grep -q proxy:unix:passwd.byname; echo $?` = 0 ] && \
-    dir=`postconf -h queue_directory` && [ -n "${dir}" ] && \
-    file=${dir}/etc/passwd && \
-    %whinge "remove etc/passwd from chroot ${dir}: no longer needed as proxymap enabled" && \
-    [ -e ${file} ] && rm -f ${file}
+dir=`postconf -h queue_directory`
+file=${dir}/etc/passwd
+[ -e ${file} ] && \
+    [ -n "${dir}" ] && \
+    [ `postconf -h local_recipient_maps | grep -q proxy:unix:passwd.byname; echo $?` = 0 ] && \
+        %whinge "remove etc/passwd from chroot ${dir}: no longer needed as proxymap enabled" && \
+        rm -f ${file}
 
 # Ensure the trigger script returns 0. the previous function may cause it to
 # return a different value which makes RPM barf.
@@ -882,7 +883,7 @@ queue_directory_remove () {
     done
 }
 
-if [ "$1" = 0 ]; then
+[ "$1" = 0 ] && {
     service postfix stop >/dev/null 2>&1
     chkconfig --del postfix
 
@@ -914,19 +915,19 @@ if [ "$1" = 0 ]; then
         
         queue_directory_remove
     } || :
-fi
+} || :
 
 %postun
 umask 022
-if [ "$1" -ge 1 ]; then
+[ "$1" -ge 1 ] && {
     service postfix condrestart 
-fi
+} || :
 
 %clean
 umask 022
 [ -n "${RPM_BUILD_ROOT}" -a "${RPM_BUILD_ROOT}" != "/" ] && {
     rm -rf ${RPM_BUILD_ROOT}
-}
+} || :
 
 %files
 %defattr(-, root, root)
@@ -1063,13 +1064,15 @@ umask 022
 
 %changelog
 
-* Sat Jul 12 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.13-3
-  - problems reported on 2.0.13-2 due to the trigger script failing on 
-    package installation.
-    - solution: ensure the trigger scripts returns 0 otherwise RPM barfs.
-    - reported by:
-        James Toshack <James_Toshack@learningtree.com>
-        Larry Hansford <lhansfor@creativedatasolns.com>
+* Sat Jul 12 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.13-3.1
+  - problem reported on 2.0.13-2 due to the trigger script returning non 0
+    value on package installation and RPM treating this as an error.
+  - reported by:
+      James Toshack <James_Toshack@learningtree.com>
+      Larry Hansford <lhansfor@creativedatasolns.com>
+  - solution: ensure the trigger scripts returns 0.
+  - check other scripts to ensure that they can only return 0 except for
+    serious unexpected errors.
 
 * Thu Jul 10 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.13-2
   - remove /etc/passwd used in chroot (no longer needed now default
