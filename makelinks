@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# File to make links from this directory to the SOURCES directory for all files
+
+HERE=`pwd`
+BASE=/usr/src/redhat/SOURCES
+
+for i in *; do
+  if [ -f $i ]; then
+    ln -s $HERE/$i $BASE/$i
+  fi
+done

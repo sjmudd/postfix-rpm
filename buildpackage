@@ -1,0 +1,10 @@
+#!/bin/sh
+
+echo Building postfix...
+
+HERE=`pwd`
+
+( cd /usr/src/redhat/SOURCES && \
+  sh make-postfix.spec && \
+  cd /usr/src/redhat/SPECS && \
+  rpm -ba postfix.spec )

@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.65 2001/02/19 20:36:16 root Exp $
+# $Id: postfix.spec.in,v 2.66 2001/02/20 19:56:07 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -51,7 +51,7 @@ PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail, exim, qmail, smail
 Version: 20010204
-Release: 3__SUFFIX__
+Release: 4__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Vendor: Built under __DISTRIBUTION__
 Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{version}.tar.gz
@@ -116,9 +116,11 @@ starts and stops the daemon on install/remove.
 An alternative simple rpm is available from Todd Bennett, for download
 at http://people.oven.com/bet/bent/.
 
-Read the (outdated) FAQ at http://www.moongroup.com/postfix-faq/c22.html
-which covers steps which should be taken prior to and after the installation
-of Postfix.
+There exists an outdated FAQ at
+http://www.moongroup.com/postfix-faq/c22.html as well as one on
+www.redhat.com which covers steps which should be taken prior to and
+after the installation of Postfix.  Note that links to this package
+are incorrect.
 
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
@@ -600,6 +602,12 @@ fi
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Tue Feb 20 2001 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20010204-4,  minor changes
+  - fix spelling mistake in changelog, droesen's name
+  - change -f check to -x in /etc/rc.d/init.d/postfix and
+                             /etc/cron.daily/postfix
+
 * Wed Feb 07 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20010204-3, avoid the /var/spool/postfix/maildrop - directory
   not empty error message.
@@ -705,7 +713,7 @@ fi
   - tidy up stop/start over package upgrade
   - change method for selectively installing patches
       now use POSTFIX_SMTPD_MULTILINE=1 for smtpd multiline greetings
-              POSTFIX_SAFE_MYNETWORKS=1 for droeson's patch
+              POSTFIX_SAFE_MYNETWORKS=1 for droesen's patch
   - create postfix user/group on package build if necessary
   - include smtp-source/smtp-sink for testing
   - include comments in spec file for building with other libraries

@@ -1,5 +1,5 @@
 #!/bin/sh
 
-[ -f /usr/sbin/postfix ] || exit 0
+[ -x /usr/sbin/postfix ] || exit 0
 /usr/sbin/postfix check
 
