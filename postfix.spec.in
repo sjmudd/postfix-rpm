@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.114 2001/05/21 22:17:06 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.115 2001/05/23 21:38:21 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -52,8 +52,9 @@
 #Used when we have patchlevels, as can't include '-' in the package name
 #define version1 %{vers}-%{patchlevel}
 #define version2 %{vers}_%{patchlevel}
-%define rel  4.1
+%define rel  5
 %define tlsno pfixtls-0.7.2-snap20010502-0.9.6a
+%define pflogno -0.9.0
 
 Name: postfix
 Summary: Postfix Mail Transport Agent
@@ -82,7 +83,7 @@ Source6: postfix-chroot-setup.awk
 Source7: postfix.spec.in
 Source8: make-postfix.spec
 Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{tlsno}.tar.gz
-Source10: http://jimsun.linxnet.com/downloads/pflogsumm.pl
+Source10: http://jimsun.linxnet.com/downloads/pflogsumm%{pflogno}.pl
 Source11: postfix-build
 Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
@@ -150,7 +151,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.114 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.115 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -424,7 +425,7 @@ install -c ${RPM_SOURCE_DIR}/postfix-etc-cron.daily-postfix ${RPM_BUILD_ROOT}%{c
 
 # install pflogsumm.pl used by cron daily into %{command_directory}
 #
-install -c -m u=rx,go= ${RPM_SOURCE_DIR}/pflogsumm.pl ${RPM_BUILD_ROOT}%{command_directory}/pflogsumm.pl
+install -c -m u=rx,go= ${RPM_SOURCE_DIR}/pflogsumm%{pflogno}.pl ${RPM_BUILD_ROOT}%{command_directory}/pflogsumm.pl
 
 install -c auxiliary/rmail/rmail ${RPM_BUILD_ROOT}%{rmail_path}
 

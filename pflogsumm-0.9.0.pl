@@ -1,10 +1,10 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 eval 'exec perl -S $0 "$@"'
     if 0;
 #
 # pflogsumm.pl - Produce summaries of Postfix/VMailer MTA in logfile -
 #	Copyright (C) 1998-99 by James S. Seymour (jseymour@jimsun.LinxNet.com)
-#	(See "License", below.)  Version 20000916-01
+#	(See "License", below.)  Version 20000925-01
 #
 # Usage:
 #    pflogsumm.pl -[eq] [-d <today|yesterday>] [-h <cnt>] [-u <cnt>]
@@ -309,6 +309,7 @@ $dateStr = get_datestr($opts{'d'}) if(defined($opts{'d'}));
 
 while(<>) {
     next if(defined($dateStr) && ! /^$dateStr/o);
+    s/: \[ID [0-9]+ .+\] /: /o;	# get rid of "[ID nnnnnn some.thing]" stuff
     ($msgMonStr, $msgDay, $msgTimeStr, $cmd, $qid) =
 	m#^(...)\s+([0-9]+)\s(..:..:..)\s.*?(?:vmailer|postfix)[-/]([^\[:]*).*?: ([^:]+)#o;
     ($msgMonStr, $msgDay, $msgTimeStr, $cmd, $qid) =
