@@ -1,7 +1,7 @@
 #!/bin/sh
 #
-# Simple script to determine the correct distribution, in the form
-# <vendor>-<major>.<minor>
+# postfix-get-distribution - Simple script to determine the correct
+# distribution, in the form <distribution>-<major>.<minor>
 #
 # - there appears to be no clear way of doing this which is cross platform
 #   compatible between different rpm vendors
@@ -9,6 +9,36 @@
 # With rh9 the return value of rpm -q redhat-release does not include a
 # minor version.  This is used in several places in make-postfix.spec so we
 # generate a minor version of 0 if necessary.
+
+# Provide a usage message
+function usage () {
+id='$Revision: 1.2.2.9 $'
+id=$(echo $id | sed -e 's/^.*: //g' -e 's/ .*$//g')
+cat <<EOF
+`basename $0` $id
+
+Copyright (C) 2002-2003 - Simon J Mudd <sjmudd@pobox.com>
+This program may be freely redistributed under the terms of the GNU GPL
+
+Usage: `basename $0` [--help] [--full] [--distribution] [--major] [--minor]
+
+Return the distribution name in the form of <distribution>-<major>.<minor>
+or optionally provide ONE of the components.
+EOF
+}
+
+info=full
+if [ -n "$1" ]; then
+    case $1 in
+    --distribution) info=distribution;;
+    --major) info=major;;
+    --minor) info=minor;;
+    --full)  ;;# do nothing
+    --help) usage; exit 0;;
+    *) usage; exit 1;;
+    esac
+fi
+
 #
 # Get release information (if possible)
 if [ `rpm -q redhat-release >/dev/null 2>&1; echo $?` = 0 ]; then
@@ -50,5 +80,17 @@ echo $release | grep -q '\.' && {
 #echo release=$release
 #echo major=$major
 #echo minor=$minor
- 
-echo ${releasename}-${major}.${minor}
+
+case $info in
+full)
+    echo ${releasename}-${major}.${minor};;
+distribution)
+    echo ${releasename};;
+major)
+    echo ${major};;
+minor)
+    echo ${minor};;
+*)
+    echo "Internal error info=$info" >&2
+    exit 1
+esac

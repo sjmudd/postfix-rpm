@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.19 2003/07/22 19:23:26 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.20 2003/09/11 19:07:55 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -46,21 +46,19 @@
 #
 # Please advise me if any of these assumptions are incorrect.
 #
+# REQUIRES_INIT_D	1 by default, 0 for RH <=6, Mandrake <= 7
+#
 # Red Hat Linux Enterprise and Advanced Server 2.1 require
-# REQUIRES_INIT_D	add /etc/init.d/ to requires list
 # POSTFIX_DB=3		add db3 package to requires list
 # LDAP support is included
 #
 # Red Hat Linux 9 requires
-# REQUIRES_INIT_D	add /etc/init.d/ to requires list
 # POSTFIX_DB=4		add db4 package to requires list
 #
 # Red Hat Linux 8 requires
-# REQUIRES_INIT_D	add /etc/init.d/ to requires list
 # POSTFIX_DB=4		add db4 package to requires list
 #
 # Red Hat Linux 7.x requires
-# REQUIRES_INIT_D	add /etc/init.d/ to requires list
 # POSTFIX_DB=3		add db3 package to requires list
 #
 # Red Hat Linux MAY require (according to configuration)
@@ -89,11 +87,10 @@ error() {
 # are.
 
 [ `set | grep ^SUFFIX= | wc -l`          = 0 ] || error "Please do not set SUFFIX"
-[ `set | grep ^REQUIRES_INIT_D= | wc -l` = 0 ] || error "Please do not set REQUIRES_INIT_D"
+[ `set | grep ^REQUIRES_INIT_D= | wc -l` = 0 ] || error "Please do not set REQUIRES_INIT_D directly"
 [ `set | grep ^TLSFIX= | wc -l`          = 0 ] || error "Please do not set TLSFIX"
 
 SUFFIX=			# RPM package suffix
-REQUIRES_INIT_D=	# do we require /etc/init.d? (rh 7 and later)
 TLSFIX=			# Apply "fixes" to TLS patches
 
 # This appears to be .gz, except for Mandrake 8 which uses .bz2
@@ -109,12 +106,24 @@ echo "    check and remove /var/lib/rpm/__db.00? files"
 
 tmpdir=`rpm --eval '%{_sourcedir}'`
 distribution=`sh ${tmpdir}/postfix-get-distribution`
-releasename=`echo $distribution | sed -e 's;-.*$;;'`
-major=`echo $distribution | sed -e 's;[a-z]*-;;' -e 's;\.[0-9]*$;;'`
-minor=`echo $distribution | sed -e 's;[a-z]*-;;' -e 's;[0-9]*\.;;'`
+releasename=`sh ${tmpdir}/postfix-get-distribution --distribution`
+major=`sh ${tmpdir}/postfix-get-distribution --major`
+minor=`sh ${tmpdir}/postfix-get-distribution --minor`
 
 echo "  Distribution is: ${distribution}"
 echo ""
+
+# --- REQUIRES_INIT_D --- do we require /etc/init.d?
+
+REQUIRES_INIT_D=1
+
+if [ ${releasename} = redhat -a ${major} -le 6 ]; then
+    REQUIRES_INIT_D=0
+fi
+# This may need checking?
+if [ ${releasename} = mandrake -a ${major} -le 7 ]; then
+    REQUIRES_INIT_D=0
+fi
 
 if [ "$POSTFIX_MYSQL_DICT_REG" = 1 ]; then
     echo "including patch for dict_register fix for proxy:mysql:mysql-xxx.cf"
@@ -125,39 +134,36 @@ if [ "$POSTFIX_CDB" = 1 ]; then
     SUFFIX="${SUFFIX}.cdb"
 fi
 
-# LDAP support is provided by default on:
-#	redhat >= 7.2
-#	rhes, rhas >= 2.1
-#	yellowdog >= 2.3.
-# Therefore if adding LDAP support on these platforms don't include the .ldap
-# suffix:  It is assumed.  We also automatically include LDAP support on
-# these platforms, unless it has been explicitly disabled.
+# --- POSTFIX_LDAP --- do we require openldap support?
+#
+# LDAP support is included by default: except
+#	redhat < 7.2
+#	rhes, rhas < 2.1
+#	yellowdog < 2.3.
 
-DEFAULT_LDAP=0
+DEFAULT_LDAP=1
 case ${releasename} in
-mandrake)
-    # Not sure from when Mandrake supported LDAP,
-    # however it's now the default.
-    DEFAULT_LDAP=1
+redhat)
+    [ "${major}" -eq 7 -a "${minor}" -lt 2 ] && DEFAULT_LDAP=0
+    [ "${major}" -le 6 ] && DEFAULT_LDAP=0
     ;;
 
 rhes|rhas)
-    DEFAULT_LDAP=1
-    ;;
-
-redhat)
-    [ "${major}" -eq 7 -a "${minor}" -ge 2 ] && DEFAULT_LDAP=1
-    [ "${major}" -ge 8 ] && DEFAULT_LDAP=1
+    [ "${major}" -eq 2 -a "${minor}" -lt 1 ] && DEFAULT_LDAP=0
+    [ "${major}" -le 1 ] && DEFAULT_LDAP=0
     ;;
 
 yellowdog)
-    [ "${major}" -eq 2 -a "${minor}" -ge 3 ] && DEFAULT_LDAP=1
-    [ "${major}" -ge 3 ] && DEFAULT_LDAP=1
+    [ "${major}" -eq 2 -a "${minor}" -lt 3 ] && DEFAULT_LDAP=0
+    [ "${major}" -le 1 ] && DEFAULT_LDAP=0
     ;;
 esac
+
 test -z "${POSTFIX_LDAP}" && POSTFIX_LDAP=${DEFAULT_LDAP}
 if [ "${POSTFIX_LDAP}" = 1 ]; then
     echo "  adding LDAP support to spec file"
+
+    # Only add the .ldap suffix if the distribution by default doesn´t support ldap
     [ "${POSTFIX_LDAP}" != "${DEFAULT_LDAP}" ] && SUFFIX="${SUFFIX}.ldap"
 fi
 
@@ -212,20 +218,9 @@ if [ "$POSTFIX_MYSQL_QUERY" = 1 ]; then
     echo "  adding support for full mysql select statements to spec file"
     SUFFIX="${SUFFIX}.mysql_query"
 fi
-POSTFIX_SASL_LIBRARY=notused
 if [ "$POSTFIX_SASL" = 1 -o "$POSTFIX_SASL" = 2 ]; then
     echo "  adding SASL v${POSTFIX_SASL} support to spec file"
     SUFFIX="${SUFFIX}.sasl${POSTFIX_SASL}"
-
-    # which is the "-devel" library used for SASL?
-    case ${distribution} in
-    mandrake-*)
-        POSTFIX_SASL_LIBRARY=libsasl-devel
-	;;
-    *)
-	POSTFIX_SASL_LIBRARY=cyrus-sasl-devel
-	;;
-    esac
 else
     POSTFIX_SASL=
 fi
@@ -283,12 +278,10 @@ DEFAULT_DB=
 case ${releasename} in
 yellowdog)
     DEFAULT_DB=3
-    REQUIRES_INIT_D=1
     ;;
 
 rhes|rhas)
     DEFAULT_DB=3
-    REQUIRES_INIT_D=1
     [ ${releasename} = "rhes" ] && DIST=".rhes21"
     [ ${releasename} = "rhas" ] && DIST=".rhas21"
     ;;
@@ -297,19 +290,16 @@ redhat)
     case ${major} in
     9)
 	DEFAULT_DB=4
-	REQUIRES_INIT_D=1
 	DIST=".rh9"
 	;;
 
     8)
 	DEFAULT_DB=4
-	REQUIRES_INIT_D=1
 	DIST=".rh8"
 	;;
 
     7)
 	DEFAULT_DB=3
-	REQUIRES_INIT_D=1
 
        case ${minor} in
        0) DIST=".rh70.1" ;;
@@ -424,7 +414,6 @@ s!__PCRE__!$POSTFIX_PCRE!g
 s!__PGSQL__!$POSTFIX_PGSQL!g
 s!__PGSQL2__!$POSTFIX_PGSQL2!g
 s!__SASL__!$POSTFIX_SASL!g
-s!__SASL_LIBRARY__!$POSTFIX_SASL_LIBRARY!g
 s!__TLS__!$POSTFIX_TLS!g
 s!__TLSFIX__!$TLSFIX!g
 s!__VDA__!$POSTFIX_VDA!g

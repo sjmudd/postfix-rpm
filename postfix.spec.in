@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.91 2003/09/10 16:04:40 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.92 2003/09/11 19:07:55 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -23,14 +23,14 @@
 #                            <georgeb@intelinet.ro>: needs pgsql=1
 # sasl                     - include SASL/AUTH support (0 to disable sasl,
 #                            1 for sasl v1, or 2 for sasl v2, sasl_library is
-#                            the sasl library to link against)
+#                            the sasl library to link against, distribution dependent)
 # cdb                      - include CDB support by Michael Tokarev
 #                            <mjt@corpit.ru>
 # ipv6                     - include IPV6 support
 # tls                      - include TLS support
 # tlsfix                   - include TLS fix (apparently needed for rh6.2)
 #                          - (also include for rh9)
-# requires_init_d          - Required by RedHat >= 7
+# requires_init_d          - set according to distribution: default: 1, 0 for RH<=6, Mandrake<=7
 # requires_db              - used to add dbX dependencies in the package
 # include_db               - include the dbX library when compiling (rh6.x with db3)
 # smtpd_multiline_greeting - my patch to allow multiline banner
@@ -39,7 +39,10 @@
 #
 # Please send bugfixes and comments to the packager.
 #
+# distribution which the spec file was built from
 %define distribution __DISTRIBUTION__
+# distribution which we are building Postfix on
+%define build_dist %(sh $(rpm --eval '%{_sourcedir}')/postfix-get-distribution --distribution)
 %define mps __MANPAGE_SUFFIX__
 %define cdb __CDB__
 %define ldap __LDAP__
@@ -54,10 +57,13 @@
 %define mysql_dict_reg __MYSQL_DICT_REG__
 %define mysql_dict_reg 0
 %define pcre __PCRE__
+# determine PCRE library based on distribution name
+%define pcre_requires %(test %{build_dist} = mandrake && echo libpcre0 || echo pcre)
 %define pgsql __PGSQL__
 %define pgsql2 __PGSQL2__
 %define sasl __SASL__
-%define sasl_library __SASL_LIBRARY__
+# determine SASL library based on distribution name
+%define sasl_library %(test %{build_dist} = mandrake && echo libsasl-devel || echo cyrus-sasl-devel)
 %define tls __TLS__
 %define tlsfix __TLSFIX__
 %define include_db __INCLUDE_DB__
@@ -81,7 +87,7 @@
 %define official 1
 %define ver 2.0.15
 %define mail_release_date 20021219
-%define rel 1.1
+%define rel 1.2
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -176,9 +182,10 @@ Requires: openldap >= 1.2.9
 BuildRequires: openldap-devel >= 1.2.9
 %endif
 
+# default pcre, mandrake libpcre0
 %if %{pcre}
-Requires: pcre
-BuildRequires: pcre, pcre-devel
+Requires: %{pcre_requires}
+BuildRequires: %{pcre_requires}, %{pcre_requires}-devel
 %endif
 
 %if %{mysql_redhat}
@@ -225,18 +232,18 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.91 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.92 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
-ldap=%{ldap}, sasl=%{sasl}, pcre=%{pcre}, tls=%{tls}, tlsfix=%{tlsfix}, mysql=%{mysql}, mysql_redhat=%{mysql_redhat}, mysql_paths=%{mysql_paths}, mysql_dict_reg=%{mysql_dict_reg}
-include_db=%{include_db}, requires_db=%{requires_db}, requires_init_d=%{requires_init_d}, cdb=%{cdb}, ipv6=%{ipv6}
-debug=%{?_with_debug:1}%{?!_with_debug:0}
+ldap=%{ldap}, sasl=%{sasl}, sasl_library=%{sasl_library}, pcre=%{pcre}, pcre_requires=%{pcre_requires},
+tls=%{tls}, tlsfix=%{tlsfix}, mysql=%{mysql}, mysql_redhat=%{mysql_redhat}, mysql_paths=%{mysql_paths},
+mysql_dict_reg=%{mysql_dict_reg}, include_db=%{include_db}, requires_db=%{requires_db},
+requires_init_d=%{requires_init_d}, cdb=%{cdb}, ipv6=%{ipv6}, debug=%{?_with_debug:1}%{?!_with_debug:0}
 
 To use postfix with alternative options download the source package and
 rebuild the binary package following the instructions in the source
 package or on my web page.
-
 
 %prep
 umask 022
@@ -247,8 +254,7 @@ umask 022
 # the current distribution, using a script in the SOURCES directory.
 # This will be removed and built into the spec file later.
 
-tmpdir=`rpm --eval '%{_sourcedir}'`
-distribution=`sh ${tmpdir}/postfix-get-distribution`
+distribution=$(sh $(rpm --eval '%{_sourcedir}')/postfix-get-distribution)
 
 if [ "${distribution}" != "%{distribution}" ]; then
     cat <<ENDTEXT
@@ -934,6 +940,18 @@ umask 022
 #
 
 %changelog
+
+* Wed Sep 10 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.15-1.2
+  - update mysql_redhat to require zlib
+  - make-postfix.spec
+    - requires_init_d changed: defaults to 1, except on rh<=6 and mandrake<=7
+    - ldap changed: defaults to 1, except distributions for which it is not
+      the default: rh < 7.2, rhes, rhas < 2.1, yellowdog < 2.3
+    - pcre change: should work now with Mandrake libpcre0 libraries
+  - internal:
+    - postfix-get-distribution can now give distribution name, major or minor
+      version
+    - sasl_library now determined on build machine by distribution name
 
 * Sat Sep 06 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.15-1.1
   - update ipv6 patches
