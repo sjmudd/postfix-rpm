@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.62 2001/02/06 20:56:59 root Exp $
+# $Id: postfix.spec.in,v 2.63 2001/02/07 18:49:57 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -40,6 +40,7 @@
 
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
 %define SAFE_MYNETWORKS __SAFE_MYNETWORKS__
+
 
 Name: postfix
 Summary: Postfix Mail Transport Agent
@@ -156,6 +157,7 @@ options.
 %define cron_directory /etc/cron.daily
 
 %define whinge logger -p mail.info -t postfix/rpm
+%define postfix_running %{daemon_directory}/master -t >/dev/null 2>&1; echo $?
 
 %prep
 umask 022
@@ -287,7 +289,7 @@ grep -q ^postfix: /etc/passwd || {
 umask 022
 
 /bin/rm -rf ${RPM_BUILD_ROOT}
-mkdir -p ${RPM_BUILD_ROOT}
+/bin/mkdir -p ${RPM_BUILD_ROOT}
 
 strip -R .comment bin/* libexec/*
 
@@ -312,7 +314,7 @@ bin/postconf -c ${RPM_BUILD_ROOT}%{config_directory} -e \
 || exit 1 
 
 # This installs into the /etc/rc.d/init.d directory
-mkdir -p ${RPM_BUILD_ROOT}%{init_directory}
+/bin/mkdir -p ${RPM_BUILD_ROOT}%{init_directory}
 install -c ${RPM_SOURCE_DIR}/postfix-etc-init.d-postfix \
                   ${RPM_BUILD_ROOT}%{init_directory}/postfix
 
@@ -328,7 +330,7 @@ s;postfix reload;#postfix reload # - do not reenable - used by rpm;
 chmod 0744 ${RPM_BUILD_ROOT}%{config_directory}/chroot-setup-LINUX2
 
 # This is the /etc/cron.daily directory
-mkdir -p ${RPM_BUILD_ROOT}%{cron_directory}
+/bin/mkdir -p ${RPM_BUILD_ROOT}%{cron_directory}
 
 install -c ${RPM_SOURCE_DIR}/postfix-etc-cron.daily-postfix ${RPM_BUILD_ROOT}%{cron_directory}/postfix
 install -c auxiliary/rmail/rmail ${RPM_BUILD_ROOT}%{rmail_path}
@@ -360,8 +362,8 @@ ldap_chroot_setup() {
 
 /sbin/chkconfig --add postfix
 
-# setup missing directory structures
-%{command_directory}/postfix check
+# setup missing directory structures, but hide the warning message
+%{command_directory}/postfix check 2>/dev/null
 
 # this is the correct place to build the aliases.db file
 %{command_directory}/postalias %{config_directory}/aliases
@@ -379,11 +381,6 @@ ldap_chroot_setup() {
 %preun
 umask 022
 
-# see man master(8) - returns 0 if postfix not running
-postfix_stopped () {
-    %{daemon_directory}/master -t 2>/dev/null
-} 
-
 stop_postfix () {
     echo "Stopping the Postfix mail system"
     if [ -f %{queue_directory}/pid/master.pid ]; then
@@ -396,7 +393,7 @@ stop_postfix () {
 ldap_chroot_remove () {
     for i in usr/lib/libldap.so.1 usr/lib/liblber.so.1; do
         test -f %{queue_directory}/$i && \
-            rm -f %{queue_directory}/$i
+            /bin/rm -f %{queue_directory}/$i
     done
 }
 
@@ -408,45 +405,49 @@ chroot_remove () {
             etc/host.conf etc/resolv.conf etc/nsswitch.conf \
 	    etc/hosts etc/passwd etc/services \
 	    lib/libnss_* lib/libresolv* lib/libdb*; do
-        test -f $i && rm -f $i
+        test -f $i && /bin/rm -f $i
     done
 
     for dir in usr/lib/zoneinfo usr/lib usr lib etc; do
-        test -d $dir && rmdir $dir || \
+        test -d $dir && /bin/rmdir $dir || \
 	    echo "WARNING: preun - unable to remove directory %{queue_directory}/$dir"
     done
+}
 
-    # selectively remove the rest of the queue directory structure
-    # first remove the "queues" (and assume the hash depth is still 2)
+# selectively remove the rest of the queue directory structure
+# first remove the "queues" (and assume the hash depth is still 2)
+queue_directory_remove () {
     for dir in active bounce defer flush; do
         for a in 0 1 2 3 4 5 6 7 8 9 A B C D E F; do
    	    test -d $dir/$a && {
 	        for b in 0 1 2 3 4 5 6 7 8 9 A B C D E F; do
 		    test -d $dir/$a/$b && (
-		        rm -f $dir/$a/$b/*
-		        rmdir $dir/$a/$b
+		        /bin/rm -f $dir/$a/$b/*
+		        /bin/rmdir $dir/$a/$b
 		    )
 		done
-		rmdir $dir/$a || echo "WARNING: preun - unable to remove directory %{queue_directory}/$dir/$a"
+		/bin/rmdir $dir/$a || echo "WARNING: preun - unable to remove directory %{queue_directory}/$dir/$a"
 	    }
         done
-	rmdir $dir || echo "WARNING: preun - unable to remove directory %{queue_directory}/$dir"
+	/bin/rmdir $dir || echo "WARNING: preun - unable to remove directory %{queue_directory}/$dir"
     done
 
     # now remove the other directories
     for dir in corrupt deferred incoming maildrop pid private public saved; do
         test -d $dir && {
-            rm -f $dir/*
-            rmdir $dir || echo "WARNING: preun - unable to remove directory %{queue_directory}/$dir"
+            /bin/rm -f $dir/*
+            /bin/rmdir $dir || echo "WARNING: preun - unable to remove directory %{queue_directory}/$dir"
         }
     done
 }
 
 if [ "$1" = 0 ]; then
-    # stop postfix silently, but only if it's stopped
-    if [ ! postfix_stopped ]; then
+    # stop postfix silently, but only if it's running
+    if [ `%{postfix_running}` -eq 1 ]; then
+        echo "preun - RUNNING"
         stop_postfix
     else
+        echo "preun - NOT RUNNING"
         true
     fi
 
@@ -464,17 +465,13 @@ if [ "$1" = 0 ]; then
         ldap_chroot_remove
 %endif
         chroot_remove
+        queue_directory_remove
     }
     true # to ensure we exit safely
 fi
 
 %postun
 umask 022
-
-# see man master(8) - returns 0 if postfix not running
-postfix_stopped () {
-    %{daemon_directory}/master -t 2>/dev/null
-} 
 
 restart_postfix () {
     echo "Stopping   the Postfix mail system"
@@ -489,16 +486,18 @@ restart_postfix () {
 }
 
 if [ "$1" != 0 ]; then
-    # restart postfix, but only if it was not stopped
-    if [ ! postfix_stopped ]; then
+    # restart postfix, but only if it was running
+    if [ `%{postfix_running}` -eq 1 ]; then
+        echo "postun - RUNNING"
         restart_postfix
     else
+        echo "postun - NOT RUNNING"
         true
     fi
 fi
 
 %clean
-rm -rf ${RPM_BUILD_ROOT}
+/bin/rm -rf ${RPM_BUILD_ROOT}
 
 
 %files
