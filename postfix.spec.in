@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.32 2003/03/07 07:33:35 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.33 2003/03/09 10:56:48 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -70,7 +70,7 @@
 %define official 1
 %define ver 2.0.6
 %define mail_release_date 20021219
-%define rel 1
+%define rel 1.1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -214,7 +214,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.32 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.33 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -968,6 +968,10 @@ fi
 #
 
 %changelog
+
+* Sun Mar 09 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.6-1.1
+  - fix make-postfix.spec with SASL2 (the -devel package was wrong)
+    - reported by Tom Estep <teastep@shorewell.net>
 
 * Fri Mar 07 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.6-1
   - update to 2.0.6

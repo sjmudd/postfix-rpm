@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.5 2003/03/03 12:58:04 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.6 2003/03/09 10:56:48 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -166,9 +166,12 @@ if [ "$POSTFIX_SASL" = 1 -o "$POSTFIX_SASL" = 2 ]; then
     SUFFIX="${SUFFIX}.sasl${POSTFIX_SASL}"
 
     # which is the "-devel" library used for SASL?
-    case ${releasename} in
-    mandrake)
+    case ${distribution} in
+    mandrake-*)
         POSTFIX_SASL_LIBRARY=libsasl-devel
+	;;
+    redhat-8.*)
+	POSTFIX_SASL_LIBRARY=cyrus-sasl-devel
         ;;
     *)
         [ "$POSTFIX_SASL" = 1 ] && POSTFIX_SASL_LIBRARY=cyrus-sasl-devel
