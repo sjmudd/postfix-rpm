@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/buildpackage,v 2.24.2.4 2004/07/20 21:31:28 sjmudd Exp $
+# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/buildpackage,v 2.24.2.5 2004/07/21 06:17:47 sjmudd Exp $
 #
 # Shell script used to build my packages
 # - checks if the needed files exist and retrieve them
@@ -8,7 +8,6 @@
 #   repository
 #
 [ -n "$DEBUG" ] && set -x
-#set -x
 myname=$(basename $0)
 
 # Perform the package build
@@ -71,8 +70,6 @@ RPM=/usr/bin/rpmbuild
 
 srcdir=$(rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;')
 specdir=$(rpm --eval '%{_specdir}' | sed 's;%{name};postfix;')
-
-cat <<EOF
 
 sh linkfiles --quiet --delete
 sh linkfiles --create
