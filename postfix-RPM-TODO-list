@@ -1,49 +1,60 @@
-POSTFIX PACKAGE TODO LIST $Revision: 1.3 $
-=======================================
+POSTFIX PACKAGE TODO LIST
+==========================================
 
+Revision:     $Revision: 1.4 $
+Last Updated: $Date: 2000/12/01 20:10:13 $
 
-Date        Reporter 
---------    --------
-30/11/00    Daniel Roesen
+Summary of comments and reminders of things that need to be looked at.
 
-Comments
+----------------------------------------------------------------------
+
+Reported by:	Daniel Roesen
+Date:		30/11/00
+Status:		FIXED 01/12/00
+Problem:
 --------
 Fix /etc/cron.daily/postfix it's fragile
-change the SOURCE/ directory filename
 
-			----------
+----------------------------------------------------------------------
 
-Date        Reporter 
---------    --------
-30/11/00    Daniel Roesen
+Reported by:	Simon J Mudd <sjmudd@pobox.com>
+Date:		30/11/00
+Status:		FIXED 01/12/00
+Problem:
+--------
+Change the SOURCE/ directory filename of /etc/cron.daily/postfix file
+to something clearer
 
-Comments
+----------------------------------------------------------------------
+
+Reported by:	Daniel Roesen
+Date:		30/11/00
+Status:		Changes made 01/12/00, PENDING VERIFICATION
+Problem:
 --------
 /etc/postfix/aliases.db is not being copied over correctly.
 
-			----------
+----------------------------------------------------------------------
 
-Date        Reporter 
---------    --------
-30/11/00    Daniel Roesen
-
-Comments
+Reported by:	Daniel Roesen and others
+Date:		30/11/00
+Status:		No changes made
+Problem:
 --------
 Please consider adding a symlink /usr/lib/sendmail -> /usr/sbin/sendmail
 for the historic compatibility sake...
 
-Reply
------
+Comments:
+---------
 I don't want to do this.  Applications following FHS should not use this 
 directory for the path.  Fix the application and tell the author.
 
-			----------
+----------------------------------------------------------------------
 
-Date        Reporter 
---------    --------
-30/11/00    Daniel Roesen
-
-Comments
+Reported by:	Daniel Roesen and others
+Date:		30/11/00
+Status:		changes made 01/12/00, PENDING VERIFICATION
+Problem:
 --------
 Uninstalling directly after installing shows the following
 
@@ -52,18 +63,23 @@ Uninstalling directly after installing shows the following
     [3] cannot remove /var/spool/postfix - directory not empty
     [4] removal of /etc/postfix/aliases.db failed: No such file or directory
 
-			----------
+----------------------------------------------------------------------
 
-Date        Reporter 
---------    --------
-30/11/00    Daniel Roesen and others
-
-Comments
+Reported by:	Daniel Roesen and others
+Date:		on various occasions.
+Status:		PENDING
+Problem:
 --------
 I want postfix+pcre, postfix+tls, postfix+mysql etc.
 
-Reply
------
+Comments:
+---------
 I haven't yet found an easy way to build multiple packages from
 one single spec file.  If you find out how, let me know.
+
+Using several spec files is ugly and the only other way I can think
+of doing this is to have a spec file in ./SOURCES which together with
+a make file allows a specific package to be built, while maintaining
+the the ability to generate the other packages from the appropriate
+source package.
 

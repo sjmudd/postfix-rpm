@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.18 2000/11/30 21:51:35 root Exp $
+# $Id: postfix.spec.in,v 2.19 2000/12/01 20:11:04 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -16,7 +16,7 @@ PreReq: /sbin/chkconfig
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
 Version: 20001121
-Release: 3
+Release: 4
 Packager: Simon J Mudd <sjmudd@pobox.com> but see description below
 Vendor: None -- see packager
 Distribution: Experimental
@@ -24,9 +24,10 @@ Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-2
 Source1: postfix-README_rpm.txt
 Source2: postfix-README_maildrop_security.txt
 Source3: postfix-etc-rc.d-init.d-postfix
-Source4: postfix-cron.daily.sh
+Source4: postfix-etc-cron.daily-postfix
 Source5: postfix-aliases
 Source6: postfix-chroot-setup.awk
+Source7: postfix-RPM-TODO-list
 Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
 ###Patch3:  postfix-makedefs.patch2  ### shouldn't be necessary any more
@@ -197,7 +198,7 @@ chmod u=rx ${RPM_BUILD_ROOT}%{config_directory}/chroot-setup-LINUX2
 # This is the /etc/cron.daily directory
 mkdir -p ${RPM_BUILD_ROOT}%{cron_directory}
 
-install -c ${RPM_SOURCE_DIR}/postfix-cron.daily.sh ${RPM_BUILD_ROOT}%{cron_directory}/postfix
+install -c ${RPM_SOURCE_DIR}/postfix-etc-cron.daily-postfix ${RPM_BUILD_ROOT}%{cron_directory}/postfix
 install -c auxiliary/rmail/rmail ${RPM_BUILD_ROOT}%{rmail_path}
 
 gzip -9f ${RPM_BUILD_ROOT}%{_mandir}/man{1,5,8}/* ||:
@@ -228,30 +229,57 @@ umask 022
 umask 022
 
 if [ "$1" = 0 ]; then
-    %{command_directory}/postfix stop
+    # stop postfix silently (if it's running)
+    $daemon_directory/master -t 2>/dev/null || {
+    echo "Stopping the Postfix mail system"
+    kill `sed 1q pid/master.pid` }
+
     /sbin/chkconfig --del postfix                    
 
+    # userdel also deletes the user's group
     userdel postfix || : %whinge "WARNING: failed to remove user postfix"
-    groupdel postfix || : %whinge "WARNING: failed to remove group postfix"
 
     # safety check
     test "%{queue_directory}Z" = "Z" && echo "WARNING: chroot removal buggy - check .spec file" && exit 0
+
+    # cd to %{queue_directory} before removing unwanted files
+    cd %{queue_directory} || ( echo "unable to cd %{queue_directory}"; exit 1 )
+
     # remove chroot jail when uninstalling the package
-    for i in /etc/localtime /usr/lib/zoneinfo/localtime \
-		/etc/host.conf /etc/resolv.conf /etc/nsswitch.conf \
-		/etc/hosts /etc/passwd /etc/services; do
-        test -f %{queue_directory}$i && rm -f %{queue_directory}$i
-    done
-    for i in %{queue_directory}/lib/libnss_* \
-		%{queue_directory}/lib/libresolv*; do
+    for i in etc/localtime usr/lib/zoneinfo/localtime \
+		etc/host.conf etc/resolv.conf etc/nsswitch.conf \
+		etc/hosts etc/passwd etc/services \
+		lib/libnss_* lib/libresolv*; do
         test -f $i && rm -f $i
     done
+    for dir in usr/lib/zoneinfo usr/lib usr lib etc; do
+        test -d $i && rmdir $i
+    done
+    # selectively remove the rest of the queue directory structure
+    # first the ones which are easy
+    for dir in corrupt deferred incoming maildrop pid private public saved ; do
+        ( cd $dir && rm * )
+        test -d $dir && ( rmdir $dir || echo "unable to remove directory %{queue_directory}/$dir" )
+    done
+    # second the rest
+    for dir in active bounce defer flush; do
+        ( cd $dir && rm -rf * ) # dangerous I know
+        test -d $dir && ( rmdir $dir || echo "unable to remove directory %{queue_directory}/$dir" )
+    done  
 fi
 
 %postun
 
 if [ "$1" != 0 ]; then
-    (%{command_directory}/postfix stop && sleep 2 && %{command_directory}/postfix start) || true
+    # restart postfix if it was running
+    # -- need to fix this to stop during install and keep note of the state for use here ---
+    # stop postfix silently (if it's running)
+    $daemon_directory/master -t 2>/dev/null || {
+    echo "Stopping the Postfix mail system"
+    kill `sed 1q pid/master.pid` 
+    sleep 2 # to give things time to stop
+    $daemon_directory/master &
+    echo "Restarting the Postfix mail system" }
 fi
 
 %clean
@@ -265,8 +293,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %attr(0644, root, root) %verify(not md5 size mtime) %config %{config_directory}/main.cf
 %attr(0644, root, root) %verify(not md5 size mtime) %config %{config_directory}/master.cf
 %attr(0644, root, root) %verify(not md5 size mtime) %config %{config_directory}/install.cf
+# not sure about the ghost directive so leave alone for the moment
+#%attr(0644, root, root) %verify(not md5 size mtime) %ghost             %{config_directory}/aliases.db
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/aliases
-%attr(0644, root, root) %verify(not md5 size mtime) %ghost             %{config_directory}/aliases.db
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/aliases.db
 
 %attr(0755, root, root) %{init_directory}/postfix
 %attr(-, postfix, root) %verify(not md5 size mtime) %{queue_directory}
@@ -351,6 +381,17 @@ rm -rf ${RPM_BUILD_ROOT}
 #	Bennett Todd <bet@mordor.net>
 
 %changelog
+* Thu Nov 23 2000 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001121-4, several minor fixes following comments from
+  Daniel Roesen <droesen@entire-systems.com>
+  1. fix /etc/cron.daily/postfix
+  2. remove /etc/postfix/aliases.db %ghost attribute
+     (trying to remove error messages related to file not existing, I think
+      that this is due to it not being copied over)
+  3. trying to cure the uninstall complaining about files left over in 
+     /var/spool/postfix
+  4. remove groupdel which is not required after userdel on uninstall
+
 * Thu Nov 23 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001121-3,
   fix minor error in chroot jail removal
