@@ -6,6 +6,22 @@
 #   repository
 #
 
+# only add the file if $add is blank
+function add_to_pkg_sourcelist {
+    local file=$1
+    local filelist=$2
+    local add=$3
+
+    if [ -z "${add}" ]; then
+        echo ${file} >> ${filelist} && \
+        sort < ${filelist} > ${filelist}.n && \
+            mv ${filelist}.n ${filelist} || {
+                echo "Failed to update ${filelist}!"
+                exit 1
+        }
+    fi
+}
+
 # Initialize.
 # By now, shells must have functions. Ultrix users must use sh5 or lose.
 
@@ -51,30 +67,18 @@ RPM=/usr/bin/rpmbuild
     exit 1
 }
 
-# only add the file if $add is blank
-add_to_pkg_sourcelist {
-    local file=$1
-    local filelist=$2
-    local add=$3
-
-    if [ -z "${add}" ]; then
-        echo ${file} >> ${filelist} && \
-        sort < ${filelist} > ${filelist}.n && \
-            mv ${filelist}.n ${filelist} || {
-                echo 'Failed to update ${filelist}!'
-                exit 1
-        }
-    fi
-}
-
 # download_if_necessary to srcdir base/file if not already there
+#
+# add_file:
+# leave blank unless you want to disable updating the filelist
+# for example with the postfix source tar ball
 
-download_if_necessary() {
+function download_if_necessary {
     local srcdir=$1
     local base=$2
     local file=$3
-    local add_file=$4	# leave blank unless you want to disable updating the filelist
-			# for example with the postfix source tar ball
+    local add_file=$4
+
     echo -n "===> checking ${file} ..."
     if [ ! -f "${srcdir}/${file}" ]; then
         echo " not found"
