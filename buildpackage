@@ -138,33 +138,33 @@ echo "===> checking for Postfix tar ball"
 download_if_necessary ${srcdir} ${base} ${file}
 
 # Look for the TLS patches
-#	Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{pfixtls}.tar.gz  
+#	Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{tls_version}.tar.gz  
 
-pfixtls=`grep '^%define pfixtls' postfix.spec.in | awk '{ print $3 } '`
-source0=`grep '^Source9: ftp://ftp.aet.tu-cottbus.de' postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{pfixtls};${pfixtls};"`
+tls_version=`grep '^%define tls_version' postfix.spec.in | awk '{ print $3 } '`
+source0=`grep '^Source9: ftp://ftp.aet.tu-cottbus.de' postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{tls_version};${tls_version};"`
 
 base=`dirname ${source0}`
 file=`echo ${source0} | sed -e 's;.*/;;'`
 
 cat <<EOF
 ===> checking TLS patches...
-	pfixtls:		${pfixtls}
+	tls_version:		${tls_version}
 	TLS patch tarball name:	${file}
 	URL location:		${base}
 EOF
 download_if_necessary . ${base} ${file}
 
 # Look for VDA Patch
-# Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}_quota.patch.gz
-vdaver=`grep '^%define vdaver' postfix.spec.in | awk '{ print $3 } '`
-patch4=`grep '^Patch4: http://ftp.oav.net/others/postfix/VDA/postfix' postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{vdaver};${vdaver};"`
+# Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vda_version}_quota.patch.gz
+vda_version=`grep '^%define vda_version' postfix.spec.in | awk '{ print $3 } '`
+patch4=`grep '^Patch4: http://ftp.oav.net/others/postfix/VDA/postfix' postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{vda_version};${vda_version};"`
 
 base=`dirname ${patch4}`
 file=`echo ${patch4} | sed -e 's;.*/;;'`
 
 cat <<EOF
 ===> checking VDA patches...
-	vdaver:			${vdaver}
+	vda_version:		${vda_version}
 	VDA patch tarball name:	${file}
 	URL location:		${base}
 EOF

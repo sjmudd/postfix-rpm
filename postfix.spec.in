@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.259 2004/01/31 22:39:01 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.260 2004/02/01 11:01:59 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -73,11 +73,11 @@
 %define debug %{?_with_debug:1}%{?!_with_debug:0}
 
 # Version information
-%define vdaver 2.0.16
-%define pfixtls pfixtls-0.8.17-2.0.16-20031231-0.9.7c
-%define pgver 2.0.0.2
-%define pfixipv6 tls+ipv6-1.21-pf-2.0.18
-%define cdbver 1.1.11-20021104
+%define vda_version 2.0.16
+%define tls_version pfixtls-0.8.17-2.0.16-20031231-0.9.7c
+%define pg_version 2.0.0.2
+%define ipv6_version tls+ipv6-1.21-pf-2.0.18
+%define cdb_version 1.1.11-20021104
 
 # If set to 1 if official version, 0 if snapshot
 %define official 0
@@ -135,10 +135,10 @@ Source4: postfix-chroot.sh
 Source5: postfix-aliases
 Source7: postfix.spec.in
 Source8: make-postfix.spec
-Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{pfixtls}.tar.gz
+Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{tls_version}.tar.gz
 Source11: postfix-build
-Source12: http://www.corpit.ru/ftp/postfix/postfix-dict_cdb-%{cdbver}.tar.gz
-Source14: ftp://ftp.stack.nl/pub/postfix/tls+ipv6/current/%{pfixipv6}.patch.gz
+Source12: http://www.corpit.ru/ftp/postfix/postfix-dict_cdb-%{cdb_version}.tar.gz
+Source14: ftp://ftp.stack.nl/pub/postfix/tls+ipv6/current/%{ipv6_version}.patch.gz
 Source15: postfix-RPM-TODO
 Source16: http://postfix.wl0.org/ftp/postfinger/%{postfinger}
 
@@ -147,11 +147,11 @@ Patch2: postfix-smtp_sasl_proto.c.patch
 Patch3: postfix-files.patch
 
 # Optional patches
-Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}.patch.gz
+Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vda_version}.patch.gz
 Patch5: postfix-mysql_query.patch
 # Adapted from http://www.stahl.bau.tu-bs.de/~hildeb/postfix/duchovni/log_recipient.gz
 Patch7: postfix-log_recipient
-Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pgver}.patch
+Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pg_version}.patch
 Patch51: postfix-pg-raw.patch
 Patch99: ftp://ftp.wl0.org/SOURCES/postfix-2.0.16-20031026-multiline-greeting.patch
 
@@ -226,7 +226,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.259 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.260 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -281,7 +281,7 @@ fi
 # Apply the TLS patch first, because of the changes to master.cf
 # Note: IPv6 patches include the TLS patches
 %if %{tls} && ! %{ipv6}
-  patch -p1 <%{pfixtls}/pfixtls.diff
+  patch -p1 <%{tls_version}/pfixtls.diff
 %endif
 %if %{ipv6}
   test -e  %{SOURCE14} && \
@@ -301,9 +301,9 @@ sh dict_cdb.sh
 %endif
 
 %if %{vda}
-  test -e  %{_sourcedir}/postfix-%{vdaver}.patch.gz && \
-  gzip -dc %{_sourcedir}/postfix-%{vdaver}.patch.gz | patch -p1 -b --suffix .vda -s || \
-    die "%{_sourcedir}/postfix-%{vdaver}.patch.gz not found or patch failed"
+  test -e  %{_sourcedir}/postfix-%{vda_version}.patch.gz && \
+  gzip -dc %{_sourcedir}/postfix-%{vda_version}.patch.gz | patch -p1 -b --suffix .vda -s || \
+    die "%{_sourcedir}/postfix-%{vda_version}.patch.gz not found or patch failed"
 %endif
 
 %if %{mysql_query}
@@ -325,9 +325,9 @@ sh dict_cdb.sh
 %if %{tls}
 # Move postfix/tls docs into TLS dir
 mkdir TLS
-mv %{pfixtls}/doc/* TLS/
+mv %{tls_version}/doc/* TLS/
 for i in ACKNOWLEDGEMENTS CHANGES INSTALL README TODO; do
-  mv %{pfixtls}/$i $i.TLS
+  mv %{tls_version}/$i $i.TLS
 done
 %endif
 
@@ -819,13 +819,13 @@ umask 022
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/aliases
 %attr(0644, root, root) %verify(not md5 size mtime) %ghost             %{_sysconfdir}/postfix/aliases.db
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/canonical
-%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/pcre_table
-%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/regexp_table
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/relocated
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/transport
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/virtual
-%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/cidr_table
-%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/tcp_table
+#%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/cidr_table
+#%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/pcre_table
+#%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/regexp_table
+#%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/tcp_table
 %attr(0755, root, root) %{_sysconfdir}/postfix/postfix-chroot.sh
 
 %dir %attr(-, root, root) %{sample_dir}
@@ -875,7 +875,7 @@ umask 022
 %doc README.TLS
 %doc TODO.TLS
 %doc TLS
-%doc %{pfixtls}/contributed/make-postfix-cert.sh
+%doc %{tls_version}/contributed/make-postfix-cert.sh
 %endif
 
 %if %{ipv6}
@@ -948,6 +948,12 @@ umask 022
 * Sat Jan 31 2004 Simon J Mudd <sjmudd@pobox.com> 2.0.18-20040122-0.1
 - update to 2.0.18-20040122
 - update patches (TLS, IPv6, VDA)
+- tidyup macro names:
+	vdaver		vda_version
+	pfixtls		tls_version
+	pgver		pg_version
+	pfixipv6	ipv6_version
+	cdbver		cdb_version
 
 * Thu Nov 20 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.16-20031113-0.2
   - add /usr/bin/cc as requirement
