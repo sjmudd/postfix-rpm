@@ -1,0 +1,108 @@
+diff -uNr snapshot-20000531-orig/smtpd/smtpd.c snapshot-20000531/smtpd/smtpd.c
+--- snapshot-20000531-orig/src/smtpd/smtpd.c	Sun Aug 27 13:59:22 2000
++++ snapshot-20000531/src/smtpd/smtpd.c		Sun Aug 27 19:21:57 2000
+@@ -1291,7 +1291,7 @@
+ 	&& (state.access_denied = smtpd_check_client(&state)) != 0) {
+ 	smtpd_chat_reply(&state, "%s", state.access_denied);
+     } else {
+-	smtpd_chat_reply(&state, "220 %s", var_smtpd_banner);
++	smtpd_chat_reply_multiline(&state, 220, var_smtpd_banner);
+ 	msg_info("connect from %s[%s]", state.name, state.addr);
+     }
+ 
+diff -uNr snapshot-20000531-orig/smtpd/smtpd_chat.c snapshot-20000531/smtpd/smtpd_chat.c
+--- snapshot-20000531-orig/src/smtpd/smtpd_chat.c	Sun Aug 27 14:00:12 2000
++++ snapshot-20000531/src/smtpd/smtpd_chat.c	Mon Aug 28 00:04:54 2000
+@@ -14,6 +14,11 @@
+ /*	SMTPD_STATE *state;
+ /*	char	*format;
+ /*
++/*	void	smtpd_chat_reply_multiline(state, smtp_reply_code, format, ...)
++/*      int     smtp_reply_code;
++/*	SMTPD_STATE *state;
++/*	char	*format;
++/*
+ /*	void	smtpd_chat_notify(state)
+ /*	SMTPD_STATE *state;
+ /*
+@@ -29,6 +34,11 @@
+ /*	smtpd_chat_reply() formats a server reply, sends it to the
+ /*	client, and appends a copy to the SMTP transaction log.
+ /*
++/*	smtpd_chat_reply_multiline() formats a server reply, sends it to
++/*      the client, and appends a copy to the SMTP transaction log.
++/*      The reply can contain embedded "\n"s which will be treated as
++/*      separators in a multiline reply.
++/*
+ /*	smtpd_chat_notify() sends a copy of the SMTP transaction log
+ /*	to the postmaster for review. The postmaster notice is sent only
+ /*	when delivery is possible immediately. It is an error to call
+@@ -59,6 +69,8 @@
+ #include <time.h>
+ #include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
+ #include <stdarg.h>
++#include <string.h>
++#include <ctype.h>
+ 
+ /* Utility library. */
+ 
+@@ -163,6 +175,59 @@
+      */
+     if (time((time_t *) 0) - vstream_ftime(state->client) > 10)
+ 	vstream_fflush(state->client);
++}
++
++/* trim_line - remove trailing whitespace and return   */
++/* a pointer to the first non-space char in the string */
++/* WARNING: this function is DESTRUCTIVE.              */
++/* Based on TRIM() in ../util/dict.c                   */
++
++static char *trim_line( char *line ) {
++    char *p;
++
++    for (p=line + strlen(line); p > line && ISSPACE(p[-1]); p--);
++        *p = 0;
++
++    while ( ISSPACE(*line) )
++        ++line;
++
++    return ( line );
++}
++
++/* smtpd_chat_reply_multiline - format, send and record an SMTP response
++   for multiline SMTP replies */
++
++#define LINE_SEPARATOR "\n"
++
++void smtpd_chat_reply_multiline(SMTPD_STATE *state, int smtp_reply_code, char *format,...)
++{
++    va_list ap;
++    VSTRING *temp_line = vstring_alloc(512);/* SMTP reply before unescapeing     */
++    VSTRING *multiline = vstring_alloc(512);/* SMTP reply after unescaping       */
++    char    *line, *line2;                  /* one line (of the multiline) reply */
++    size_t   size;                          /* size of a single line             */
++
++    va_start(ap, format);
++    vstring_vsprintf(temp_line, format, ap);
++    va_end(ap);
++
++    /* unescape lines with "\\n", converting them to "\n" */
++    unescape( multiline, STR(temp_line) );
++    vstring_free( temp_line );
++
++    line = STR(multiline);
++    while ( (size = strcspn(line, LINE_SEPARATOR)) < strlen(line) ) {
++        *(line + size) = 0;
++
++        line2 = trim_line(line);
++        smtpd_chat_reply(state, "%03d-%s", smtp_reply_code, line2);
++
++        line += size + 1;
++    }
++    line2 = trim_line(line);
++    smtpd_chat_reply(state, "%03d %s", smtp_reply_code, line2);
++
++    vstring_free( multiline );
+ }
+ 
+ /* print_line - line_wrap callback */

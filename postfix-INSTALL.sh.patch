@@ -1,0 +1,11 @@
+--- snapshot-20001212/INSTALL.sh.orig     Wed Dec 13 22:35:12 2000
++++ snapshot-20001213/INSTALL.sh  Wed Dec 13 22:39:03 2000
+@@ -254,7 +254,7 @@
+     compare_or_replace a+x,go-w libexec/$file $DAEMON_DIRECTORY/$file || exit 1
+ done
+
+-for file in `censored_ls bin | grep '^post'`
++for file in `censored_ls bin | egrep '^(post|smtp-)'`
+ do
+     compare_or_replace a+x,go-w bin/$file $COMMAND_DIRECTORY/$file || exit 1
+ done
