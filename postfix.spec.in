@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.66 2001/11/15 08:45:21 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.67 2001/11/15 08:46:48 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -145,7 +145,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.66 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.67 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -707,6 +707,7 @@ fi
 * Fri Oct 19 2001 Simon J Mudd <sjmudd@pobox.com>
 - postfix-20010228-pl07-1
   - update to latest patch level
+  - revert to not building with ldap support unless specifically requested
 
 * Sun Nov 04 2001 Simon J Mudd <sjmudd@pobox.com>
   - postfix-new-RPMS --> postfix-new-RPM-packages

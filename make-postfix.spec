@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.22.2.7 2001/11/05 08:44:55 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.22.2.8 2001/11/15 08:46:48 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -60,22 +60,19 @@ EOF
     exit 1
 }
 
+# Get release information (if possible)
 if [ `rpm -q redhat-release >/dev/null 2>&1; echo $?` = 0 ]; then
     releasename=redhat
     release=`rpm -q redhat-release | sed -e 's;^redhat-release-;;' -e 's;-[0-9]*$;;'`
-    major=`echo $release | sed -e 's;\.[0-9]*$;;'`
-    minor=`echo $release | sed -e 's;^[0-9]*\.;;'`
+elif [ `rpm -q mandrake-release >/dev/null 2>&1; echo $?` = 0 ]; then
+    releasename=mandrake
+    release=`rpm -q mandrake-release | sed -e 's;^mandrake-release-;;' -e 's;-[0-9]*mdk$;;'`
 else
     releasename=unknown
     release=0.0
-    major=0
-    minor=0
 fi
-
-# RedHat 6.2 and later include LDAP support, earlier versions don't.
-# Automatically include support for ldap in rh7x, but not in rh6x.
-
-test ${releasename} = 'redhat' && test ${major} -gt 6 && POSTFIX_LDAP=1
+major=`echo $release | sed -e 's;\.[0-9]*$;;'`
+minor=`echo $release | sed -e 's;^[0-9]*\.;;'`
 
 echo ""
 echo "Creating Postfix spec file: `rpm --eval '%{_specdir}'`/postfix.spec"
@@ -108,8 +105,8 @@ if [ "$POSTFIX_TLS" = 1 ]; then
 fi
 
 # Determine the correct db files to use. RedHat 7 requires db3
-if [ ${releasename} = 'redhat' ]; then
-
+case ${releasename} in
+redhat)
     case ${major} in
     6) SUFFIX=".rh6x${SUFFIX}" ;;
     7)
@@ -122,13 +119,30 @@ if [ ${releasename} = 'redhat' ]; then
         2) ;;
         *) ;;
         esac
-
-        # remove .ldap suffix from SUFFIX (as unnecessary)
-        SUFFIX=`echo ${SUFFIX} | sed -e 's;\.ldap;;'`
         ;;
     *) ;;
     esac
-fi
+    ;;
+
+mandrake)
+    # Mandrake Linux Requirements - This needs some work to be correct.
+    #
+    # Mandrake 7.1:
+    # - db3 is within glibc
+    # - the db3 .h files are in glibc-devel
+    # Mandrake 8.1
+    # - appears to use db3 in the same way as rh7
+    case ${major} in
+    7) SUFFIX="${SUFFIX}mdk7x" ;;
+    8) REQUIRES_DB3=1
+       SUFFIX="${SUFFIX}mdk"
+       ;;
+    *) SUFFIX="${SUFFIX}mdk"
+    esac
+    ;;
+
+*)  ;;
+esac
 
 # ensure if undefined the value is 0
 
