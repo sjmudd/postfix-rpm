@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.69 2001/02/23 19:32:03 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.70 2001/02/26 20:37:14 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -50,7 +50,7 @@ Copyright: IBM Public License
 PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail, exim, qmail, smail
-Version: 20010222
+Version: 20010225
 Release: 1__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Vendor: Built under __DISTRIBUTION__
@@ -124,7 +124,7 @@ packages in this FAQ may still be incorrect.]
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.69 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.70 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -602,6 +602,10 @@ fi
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Mon Feb 26 2001 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20010225-1,  update to latest snapshot
+                        further minor changes to /etc/rc.d/init.d/postfix
+
 * Tue Feb 20 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20010222-1,  update to latest snapshot
                         further minor changes to /etc/rc.d/init.d/postfix
