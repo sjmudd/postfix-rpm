@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.194.2.6 2002/01/22 08:36:11 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.7 2002/01/22 08:40:26 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -62,7 +62,7 @@
 %endif
 %define rel 3
 
-%define tlsno pfixtls-0.7.15-1.1.0-0.9.6c
+%define tlsno pfixtls-0.7.16-1.1.0-0.9.6c
 %define pflogno -1.0.3
 
 # Postfix requires one exlusive uid/gid and a 2nd exclusive gid for its own
@@ -184,7 +184,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.6 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.7 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -844,11 +844,12 @@ fi
 
 %changelog
 
-* Mon Jan 22 2002 Simon J Mudd <sjmudd@pobox.com>
+* Tue Jan 23 2002 Simon J Mudd <sjmudd@pobox.com>
 - postfix-1.1.0-3, check for /usr/lib/sendmail and if it is a file NOT
     owned by another package: replace it with a symbolic link to
     /usr/sbin/sendmail [requested by Wietse to avoid upgrade problems]
   - add patch to postqueue provided by LaMont Jones <lamont@security.hp.com>
+  - update TLS patch - pfixtls-0.7.16-1.1.0-0.9.6c
 
 * Sat Jan 19 2002 Simon J Mudd <sjmudd@pobox.com>
 - postfix-1.1.0-2, add serial tag, so that this version appears newer
