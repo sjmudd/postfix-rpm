@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.6 2003/03/09 10:56:48 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.7 2003/03/09 19:36:05 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -170,12 +170,8 @@ if [ "$POSTFIX_SASL" = 1 -o "$POSTFIX_SASL" = 2 ]; then
     mandrake-*)
         POSTFIX_SASL_LIBRARY=libsasl-devel
 	;;
-    redhat-8.*)
-	POSTFIX_SASL_LIBRARY=cyrus-sasl-devel
-        ;;
     *)
-        [ "$POSTFIX_SASL" = 1 ] && POSTFIX_SASL_LIBRARY=cyrus-sasl-devel
-        [ "$POSTFIX_SASL" = 2 ] && POSTFIX_SASL_LIBRARY=cyrus-sasl2-devel
+	POSTFIX_SASL_LIBRARY=cyrus-sasl-devel
         ;;
     esac
 else
