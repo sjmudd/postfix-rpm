@@ -19,4 +19,4 @@ postfix-RPM-new-packages
 postfix-RPM-TODO
 postfix-smtp_sasl_proto.c.patch
 postfix.spec.in
-tls+ipv6-1.13-pf-2.0.4.patch.gz
+tls+ipv6-1.13-pf-2.0.6.patch.gz
