@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.46 2003/04/30 20:05:19 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.47 2003/04/30 20:10:13 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -73,7 +73,7 @@
 %define official 1
 %define ver 2.0.9
 %define mail_release_date 20021219
-%define rel 1
+%define rel 2
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -214,7 +214,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.46 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.47 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -1014,6 +1014,11 @@ fi
 #
 
 %changelog
+
+* Wed Apr 30 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.9-2
+  - TLS patch failed due to typo in change between 2.0.8-1 and 2.0.9-1
+    - several people reported the problem, and thanks to Tom Eastep
+      for pointing out the error.
 
 * Tue Apr 29 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.9-1
   - update to 2.0.9
