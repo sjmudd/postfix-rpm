@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.2.18 2004/09/06 15:45:08 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.2.19 2004/09/06 15:47:02 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -240,7 +240,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.2.18 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.2.19 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -1081,6 +1081,11 @@ umask 022
 #
 
 %changelog
+
+* Mon Sep 06 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.4-6
+  - make changes to avoid conflichts between authsasld and file in
+    cyrus-sasld on RHEL3. Problem noted by
+    Patrick Nelson <pnelson@neatech.com>
 
 * Tue Aug 24 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.4-5
   - add make-postfix.rpm which will build a new rpm, optionally using the
