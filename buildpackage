@@ -51,12 +51,30 @@ RPM=/usr/bin/rpmbuild
     exit 1
 }
 
+# only add the file if $add is blank
+add_to_pkg_sourcelist {
+    local file=$1
+    local filelist=$2
+    local add=$3
+
+    if [ -z "${add}" ]; then
+        echo ${file} >> ${filelist} && \
+        sort < ${filelist} > ${filelist}.n && \
+            mv ${filelist}.n ${filelist || {
+                echo 'Failed to update ${filelist}!'
+                exit 1
+        }
+    fi
+}
+
 # download_if_necessary to srcdir base/file if not already there
 
 download_if_necessary() {
     local srcdir=$1
     local base=$2
     local file=$3
+    local add_file=$4	# leave blank unless you want to disable updating the filelist
+			# for example with the postfix source tar ball
     echo -n "===> checking ${file} ..."
     if [ ! -f "${srcdir}/${file}" ]; then
         echo " not found"
@@ -64,12 +82,7 @@ download_if_necessary() {
         (
             cd ${srcdir} && \
             wget ${base}/${file} && \
-            echo ${file} >> ${pkgdir}/pkg-sourcelist && \
-            sort < ${pkgdir}/pkg-sourcelist > ${pkgdir}/pkg-sourcelist.n && \
-            mv ${pkgdir}/pkg-sourcelist.n ${pkgdir}/pkg-sourcelist || {
-                echo 'Failed!'
-                exit 1
-            }
+	    add_to_pkg_sourcelist ${file} ${pkgdir}/pkg-sourcelist ${add_file}
         )
     else
         echo " found"
@@ -135,7 +148,7 @@ EOF
 
 echo "===> checking for Postfix tar ball"
 
-download_if_necessary ${srcdir} ${base} ${file}
+download_if_necessary ${srcdir} ${base} ${file} NO_UPDATE_PKG_SOURCELIST
 
 # Look for the TLS patches
 #	Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{pfixtls}.tar.gz  
