@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.24 2001/04/19 22:00:29 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.26 2001/04/20 15:47:53 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -42,8 +42,8 @@
 
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
 
-%define vers 20010228
 %define branch release
+%define vers 20010228
 %define patchlevel pl01
 %define version1 %{vers}-%{patchlevel}
 %define version2 %{vers}_%{patchlevel}
@@ -125,11 +125,9 @@ BuildRequires: openssl-devel
 %description
 Postfix is a Mail Transport Agent (MTA), intended to be an alternative
 to the widely-used sendmail.  This is a reasonably sophisticated package
-which includes many patches and optional support for LDAP, pcre, mysql,
-and SMTP AUTH (SASL); it sets up chroot for added security; and it
-starts and stops the daemon on install/remove.
-An alternative simple rpm is available from Todd Bennett, for download
-at http://people.oven.com/bet/bent/.
+which includes optional support for LDAP, pcre, mysql, SMTP AUTH (SASL) and
+TLS; it sets up chroot for added security; and it starts and stops the
+daemon on install/remove.
 
 See http://www.redhat.com/support/docs/faqs/RH-postfix-FAQ/book1.html,
 a slightly outdated FAQ, which covers steps which should be taken prior
@@ -138,7 +136,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.24 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.26 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -151,6 +149,9 @@ TLS=__TLS__
 
 The source package contains information about rebuilding with alternative
 options.
+
+An alternative simpler postfix rpm is available from Todd Bennett, for
+download at http://people.oven.com/bet/bent/.
 
 
 %define config_directory /etc/postfix
@@ -640,6 +641,10 @@ fi
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Thu Apr 19 2001 Simon Mudd <sjmudd@pobox.com>
+- postfix-20010228_pl01release-4, minor update to keep in synch
+  snapshot and release files.
+
 * Tue Apr 17 2001 Simon Mudd <sjmudd@pobox.com>
 - postfix-20010228_pl01release-3, update the TLS patch for pl01
   patch provided by Daniel Roesen <droesen@entire-systems.com>
