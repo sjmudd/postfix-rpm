@@ -1,6 +1,7 @@
---- postfix-19990601-orig/conf/master.cf	Thu May 13 14:48:00 1999
-+++ postfix-19990601/conf/master.cf	Thu Jun  3 23:31:35 1999
-@@ -53,16 +53,16 @@
+diff -uNr snapshot-20000531-orig/conf/master.cf snapshot-20000531/conf/master.cf
+--- snapshot-20000531-orig/conf/master.cf	Wed Jul  5 20:14:08 2000
++++ snapshot-20000531/conf/master.cf	Wed Jul  5 20:17:10 2000
+@@ -59,19 +59,19 @@
  # service type	private	unpriv	chroot	wakeup	maxproc	command + args
  # 		(yes)	(yes)	(yes)	(never)	(50)
  # ==========================================================================
@@ -8,6 +9,7 @@
 -pickup	  fifo	n	n	n	60	1	pickup
 -cleanup	  unix	-	-	n	-	0	cleanup
 -qmgr	  fifo	n	-	n	300	1	qmgr
+-#qmgr	  fifo	n	-	n	300	1	nqmgr
 -rewrite	  unix	-	-	n	-	-	trivial-rewrite
 -bounce	  unix	-	-	n	-	0	bounce
 -defer	  unix	-	-	n	-	0	bounce
@@ -18,6 +20,7 @@
 +pickup	  fifo	n	n	y	60	1	pickup
 +cleanup	  unix	-	-	y	-	0	cleanup
 +qmgr	  fifo	n	-	y	300	1	qmgr
++#qmgr	  fifo	n	-	y	300	1	nqmgr
 +rewrite	  unix	-	-	y	-	-	trivial-rewrite
 +bounce	  unix	-	-	y	-	0	bounce
 +defer	  unix	-	-	y	-	0	bounce
@@ -25,5 +28,8 @@
 +showq     unix	n	-	y	-	-	showq
 +error     unix	-	-	y	-	-	error
  local	  unix	-	n	n	-	-	local
+-lmtp	  unix	-	-	n	-	-	lmtp
++lmtp	  unix	-	-	y	-	-	lmtp
  cyrus	  unix	-	n	n	-	-	pipe
-     flags=R user=cyrus argv=/cyrus/bin/deliver -e -q -m ${extension} ${user}
+     flags=R user=cyrus argv=/cyrus/bin/deliver -e -m ${extension} ${user}
+ uucp	  unix	-	n	n	-	-	pipe
