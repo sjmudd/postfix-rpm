@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.228 2002/12/19 09:43:15 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.229 2002/12/20 07:35:25 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -68,7 +68,7 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 0
 %define ver 1.1.12
-%define mail_release_date 20021218
+%define mail_release_date 20021219
 %define rel 1
 %if %{official}
 %define tarball_version %{ver}
@@ -208,7 +208,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.228 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.229 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -953,6 +953,9 @@ fi
 #
 
 %changelog
+
+* Fri Dec 20 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021219-1
+  - update to latest snapshot
 
 * Thu Dec 19 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021218-1
   - update to latest snapshot
