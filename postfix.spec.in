@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.52 2002/11/22 11:40:15 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.53 2002/11/22 13:22:51 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -211,7 +211,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.52 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.53 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -969,7 +969,7 @@ fi
 
 %changelog
 
-* Thu Nov 21 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-13
+* Fri Nov 22 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-13
   - modify make-postfix.spec and postfix.spec.in to work correctly with RH 8
     and the new db4 files.
     - Thanks to  Josep M. <websurfer_email@yahoo.es> for lending me a rh8
