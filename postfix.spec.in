@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.72 2001/03/01 22:44:13 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73 2001/03/01 22:45:56 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -120,7 +120,7 @@ packages in this FAQ may still be incorrect.]
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.72 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -591,8 +591,10 @@ fi
 #       Tim Powers <timp@redhat.com>
 
 %changelog
-* XXX XXX XX 2001 Simon Mudd <sjmudd@pobox.com>
+* Wed Mar 01 2001 Simon Mudd <sjmudd@pobox.com>
 - remove POSTFIX_SAFE_MYNETWORKS from make-postfix.spec
+- snapshot-20010228-1,  update to latest snapshot
+- include hashed incoming directory in chroot_remove
 
 * Mon Feb 26 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20010225-1,  update to latest snapshot
