@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.12 2002/02/20 09:46:16 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.13 2002/02/20 10:30:27 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -176,7 +176,7 @@ and configuring postfix.
 The binary and source rpms I produce are currently stored on
 	http://pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.12 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.13 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -236,7 +236,7 @@ ENDTEXT
 	sleep 10
 fi
 
-%setup -q -n %{name} -a 9
+%setup -q -n %{name}-%{version1} -a 9
 
 # Apply the TLS patch, must be at first, because the changes of master.cf
 %if %{TLS}
