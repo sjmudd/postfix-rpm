@@ -1,0 +1,43 @@
+#!/bin/sh
+
+#set -x
+
+# Test all the patches in the package and check which ones apply cleanly
+myname=`basename $0`
+testresults=postfix-test-patch-results
+
+echo "$myname: Postfix RPM patch tester"
+echo "writing results to $testresults"
+
+cat >$testresults <<END
+# Postfix RPM: results of building with different patches.
+# The value is set to 1 if the patch applies cleanly, otherwise it is set to 0.
+#
+# The DB patches are NOT tested as I don't have these installed on all my
+# machines.
+#
+END
+
+for i in \
+POSTFIX_CDB \
+POSTFIX_IPV6 \
+POSTFIX_LDAP \
+POSTFIX_PCRE \
+POSTFIX_SASL \
+POSTFIX_SMTPD_MULTILINE_GREETING \
+POSTFIX_TLS \
+POSTFIX_VDA \
+; do
+    echo -n "===> testing $i patch... "
+    sh test-one-patch $i 1
+    rc=$?
+    [ $rc = "0" ] && echo OK || echo Failed
+    cat >>$testresults <<END
+${i}_PATCH=$((1-$rc))
+END
+done
+
+cat >>$testresults <<END
+# 
+# End of testing
+END
