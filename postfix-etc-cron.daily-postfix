@@ -21,8 +21,8 @@ EXECUTABLE=/usr/sbin/pflogsumm.pl
 PFLOGSUMTMP=/etc/postfix/pfls.tmp.$$	# safer directory than /tmp
 #OPTIONS="--verp_mung=2 --problems_first --iso_date_time  -q -u 10 -h 10 -d yesterday"
 OPTIONS="--verp_mung=2 --problems_first --iso_date_time  -q -u 10 -h 10"
-SUBJECT="`hostname` Daily Mail Report for `LC_CTIME=C date +\"%A, %d %B %Y\"`"
-POSTMASTER="postmaster@localhost"
+SUBJECT="`hostname` Daily Mail Report for `LC_TIME=C date +\"%A, %d %B %Y\"`"
+POSTMASTER="postmaster@`hostname`"
 SENDMAIL=/usr/sbin/sendmail
 SENDMAIL_OPTS="-oi -t"
 

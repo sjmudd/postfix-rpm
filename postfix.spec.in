@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.17 2002/03/08 09:03:41 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.18 2002/03/12 12:41:25 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -26,8 +26,11 @@
 # REQUIRES_DB3             - used on RH 7.x and Mandrake 8.1
 # REQUIRES_DB4             - adding support for db4 (can be used on 7.2?)
 # SMTPD_MULTILINE_GREETING - my patch to allow multiline banner
+# POSTFIX_UID              - uid of postfix user
+# POSTFIX_GID              - gid of postfix group
 # POSTDROP_GID             - gid of postdrop group
 # VDA                      - add virtual delivery agent patch
+# DISABLE_CHROOT           - disable setup of chroot environment
 #
 %define distribution __DISTRIBUTION__
 %define LDAP __LDAP__
@@ -43,8 +46,11 @@
 %define REQUIRES_DB4 __REQUIRES_DB4__
 %define REQUIRES_INIT_D __REQUIRES_INIT_D__
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
+%define POSTFIX_UID __POSTFIX_UID__
+%define POSTFIX_GID __POSTFIX_GID__
 %define POSTDROP_GID __POSTDROP_GID__
 %define VDA __VDA__
+%define DISABLE_CHROOT __DISABLE_CHROOT__
 
 # Version information
 %define pflogno -1.0.4
@@ -63,12 +69,12 @@
 %define version1 %{ver}-%{releasedate}
 %define ftp_directory experimental
 %endif
-%define rel 3
+%define rel 4
 
 # Postfix requires one exlusive uid/gid,
 # and a 2nd exclusive gid for its own use.
-%define postfix_uid    89
-%define postfix_gid    89
+%define postfix_uid    %{POSTFIX_UID}
+%define postfix_gid    %{POSTFIX_GID}
 %define maildrop_gid   %{POSTDROP_GID}
 
 %define config_directory /etc/postfix
@@ -123,9 +129,9 @@ Source11: postfix-build
 
 # Obligatory Patches
 Patch1: postfix-config.patch
+Patch2: postfix-smtp_sasl_proto.c.patch
 
 # Optional patches
-Patch2: postfix-smtp_sasl_proto.c.patch
 Patch3: postfix-%{vdaver}_quota.patch 
 Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pgver}.patch
 Patch51: postfix-pg-raw.patch
@@ -186,7 +192,7 @@ BuildRequires: openssl-devel
 Postfix is a Mail Transport Agent (MTA), intended to be an alternative
 to the widely-used sendmail.  This is a reasonably sophisticated package
 which includes optional support for LDAP, pcre, mysql, SMTP AUTH (SASL) and
-TLS; it sets up chroot for added security.
+TLS; by default it sets up chroot for added security.
 
 See http://www.redhat.com/support/docs/faqs/RH-postfix-FAQ/book1.html,
 a slightly outdated FAQ, which covers the steps involved in installing
@@ -195,12 +201,13 @@ and configuring postfix.
 The binary and source rpms I produce are currently stored on
 	http://pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.17 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.18 $,
 with the following options:
 
-SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING},VDA=%{VDA},PGSQL=%{PGSQL},PGSQL2=%{PGSQL2}
+SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING},VDA=%{VDA},PGSQL=%{PGSQL}, PGSQL2=%{PGSQL2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
 LDAP=%{LDAP}, SASL=%{SASL}, PCRE=%{PCRE}, TLS=%{TLS}, TLSFIX=%{TLSFIX}, MYSQL=%{MYSQL}, REDHATMYSQL=%{REDHATMYSQL}
-REQUIRES_DB3=%{REQUIRES_DB3}, REQUIRES_DB4=%{REQUIRES_DB4}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}, POSTDROP_GID=%{POSTDROP_GID}
+REQUIRES_DB3=%{REQUIRES_DB3}, REQUIRES_DB4=%{REQUIRES_DB4}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}
+POSTFIX_UID=%{POSTFIX_UID}, POSTFIX_GID=%{POSTFIX_GID}, POSTDROP_GID=%{POSTDROP_GID}
 
 To use postfix with alternative options download the source package and
 rebuild the binary package following the instructions in the source
@@ -291,8 +298,10 @@ done
 %endif
 
 # setup master.cf to be chrooted
+%if ! %{DISABLE_CHROOT}
 mv conf/master.cf conf/master.cf-nochroot
 awk -f %{_sourcedir}/postfix-chroot-setup.awk < conf/master.cf-nochroot > conf/master.cf
+%endif
 
 cp %{_sourcedir}/postfix-new-RPM-packages postfix-new-RPM-packages
 
@@ -479,6 +488,7 @@ install -c %{_sourcedir}/postfix-etc-init.d-postfix \
 
 # Copy the Linux chroot setup script to %{config_directory}, ready to use,
 # later, removing the 'postfix reload' call from this script
+%if ! %{DISABLE_CHROOT}
 sed '
 s;postfix reload;#postfix reload # - do not reenable - used by rpm;
 ' examples/chroot-setup/LINUX2 \
@@ -489,6 +499,7 @@ chmod 0744 %{buildroot}%{config_directory}/chroot-setup-LINUX2
 mkdir -p %{buildroot}%{queue_directory}/etc
 mkdir -p %{buildroot}%{queue_directory}/lib
 mkdir -p %{buildroot}%{queue_directory}/usr/lib/zoneinfo
+%endif
 
 # This is the /etc/cron.daily directory
 /bin/mkdir -p %{buildroot}%{cron_directory}
@@ -520,9 +531,24 @@ for i in smtp-sink smtp-source; do
 done
 
 # Executed after the package has been installed.
-# - activate postfix, setup chroot environment
+# - activate postfix, setup chroot environment if necessary
 %post
 umask 022
+
+# setup the chroot environment
+chroot_setup () {
+  # setup chroot basic structure, but do not fail if the script fails
+  %{config_directory}/chroot-setup-LINUX2 || true
+
+  %if %{LDAP}
+    # Setup ldap chroot
+    %{copy_cmd}
+
+    for i in /usr/lib/libldap*.so* /usr/lib/liblber.so*; do
+      [ -e $i ] && copy $i %{queue_directory}/usr/lib
+    done
+  %endif
+}
 
 /sbin/chkconfig --add postfix
 
@@ -541,17 +567,8 @@ sh %{config_directory}/post-install \
 # build the aliases.db file on the INSTALL machine
 %{command_directory}/postalias %{config_directory}/aliases
 
-# setup chroot basic structure, but do not fail if the script fails
-%{config_directory}/chroot-setup-LINUX2 || true
-
-%if %{LDAP}
-# Setup ldap chroot
-
-%{copy_cmd}
-
-    for i in /usr/lib/libldap*.so* /usr/lib/liblber.so*; do
-        [ -e $i ] && copy $i %{queue_directory}/usr/lib
-    done
+%if ! %{DISABLE_CHROOT}
+  chroot_setup
 %endif
 
 %preun
@@ -570,6 +587,12 @@ stop_postfix () {
 # WE MUST BE IN /var/spool/postfix before calling this routine
 
 chroot_remove () {
+  %if %{LDAP}
+    # remove ldap chroot environment
+    /bin/rm -f %{queue_directory}/usr/lib/libldap*.so* || true
+    /bin/rm -f %{queue_directory}/usr/lib/liblber.so*  || true
+  %endif
+    
     for i in etc/localtime usr/lib/zoneinfo/localtime \
             etc/host.conf etc/resolv.conf etc/nsswitch.conf \
 	    etc/hosts etc/passwd etc/services \
@@ -619,12 +642,10 @@ if [ "$1" = 0 ]; then
     groupdel postdrop || %whinge "WARNING: failed to remove group postdrop"
 
     cd %{queue_directory} && {
-%if %{LDAP}
-        # remove ldap chroot environment
-        /bin/rm -f %{queue_directory}/usr/lib/libldap*.so* || true
-        /bin/rm -f %{queue_directory}/usr/lib/liblber.so*  || true
-%endif
-        chroot_remove
+        %if ! %{DISABLE_CHROOT}
+          chroot_remove
+        %endif
+        
         queue_directory_remove
     }
     true # to ensure we exit safely
@@ -678,9 +699,11 @@ fi
 %attr(0755, root, root) %config %{init_directory}/postfix
 
 %dir                      %verify(not md5 size mtime) %{queue_directory}
-%dir %attr(-, root, root) %verify(not md5 size mtime) %{queue_directory}/etc
-%dir %attr(-, root, root) %verify(not md5 size mtime) %{queue_directory}/lib
-%attr(-, root, root)      %verify(not md5 size mtime) %{queue_directory}/usr
+%if ! %{DISABLE_CHROOT}
+  %dir %attr(-, root, root) %verify(not md5 size mtime) %{queue_directory}/etc
+  %dir %attr(-, root, root) %verify(not md5 size mtime) %{queue_directory}/lib
+  %attr(-, root, root)      %verify(not md5 size mtime) %{queue_directory}/usr
+%endif
 
 # For correct directory permissions check postfix-install script
 %dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_directory}/active
@@ -725,7 +748,9 @@ fi
 
 %doc html
 
+%if ! %{DISABLE_CHROOT}
 %attr(0744, root, root) %config %{config_directory}/chroot-setup-LINUX2
+%endif
 
 %dir %attr(0755, root, root) %verify(not md5 size mtime) %{daemon_directory}
 %{daemon_directory}/bounce
@@ -783,6 +808,13 @@ fi
 #
 
 %changelog
+
+* Fri Mar 08 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.4-4
+  2 patches provided by Robert L Mathews <rob@tigertech.com> 
+  - add support via POSTFIX_DISABLE_CHROOT=1 to disable standard chroot
+    setup in package.
+  - add support for explicitly defining the postfix uid/gid in spec file
+    via POSTFIX_UID=... and POSTFIX_GID=...
 
 * Fri Mar 08 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.4-3
   - add patch to BuildRequires!
