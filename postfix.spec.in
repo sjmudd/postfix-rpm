@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.57 2001/09/03 08:28:56 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.58 2001/09/08 10:08:25 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -46,7 +46,7 @@
 %define patchlevel pl04
 %define version1 %{vers}-%{patchlevel}
 %define version2 %{vers}_%{patchlevel}
-%define rel  3
+%define rel  4
 
 %define tlsno pfixtls-0.7.8-20010228-pl04-0.9.6b
 %define pflogno -1.0.3
@@ -145,7 +145,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.57 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.58 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -691,6 +691,11 @@ fi
 #
 
 %changelog
+
+* XXX Sep XX 2001 Simon J Mudd <sjmudd@pobox.com>
+- postfix-20010228-pl04-3
+  - update to latest TLS patch (0.7.9)
+  - cosmetic modification to /etc/cron.daily/1postfix
 
 * Mon Sep 03 2001 Simon J Mudd <sjmudd@pobox.com>
 - postfix-20010228-pl04-3, include patch by Chris Audley <Christopher.D.Audley@jhu.edu>
