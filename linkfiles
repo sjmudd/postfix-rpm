@@ -1,0 +1,70 @@
+#!/bin/sh
+#
+# $Revision: 1.1.4.1 $
+#
+# File to make or remove links from this directory to the SOURCES
+# directory for all files used to build RPM packages
+#
+#[ -n "$DEBUG" ] && set -x
+myname=$(basename $0)
+
+USAGE="Usage: $0 [--verbose|--quiet] (--create | --delete)
+    --quiet                 Be quiet about creating/removing the links.
+    --verbose               Be verbose about creating/removing the links.
+    --create                Create the symbolic links
+    --delete                Delete the symbolic links
+
+Creates or removes the symbolic links from the current directory to
+%{_sourcedir} for the files listed in postfix-filelist.  "
+
+create=
+verbose=
+quiet=
+delete=
+ 
+# Process command-line options and parameter settings.
+for arg
+do
+    case $arg in
+    --verbose) verbose=1; quiet=;;
+      --quiet) quiet=1; verbose=;;
+     --create) create=1;;
+     --delete) delete=1;;
+            *) echo $0: Error: $USAGE 1>&2; exit 1;;
+    esac
+    shift
+done
+
+SRCDIR=$(rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;')
+HERE=$PWD
+
+[ -n "$verbose" ] && {
+	cat <<-EOF
+	$myname (C) 2004 Simon J Mudd <sjmudd@pobox.com>
+	SRCDIR=$SRCDIR
+	HERE=$HERE
+
+	EOF
+}
+
+# one of create and delete must be defined
+[ -n "$create" -o -n "$delete" ] || { echo $0: Error: $USAGE 1>&2; exit 1; }
+# both create and delete must NOT be defined
+[ -n "$create" -a -n "$delete" ] && { echo $0: Error: $USAGE 1>&2; exit 1; }
+
+[ -n "$create" ] && {
+    echo "===> linking files to directory $SRCDIR"
+    for i in $(cat pkg-sourcelist); do
+        test -f $i && test ! -x $i && \
+            ln -s $HERE/$i $SRCDIR/$i && echo "	$i"
+    done
+}
+
+[ -n "$delete" ] && {
+    [ -z "${quiet}" ] && echo "===> removing links from ${SRCDIR}"
+    for file in `cat pkg-sourcelist`; do
+        test -L ${SRCDIR}/${file} && test -f ${file} && rm ${SRCDIR}/${file} && [ -z "${quiet}" ] && echo "	${file}"
+    done
+}
+
+exit 0
