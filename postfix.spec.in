@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.17 2000/11/25 18:06:55 root Exp $
+# $Id: postfix.spec.in,v 2.18 2000/11/30 21:51:35 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -16,7 +16,7 @@ PreReq: /sbin/chkconfig
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
 Version: 20001121
-Release: 2
+Release: 3
 Packager: Simon J Mudd <sjmudd@pobox.com> but see description below
 Vendor: None -- see packager
 Distribution: Experimental
@@ -233,12 +233,18 @@ if [ "$1" = 0 ]; then
 
     userdel postfix || : %whinge "WARNING: failed to remove user postfix"
     groupdel postfix || : %whinge "WARNING: failed to remove group postfix"
+
+    # safety check
+    test "%{queue_directory}Z" = "Z" && echo "WARNING: chroot removal buggy - check .spec file" && exit 0
     # remove chroot jail when uninstalling the package
     for i in /etc/localtime /usr/lib/zoneinfo/localtime \
 		/etc/host.conf /etc/resolv.conf /etc/nsswitch.conf \
-		/etc/hosts /etc/passwd /etc/services \
-		/lib/libnss_* /lib/libresolv*; do
+		/etc/hosts /etc/passwd /etc/services; do
         test -f %{queue_directory}$i && rm -f %{queue_directory}$i
+    done
+    for i in %{queue_directory}/lib/libnss_* \
+		%{queue_directory}/lib/libresolv*; do
+        test -f $i && rm -f $i
     done
 fi
 
@@ -345,6 +351,10 @@ rm -rf ${RPM_BUILD_ROOT}
 #	Bennett Todd <bet@mordor.net>
 
 %changelog
+* Thu Nov 23 2000 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001121-3,
+  fix minor error in chroot jail removal
+
 * Thu Nov 23 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001121-2,
   didn't like chroot jail setup in -1, so now I use the example script
