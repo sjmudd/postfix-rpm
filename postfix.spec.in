@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.86 2003/08/12 19:41:11 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.87 2003/08/21 16:32:27 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -79,7 +79,7 @@
 %define official 1
 %define ver 2.0.14
 %define mail_release_date 20021219
-%define rel 1
+%define rel 1.1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -185,7 +185,7 @@ BuildRequires: mysql, mysql-devel
 
 %if %{mysql_local}
 BuildRequires: %{mysql_include}/mysql.h
-Requires: %{mysql_lib}/mysqlclient.so
+Requires: %{mysql_lib}/libmysqlclient.so
 %endif
 
 %if %{mysql}
@@ -222,7 +222,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.86 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.87 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -930,6 +930,10 @@ umask 022
 #
 
 %changelog
+
+* Thu Aug 21 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.14-1.1
+  - fix a typo with mysql source support: should require libmysqlclient.so
+    not mysqlclient.so.  Reported by Szabo Akos <fonya@mail.fatav.hu>.
 
 * Tue Aug 12 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.14-1
   - update to postifx-2.0.14
