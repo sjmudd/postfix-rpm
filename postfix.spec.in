@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.74 2002/12/10 10:00:51 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.75 2002/12/10 10:07:35 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -66,7 +66,7 @@
 %define official 1 
 %define ver 1.1.12
 %define mail_release_date 20020115
-%define rel 3.2
+%define rel 3.3
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -132,7 +132,6 @@ Source12: http://www.corpit.ru/ftp/postfix/postfix-dict_cdb.tar.gz
 Source13: http://www.corpit.ru/ftp/postfix/README.CDB
 
 # Obligatory Patches
-Patch1: postfix-makedefs.patch
 Patch2: postfix-smtp_sasl_proto.c.patch
 Patch3: postfix-files.patch
 
@@ -208,7 +207,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.74 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.75 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -274,7 +273,6 @@ patch -p1 <%{pfixtls}/pfixtls.diff
 %patch6 -p1 -b .snapchat
 
 # Apply obligatory patches
-%patch1 -p1 -b .makedefs
 %patch2 -p1 -b .auth
 %patch3 -p1 -b .alternatives
 %patch7 -p1 -b .logrcpt
@@ -959,11 +957,9 @@ fi
 
 %changelog
 
-* Tue Dec 10 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-3.2
+* Tue Dec 10 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-3.3
   - remove postfix-etc-cron.daily-postfix from pkg-sourcelist
   - remove postfix-config.patch, not sure when it was added.
-  - patch makedefs to ensure that pcre support is NOT automatically
-    included unless explicitly requested
 
 * Mon Dec 09 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-3
   - update TLS patches to 0.8.12-1.1.12-0.9.6h
