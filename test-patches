@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/test-patches,v 2.1.4.2 2004/07/18 21:59:43 sjmudd Exp $
+# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/test-patches,v 2.1.4.3 2004/07/20 21:31:28 sjmudd Exp $
 #
 
 test_patch () {
@@ -48,4 +48,5 @@ NOTES:
 [1] Check build outputs for each failed patch and ensure that all dependencies
     are installed.
 [2] Patches are not tested together
+
 EOF

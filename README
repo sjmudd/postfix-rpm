@@ -1,4 +1,4 @@
-$Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/README,v 2.1.4.1 2004/07/17 22:30:45 sjmudd Exp $
+$Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/README,v 2.1.4.2 2004/07/20 21:31:28 sjmudd Exp $
 
 README for postfix cvs build environment
 ========================================
@@ -28,10 +28,16 @@ setup:
 	setup the directory structure indicated above
 	You must actually checkout the cvs files you want.
 	See http://postfix.WL0.org/en/cvs for details
+
 all:
 	same as rpm
-rpm:
+
+build/rpm:
 	build rpm
+
+fetch:
+	retrieve the files from their source (if necessary)
+
 update:
 	update cvs file from cvs server
         this also builds the rpm

@@ -29,11 +29,12 @@ msg_debug "$myname: started"
 # I use postfix-current, postfix-2.1, postfix-2.0, postfix-1.1 by renaming
 # postfix-rpm after checking out the appropriate tree.
 
-msg_info "checking for directory ~/cvs"
-[ ! -d ~/cvs ] && {
-    mkdir ~/cvs && msg_info "- Creating directory ~/cvs" || \
-	msg_warn "- could not create directory ~/cvs"
-} || msg_info "- directory exists: OK"
+msg_info "checking cvs directory:"
+dir=~/cvs
+[ ! -d $dir ] && {
+    mkdir $dir && msg_info "- $dir created [OK]" || \
+	msg_warn "- $dir - could not be created [ERROR]"
+} || msg_info "- $dir exists [OK]"
 
 # check if ~/.rpmmacros exists, DON'T overwrite it.
 msg_info "checking for file ~/.rpmmacros"
@@ -46,13 +47,13 @@ msg_info "checking for file ~/.rpmmacros"
     msg_info "- consider using file rpmmacros or comparing the 2 files"
 }
 
+msg_info "checking directories:"
 for param in _topdir _sourcedir _specdir _tmppath _builddir \
 	 _srcrpmdir _rpmdir; do
     dir=$(rpm --eval "%{$param}" | sed -e 's;%{name};postfix;')
-    msg_info "checking for directory $dir"
     [ ! -d "$dir" ] && {
-        mkdir -p $dir && msg_info "- Creating directory $dir" || \
-		msg_warn "- Could not create directory $dir"
-    } || msg_info "- Directory exists: OK"
+        mkdir -p $dir && msg_info "- $ created [OK]" || \
+		msg_warn "- $dir - could not be created [ERROR]"
+    } || msg_info "- $dir exists [OK]"
 done
 
