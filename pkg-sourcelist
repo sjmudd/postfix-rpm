@@ -12,8 +12,6 @@ postfix-files.patch
 postfix-get-distribution
 postfix-mysql_query.patch
 postfix-pam.conf
-postfix-pg.postfix-2.0.0.2.patch
-postfix-pg-raw.patch
 postfix-rbl_reply_maps.patch
 postfix-saslauthd.conf
 postfix-sasl.conf
