@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.11 2003/04/09 15:52:27 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.12 2003/04/23 17:11:17 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -189,6 +189,28 @@ if [ "$POSTFIX_SASL" = 1 -o "$POSTFIX_SASL" = 2 ]; then
 else
     POSTFIX_SASL=
 fi
+
+[ -z "$POSTFIX_RPM_NO_WARN" -a \
+	"$POSTFIX_LDAP" -gt 0 -a \
+	"$POSTFIX_SASL" -ge 2 -a \
+	$releasename = redhat -a \
+	$major -le 8 ] && {
+cat <<END
+WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
+
+According to RedHat's Postfix spec file on RH versions earlier than 8.0.1 as
+LDAP is compiled with SASL v1 Postfix will not work if compiled with SASL v2.
+
+You have selected both LDAP and SASL v2 with such a RH release.
+
+To build with this configuration set POSTFIX_RPM_NO_WARN=1 and rerun this
+script.  If the resulting package works please let me know.
+
+WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
+END
+    exit 1
+}
+
 if [ "$POSTFIX_IPV6" = 1 ]; then
     echo "  adding IPv6 support to spec file"
     SUFFIX="${SUFFIX}.ipv6"
@@ -202,8 +224,8 @@ if [ "$POSTFIX_TLS" = 1 ]; then
     [ ${releasename} = 'redhat' -a ${major} = 9 ] && TLSFIX=2
 fi
 if [ "$POSTFIX_VDA" = 1 ]; then
-    # don't bother changing the suffix
     echo "  adding VDA support to spec file"
+    SUFFIX="${SUFFIX}.vda"
 fi
 if [ "$POSTFIX_DISABLE_CHROOT" = 1 ]; then
     echo "  disabling chroot environment in spec file"
