@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.24 2000/12/13 21:23:47 root Exp $
+# $Id: postfix.spec.in,v 2.25 2000/12/13 21:47:21 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -32,6 +32,8 @@ Source7: postfix-RPM-TODO-list
 #Source8: postfix-Makefile
 Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
+# required to install smtp-sink and smtp-source
+Patch3:  postfix-INSTALL.sh.patch
 #
 # Optional patches - set the appropriate environment variables to include
 #                    them when building the package
