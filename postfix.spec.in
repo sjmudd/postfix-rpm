@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.16 2000/11/25 18:05:12 root Exp $
+# $Id: postfix.spec.in,v 2.17 2000/11/25 18:06:55 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -16,7 +16,7 @@ PreReq: /sbin/chkconfig
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
 Version: 20001121
-Release: 1
+Release: 2
 Packager: Simon J Mudd <sjmudd@pobox.com> but see description below
 Vendor: None -- see packager
 Distribution: Experimental
