@@ -1,8 +1,8 @@
 POSTFIX PACKAGE TODO LIST
 ==========================================
 
-Revision:     $Revision: 1.4 $
-Last Updated: $Date: 2000/12/01 20:10:13 $
+Revision:     $Revision: 1.5 $
+Last Updated: $Date: 2000/12/10 20:28:55 $
 
 Summary of comments and reminders of things that need to be looked at.
 
@@ -82,4 +82,14 @@ of doing this is to have a spec file in ./SOURCES which together with
 a make file allows a specific package to be built, while maintaining
 the the ability to generate the other packages from the appropriate
 source package.
+
+----------------------------------------------------------------------
+
+Reported by:	Daniel Roesen <droesen@entire-systems.com> 
+Date:		07/12/2000
+Status:		PENDING
+Problem:
+--------
+- compile & include smtp-source/sink and generate the manpages for them
+- include my mynetworks patch if Wietse doesn't get clue on that :-]
 
