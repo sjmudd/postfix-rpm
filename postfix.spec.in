@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.15 2003/01/26 23:08:15 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.16 2003/02/13 13:56:07 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -63,14 +63,14 @@
 %define vdaver 2.0.0.2
 %define pfixtls pfixtls-0.8.13-2.0.3-0.9.7
 %define pgver 1.1.4
-%define pfixipv6 tls+ipv6-1.10-pf-2.0.0.2
+%define pfixipv6 tls+ipv6-1.12-pf-2.0.3
 %define cdbver 1.1.11-20021104
 
 # If set to 1 if official version, 0 if snapshot
 %define official 1
 %define ver 2.0.3
 %define mail_release_date 20021219
-%define rel 1
+%define rel 2
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -213,7 +213,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.15 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.16 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -962,6 +962,9 @@ fi
 #
 
 %changelog
+
+*Mon Jan 27 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.3-2
+  - update IPv6 patches
 
 *Mon Jan 27 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.3-1
   - update Postfix
