@@ -10,8 +10,8 @@
 # config: /etc/postfix/
 
 # Written by Package Author: Simon J Mudd <sjmudd@pobox.com>
-# 25/02/99: Hacked by jam.  Mostly s/sendmail/postfix/g :-)
-# 23/11/00: Further changes, suggestions of Ajay Ramaswamy <ajayr@bigfoot.com>
+# 25/02/99: Mostly s/sendmail/postfix/g by John A. Martin <jam@jamux.com>
+# 23/11/00: Changes & suggestions by Ajay Ramaswamy <ajayr@bigfoot.com>
 # 20/01/01: Changes to fall in line with RedHat 7.0 style
 
 # Source function library.
@@ -33,7 +33,7 @@ RETVAL=0
 
 start() {
 	echo -n "Starting postfix: "
-	/usr/sbin/postfix start
+	/usr/sbin/postfix start 2>/dev/null 1>&2
 	RETVAL=$?
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/postfix
         echo
@@ -42,7 +42,7 @@ start() {
 
 stop() {
 	echo -n "Shutting down postfix: "
-	/usr/sbin/postfix stop
+	/usr/sbin/postfix stop 2>/dev/null 1>&2
 	RETVAL=$?
 	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/postfix
 	echo
@@ -51,26 +51,26 @@ stop() {
 
 reload() {
 	echo -n "Reloading postfix: "
-	/usr/sbin/postfix reload
+	/usr/sbin/postfix reload 2>/dev/null 1>&2
 	RETVAL=$?
 	echo
 	return $RETVAL
 }
 
 abort() {
-	/usr/sbin/postfix abort
+	/usr/sbin/postfix abort 2>/dev/null 1>&2
 	RETVAL=$?
 	return $RETVAL
 }
 
 flush() {
-	/usr/sbin/postfix flush
+	/usr/sbin/postfix flush 2>/dev/null 1>&2
 	RETVAL=$?
 	return $RETVAL
 }
 
 check() {
-	/usr/sbin/postfix check
+	/usr/sbin/postfix check 2>/dev/null 1>&2
 	RETVAL=$?
 	return $RETVAL
 }
