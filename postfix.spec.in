@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.224 2002/12/13 10:42:16 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.225 2002/12/13 11:54:37 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -43,7 +43,7 @@
 %define pgsql2 __PGSQL2__
 %define sasl __SASL__
 %define sasl_library __SASL_LIBRARY__
-# TLS patches don't currently seem to work
+# TLS patches don't currently work, 20021213
 %define tls __TLS__
 %define tls 0
 %define tlsfix __TLSFIX__
@@ -68,8 +68,8 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 0
 %define ver 1.1.12
-%define mail_release_date 20021209
-%define rel 1.2
+%define mail_release_date 20021212
+%define rel 0.1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -208,7 +208,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.224 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.225 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -875,7 +875,6 @@ fi
 %doc HISTORY
 %doc INSTALL
 %doc PORTING
-%doc RELEASE_NOTES
 
 %if %{cdb}
 %doc README.CDB
@@ -954,6 +953,11 @@ fi
 #
 
 %changelog
+
+* Fri Dec 13 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021212-0.1
+  - update to latest snapshot
+  - remove RELEASE_NOTES from %doc directory, it is now installed in
+    the %readme_dir ( /etc/postfix/README_FILES )
 
 * Wed Dec 11 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021209-1.2
   - remove (duplicate) LICENSE from %doc directory
