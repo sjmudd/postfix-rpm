@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.2.16 2004/08/24 17:57:23 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.2.17 2004/08/24 18:12:16 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -138,6 +138,7 @@ Packager: Simon J Mudd <sjmudd@pobox.com>
 Summary: Postfix Mail Transport Agent
 Vendor: Built on %{build_dist_full} (%{build_dist})
 Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_dir}/postfix-%{V_tarball}.tar.gz
+Source1: make-postfix.rpm
 Source2: postfix-get-distribution
 Source3: postfix-etc-init.d-postfix
 Source4: postfix-chroot.sh
@@ -239,7 +240,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.2.16 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.2.17 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
