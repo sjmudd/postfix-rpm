@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/buildpackage,v 2.24.2.5 2004/07/21 06:17:47 sjmudd Exp $
+# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/buildpackage,v 2.24.2.6 2004/09/17 16:44:12 sjmudd Exp $
 #
 # Shell script used to build my packages
 # - checks if the needed files exist and retrieve them
@@ -19,7 +19,6 @@ build () {
   sleep 2 && \
   echo "" && \
   echo "===> building RPM package (output to ${build_output})..." && \
-  if [ -z "$sign" ]; then echo "	NOT signing package"; fi && \
   $RPM -ba $sign postfix.spec ) 2>&1 | tee ${build_output}
 }
 

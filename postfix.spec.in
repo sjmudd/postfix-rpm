@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.2.20 2004/09/17 16:16:01 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.2.21 2004/09/17 16:44:12 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -178,7 +178,7 @@ BuildRoot: %{_tmppath}/postfix-%{V_package}-buildroot
 BuildRequires: /usr/bin/cc, gawk, sed, ed, patch, rpm >= 4
 Requires: gawk, sed, ed
 
-%if %{with_libspf}
+%if %{with_spf}
 BuildRequires: libspf2-devel
 Requires: libspf2
 %endif
@@ -253,7 +253,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.2.20 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.2.21 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -1097,7 +1097,7 @@ umask 022
 %changelog
 
 * Fri Sep 17 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.5-1
-  - add support for libspf.
+  - add support for libspf (enabled by setting POSTFIX_SPF=1)
     - suggested by Henrik Schack Jensen <henrik@schack.dk>
   - update to 2.1.5
 

@@ -1,11 +1,11 @@
 #!/bin/sh
 #
-# $Revision: 1.1.2.1 $
+# $Revision: 1.1.2.2 $
 #
 # File to make or remove links from this directory to the SOURCES
 # directory for all files used to build RPM packages
 #
-[ -n "$DEBUG" ] && set -x
+#[ -n "$DEBUG" ] && set -x
 myname=$(basename $0)
 
 USAGE="Usage: $0 [--verbose|--quiet] (--create | --delete)
