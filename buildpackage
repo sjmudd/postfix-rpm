@@ -4,6 +4,7 @@ echo Building postfix...
 
 HERE=`pwd`
 
+cvs diff 2>&1 >/dev/null || { echo "WARNING please commit changes before building"; exit 1; }
 
 ./makelinks
 ( cd /usr/src/redhat/SOURCES && \
