@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.69 2003/07/10 21:29:34 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.70 2003/07/12 08:59:25 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -81,7 +81,7 @@
 %define official 1
 %define ver 2.0.13
 %define mail_release_date 20021219
-%define rel 2
+%define rel 3
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -230,7 +230,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.69 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.70 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -695,8 +695,11 @@ else
         ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
         ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
         ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
+    else
+        :
     fi
 fi
+
 
 %triggerpostun -- postfix
 
@@ -728,6 +731,8 @@ else
         ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
         ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
         ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
+    else
+        :
     fi
 fi
 
@@ -739,6 +744,10 @@ fi
     file=${dir}/etc/passwd && \
     %whinge "remove etc/passwd from chroot ${dir}: no longer needed as proxymap enabled" && \
     [ -e ${file} ] && rm -f ${file}
+
+# Ensure the trigger script returns 0. the previous function may cause it to
+# return a different value which makes RPM barf.
+:
 
 # Generate chroot jails on the fly when needed things are installed/upgraded
 %if ! %{disable_chroot}
@@ -1053,6 +1062,14 @@ umask 022
 #
 
 %changelog
+
+* Sat Jul 12 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.13-3
+  - problems reported on 2.0.13-2 due to the trigger script failing on 
+    package installation.
+    - solution: ensure the trigger scripts returns 0 otherwise RPM barfs.
+    - reported by:
+        James Toshack <James_Toshack@learningtree.com>
+        Larry Hansford <lhansfor@creativedatasolns.com>
 
 * Thu Jul 10 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.13-2
   - remove /etc/passwd used in chroot (no longer needed now default
