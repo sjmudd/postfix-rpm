@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.64 2001/02/07 19:44:25 root Exp $
+# $Id: postfix.spec.in,v 2.65 2001/02/19 20:36:16 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -51,7 +51,7 @@ PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail, exim, qmail, smail
 Version: 20010204
-Release: 2__SUFFIX__
+Release: 3__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Vendor: Built under __DISTRIBUTION__
 Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{version}.tar.gz
@@ -433,7 +433,8 @@ queue_directory_remove () {
     done
 
     # now remove the other directories
-    for dir in corrupt deferred incoming maildrop pid private public saved; do
+#    for dir in corrupt deferred incoming maildrop pid private public saved; do
+    for dir in corrupt deferred incoming pid private public saved; do
         test -d $dir && {
             /bin/rm -f $dir/*
             /bin/rmdir $dir || echo "WARNING: preun - unable to remove directory %{queue_directory}/$dir"
@@ -599,6 +600,10 @@ fi
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Wed Feb 07 2001 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20010204-3, avoid the /var/spool/postfix/maildrop - directory
+  not empty error message.
+
 * Wed Feb 07 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20010204-2, various changes - suggestions from Ben Cross
   - uninstall is not quite right.
