@@ -77,22 +77,18 @@ tests:
 # - any other symbolic links in %{_sourcedir} ~user/rpm/SOURCES
 # - stuff in %{_tmppath} ~user/rpm/tmp/*
 # - stuff in %{_builddir} ~user/rpm/BUILD/*
-#clean tidy:
-#	sh linkfiles --delete --quiet || :
-##	dir=`rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;'`
-#	dir=`/bin/rpm --eval '%{_sourcedir}'`
-#	echo $$dir
-#	exit 1
-#	: || for file in `ls $$dir`; do [ -L $$file ] && rm $$file || :; done
-##	dir=`rpm --eval '%{_tmppath}'  | sed 's;%{name};postfix;'`
-#	echo $$dir
-#	: || [ -d $$dir ] && rm -rf $$dir/* || :
-##	dir=`rpm --eval '%{_builddir}' | sed 's;%{name};postfix;'`
-#	echo $$dir
-#	: || [ -d $$dir ] && rm -rf $$dir/* || :
-#	[ -e build-output ] && rm build-output || :
-#	for file in `ls results.*`; do rm $$file || :; done
-#
+clean tidy:
+	@sh linkfiles --delete --quiet || :
+	@dir=`rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;'` ; \
+		for file in `ls $$dir`; do [ -L $$file ] && rm $$file || :; done
+	@dir=`/bin/rpm --eval '%{_sourcedir}'`; \
+		dir=`rpm --eval '%{_tmppath}'  | sed 's;%{name};postfix;'`; \
+		[ -d $$dir ] && rm -rf $$dir/* || :
+	@dir=`rpm --eval '%{_builddir}' | sed 's;%{name};postfix;'`; \
+		[ -d $$dir ] && rm -rf $$dir/* || :
+	@[ -e build-output ] && rm build-output || :
+	@for file in `ls results.* 2>/dev/null`; do rm $$file || :; done
+
 # Give some help
 help:
 	@[ -f README ] && more README || echo "No help available sorry"
