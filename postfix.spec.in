@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.185 2002/01/15 13:57:38 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.186 2002/01/15 13:59:18 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -174,7 +174,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.185 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.186 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -418,21 +418,6 @@ umask 022
 
 strip -R .comment --strip-unneeded bin/* libexec/*
 
-#### patch postfix-install so that config_directory/sample-xxx.cf -->
-####                               config_directory/samples/sample-xxxx.cf
-###grep config_directory/sample- conf/postfix-files >/dev/null || {
-###       echo "Packager's Note:"
-###       echo "postfix-files no longer contains 'config_directory/sample-' files, fix or remove the ed script"
-###       exit 1
-###}
-###
-###echo "Patching postfix-files (sample files -> samples/ directory)"
-###ed conf/postfix-files <<EOF || exit 1
-###%s/config_directory\/sample-/config_directory\/samples\/sample-/g
-###w
-###q
-###EOF
-
 # install postfix into buildroot
 sh postfix-install -non-interactive \
        install_root=%{buildroot} \
@@ -446,32 +431,6 @@ sh postfix-install -non-interactive \
        mail_owner=postfix \
        setgid_group=%{maildrop_group} \
        manpage_path=%{_mandir} || exit 1
-
-#### Change the main.cf file to correctly tell you where the sample files are
-###grep -q "# of all 100+ parameters. See the sample-xxx.cf files for a full list." \
-###    %{buildroot}%{config_directory}/main.cf >/dev/null || {
-###      echo "Packager's Note:"
-###      echo "Line 2 of main.cf appears to have changed, fix the ed script"
-###      exit 1
-###}
-###ed %{buildroot}%{config_directory}/main.cf <<EOF || exit 1
-###/# of all 100+ parameters. See the sample-xxx.cf files for a full list./
-###a
-####
-#### -- RPM Packaging Note --
-#### These files are in %{config_directory}/samples, a symbolic link to
-#### /usr/share/doc/%{name}-%{version}-%{release}/conf.
-####
-#### If you've upgraded postfix look in /usr/share/doc/postfix-<version>/conf,
-#### where <version> is the current version you are using.
-####
-#### The postfix html documentation and various README files are also stored
-#### in subdirectories of the /usr/share/doc/postfix-<version>.
-#### -- RPM Packaging Note --
-###.
-###w
-###q
-###EOF
 
 # Change alias_maps and alias_database default directory to %{config_directory}
 bin/postconf -c %{buildroot}%{config_directory} -e \
@@ -534,14 +493,13 @@ done
 
 # setup a symbolic link in the config directory of the following
 # documentation directories:
-#	samples -> config
+#	samples -> config (not now)
 #	html -> html
 #	README_FILES -> README_FILES
 #
 # - not sure what the correct macro for /usr/share/doc/postfix-<version>/ is
 #   so do this by hand until some kind soul tells me!
 #
-###ln -s ../../usr/share/doc/%{name}-%{version}/conf %{buildroot}%{config_directory}/samples
 ln -s ../../usr/share/doc/%{name}-%{version}/html %{buildroot}%{config_directory}/html
 ln -s ../../usr/share/doc/%{name}-%{version}/README_FILES %{buildroot}%{config_directory}/README_FILES
 
@@ -723,7 +681,6 @@ fi
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/transport
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/virtual
 
-###%attr(0644, root, root) %{config_directory}/samples
 %attr(0644, root, root) %{config_directory}/sample-*.cf
 %attr(0644, root, root) %{config_directory}/html
 %attr(0644, root, root) %{config_directory}/README_FILES
@@ -773,7 +730,6 @@ fi
 %doc html/TLS/*
 %endif
 
-###%doc conf
 %doc html
 %doc README_FILES
 
