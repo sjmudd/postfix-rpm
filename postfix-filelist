@@ -3,6 +3,7 @@ pfixtls-0.8.10-1.1.10-0.9.6d.tar.gz
 pflogsumm-1.0.4.pl
 postfix-1.1.6_quota.patch
 postfix-aliases
+postfix-alternatives.patch
 postfix-bounce_notify_util.c.patch
 postfix-build
 postfix-chroot-setup.awk
@@ -10,6 +11,7 @@ postfix-chroot_setup.patch
 postfix-config.patch
 postfix-etc-cron.daily-postfix
 postfix-etc-init.d-postfix
+postfix-get-distribution
 postfix-makedefs.patch
 postfix-new-RPM-packages
 postfix-pg-raw.patch
@@ -17,4 +19,3 @@ postfix-pg.postfix-1.1.4.patch
 postfix-smtp_sasl_proto.c.patch
 postfix-smtpd_multiline_greeting.patch
 postfix.spec.in
-postfix-get-distribution

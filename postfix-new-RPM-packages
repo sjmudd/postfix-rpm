@@ -18,12 +18,30 @@ rather off-topic.
 
 If you are interested in receiving these email announcements, please
 subscribe to the list: send a message with the text "subscribe
-postfix-rpm-announce" to majordomo@ea4els.ampr.org.
+postfix-rpm-announce" to majordomo@WL0.org
 
 A searchable version of the contents of the list is also available on
 the web at the following URL:
 
-	http://www.ea4els.ampr.org/cgi-bin/wilma/postfix-rpm-announce
+	http://www.WL0.org/cgi-bin/wilma/postfix-rpm-announce
+
+For those of you looking for newer versions of my packages you can find
+them at:
+
+via http:
+        http://pobox.com/~sjmudd/postfix/ftp/
+ 
+via anonymous ftp:
+        ftp://ftp.WL0.org/              Madrid, Spain
+        ftp://ftp.everdigital.org/      Houston, Texas, USA
+        ftp://ftp.shuttleamerica.com    Windsor Locks, Connecticut, USA
+ 
+via rsync:
+        rsync.shuttleamerica.com::postfix
+
+My main Postfix website can be found at:
+
+	http://pobox.com/~sjmudd/postfix
 
 Simon Mudd
 -- 

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.35.2.8 2002/04/15 11:24:43 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.35.2.9 2002/06/09 17:31:01 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -10,6 +10,7 @@
 # The following external variables if set to 1 affect the behaviour
 #
 # POSTFIX_REDHAT_MYSQL	include support for RedHat's mysql packages
+# POSTFIX_REDHAT_DB3	include support for RedHat's db3 packages (rh6.x)
 # POSTFIX_MYSQL		include support for MySQL's  MySQL packages
 # POSTFIX_LDAP		include support for openldap packages
 # POSTFIX_PCRE		include support for pcre maps
@@ -114,6 +115,11 @@ if [ "$POSTFIX_REDHAT_MYSQL" = 1 ]; then
     echo "  adding MySQL support (RedHat mysql* packages) to spec file"
     SUFFIX="${SUFFIX}.mysql"
 fi
+if [ "$POSTFIX_REDHAT_DB3" = 1 ]; then
+    echo "  adding db3 support (RedHat 6.2 db3 packages) to spec file"
+    # SUFFIX="${SUFFIX}.db3"
+    # we'll change suffix later
+fi
 if [ "$POSTFIX_SASL" = 1 ]; then
     echo "  adding SASL  support to spec file"
     SUFFIX="${SUFFIX}.sasl"
@@ -140,10 +146,33 @@ if [ "$POSTFIX_DISABLE_CHROOT" = 1 ]; then
 fi
 
 # Determine the correct db files to use. RedHat 7 requires db3
+# RH6.2 might require db3 if db3-devel is installed
+# (db3-devel create a link /lib/libdb.so pointing to /lib/libdb-3.1.so)
+
 case ${releasename} in
 redhat)
     case ${major} in
-    6) SUFFIX=".rh6x${SUFFIX}" ;;
+    6)
+       if [ "$POSTFIX_REDHAT_DB3" = 1 ]; then
+         # we don't test if db3 is installed,
+         # just adding db3 to the req and buildreq :
+         REQUIRES_DB3=1
+         SUFFIX=".db3${SUFFIX}"
+       else
+         # there will be a problem at link-time if db3-devel is installed
+         if  rpm -q db3-devel 2>&1 >/dev/null; then
+             echo "   You have the db3-devel package installed. This means that postfix"
+             echo "   will be linked againt db3. If you do not want that, uninstall"
+             echo "   db3-devel (you don't have to uninstall db3)."
+             echo "   If you don't want this message to appear, set"
+             echo "   POSTFIX_REDHAT_DB3 to 1 before running $0."
+             POSTFIX_REDHAT_DB3=1
+             REQUIRES_DB3=1
+             SUFFIX=".db3${SUFFIX}"
+         fi
+       fi
+       SUFFIX=".rh6x${SUFFIX}"
+       ;;
     7)
 	REQUIRES_INIT_D=1
         test -z "$REQUIRES_DB4" && REQUIRES_DB3=1
@@ -187,6 +216,7 @@ esac
 [ -z "$POSTFIX_LDAP" ]			   && POSTFIX_LDAP=0
 [ -z "$POSTFIX_MYSQL" ]			   && POSTFIX_MYSQL=0
 [ -z "$POSTFIX_REDHAT_MYSQL" ]		   && POSTFIX_REDHAT_MYSQL=0
+[ -z "$POSTFIX_REDHAT_DB3" ]               && POSTFIX_REDHAT_DB3=0
 [ -z "$POSTFIX_PCRE" ]			   && POSTFIX_PCRE=0
 [ -z "$POSTFIX_PGSQL" ]			   && POSTFIX_PGSQL=0
 [ -z "$POSTFIX_PGSQL2" ]		   && POSTFIX_PGSQL2=0
@@ -217,6 +247,7 @@ s!__SUFFIX__!$SUFFIX!g
 s!__LDAP__!$POSTFIX_LDAP!g
 s!__MYSQL__!$POSTFIX_MYSQL!g
 s!__REDHAT_MYSQL__!$POSTFIX_REDHAT_MYSQL!g
+s!__REDHAT_DB3__!$POSTFIX_REDHAT_DB3!g
 s!__PCRE__!$POSTFIX_PCRE!g
 s!__PGSQL__!$POSTFIX_PGSQL!g
 s!__PGSQL2__!$POSTFIX_PGSQL2!g
