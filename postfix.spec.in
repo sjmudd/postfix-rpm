@@ -1,12 +1,11 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.1 2000/07/05 17:48:39 root Exp $
+# $Id: postfix.spec.in,v 2.2 2000/07/05 18:56:09 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Modifications which make this work on other rpm(1) platforms are welcome.
 #
 # Please send bugfixes and comments to the packager.
-#
 ##############################################################################
 # misc documentation, which can be queried via rpm(1) invocations.
 Group: System Environment/Daemons
@@ -29,7 +28,7 @@ Conflicts: sendmail
 # Version can't have "-" in it so substitute this with "_".
 
 Name: postfix
-%define vers 19991231
+%define vers 20000531
 
 ### WARNING: due to differences between rpm-2.x and rpm-3.x you can't
 ### just comment out defines.  This worked with rpm-2.x, but doesn't
@@ -39,13 +38,13 @@ Name: postfix
 ### 'defines' preceded by a percentage sign
 
 # choice one - when we use patch levels
-%define patchlevel pl08
-%define versioX %{vers}-%{patchlevel}
-%define version %{vers}_%{patchlevel}
+#define patchlevel pl08
+#define versioX %{vers}-%{patchlevel}
+#define version %{vers}_%{patchlevel}
 
 # choice two - when we don't use patch levels
-#define versioX %{vers}
-#define version %{vers}
+%define versioX %{vers}
+%define version %{vers}
 
 ###
 ###
@@ -93,8 +92,8 @@ BuildRoot: /var/tmp/%{name}-%{version}-root
 # List all the source and patch files needed to build the package.
 # NOTE: Patch99 is applied only on builds on my machines.
 
-#Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{versioX}.tar.gz
-Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/official/postfix-%{versioX}.tar.gz
+Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{versioX}.tar.gz
+#Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/official/postfix-%{versioX}.tar.gz
 Source1: postfix-README_rpm.txt
 Source2: postfix-README_maildrop_security.txt
 Source3: postfix-init_script.sh
@@ -104,7 +103,7 @@ Source5: postfix-aliases
 Patch0: postfix-chroot_setup.patch
 Patch1: postfix-config.patch
 Patch2: postfix-chroot_chk.patch
-Patch3: postfix-smtpd_size.patch
+#Patch3: postfix-smtpd_size.patch
 
 Patch99: postfix-smtpd_reply_multiline.patch
 
@@ -122,10 +121,14 @@ systems as possible.  To this end, the software is given away with no
 strings attached, so that it can evolve with input from and under control
 of its users.
 
-Be sure to read http://www.moongroup.com/postfix-faq/c22.html which covers
-steps which should be taken prior to and after the installation of Postfix.
+Be sure to read http://www.moongroup.com/postfix-faq/c22.html which
+covers steps which should be taken prior to and after the installation
+of Postfix.
 
-See http://post.dialin.co.uk/~sjmudd/postfix for source and binary rpms.
+The binary and source rpms are currently stored on
+	http://www.alltrading.es/postfix
+but this location is likely to change as it is hosted by my former
+employer.
 
 You can contact the authors of the binary rpms built as follows:
    i386: Simon J Mudd <sjmudd@pobox.com> (built on RH 5.1 & rpm 2.5.3)
@@ -139,14 +142,14 @@ You can contact the authors of the binary rpms built as follows:
 umask 022
 
 # install postfix from tar-ball
-%setup -q -n %{name}-%{versioX}
-#%setup -n snapshot-%{versioX}
+#%setup -q -n %{name}-%{versioX}
+%setup -q -n snapshot-%{versioX}
 
 # apply various minor patches
 %patch0 -p1 -b .p0
 %patch1 -p1 -b .p1
 %patch2 -p1 -b .p2
-%patch3 -p1 -b .p3
+#%patch3 -p1 -b .p3
 
 # apply this patch ONLY if built on my machines
 if [ `hostname`="phoenix.ea4els.ampr.org" -o \
