@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.35.2.18 2002/11/22 14:43:31 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.35.2.19 2002/11/22 14:56:42 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -26,6 +26,9 @@
 # you may override them.
 # POSTFIX_DB		add support for dbX, (3, 4, or 0 to disable)
 # POSTFIX_INCLUDE_DB	include the dbX directory when compiling (0,1)
+#			and linking, basically a hack to allow db3 to
+#			work on rh6x. Maybe I should generalise this
+#			later.
 #
 # POSTFIX_DISABLE_CHROOT	disable creation of chroot environment
 # POSTFIX_RBL_MAPS	LaMont Jones' RBL REPLY Maps patch
@@ -48,6 +51,7 @@
 # Red Hat Linux 6.x MAY require (according to configuration)
 # POSTFIX_DB=3		add db3 package to requires list
 # POSTFIX_INCLUDE_DB=1	add /usr/include/db3 to the includes list
+#			and the db-3.1 library to the build instructions
 #
 # To rebuild the spec file, set the appropriate environment
 # variables and do the following:
