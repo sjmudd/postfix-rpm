@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.53 2001/06/30 18:37:29 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.54 2001/07/08 20:06:04 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -46,7 +46,7 @@
 %define patchlevel pl03
 %define version1 %{vers}-%{patchlevel}
 %define version2 %{vers}_%{patchlevel}
-%define rel  6
+%define rel  7
 
 %define tlsno pfixtls-0.7.3-20010228-pl03-0.9.6a
 %define pflogno -1.0.3
@@ -61,7 +61,7 @@ PreReq: /sbin/chkconfig
 PreReq: /etc/init.d, /sbin/service
 %endif
 Provides: MTA smtpd smtpdaemon
-Conflicts: sendmail, exim, qmail, smail
+Obsoletes: sendmail, exim, qmail, smail
 Version: %{version2}%{branch}
 Release: %{rel}__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
@@ -83,6 +83,7 @@ Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
 # required to install smtp-sink and smtp-source
 Patch3:  postfix-INSTALL.sh.patch
+Patch4:  postfix-smtp_addr.c.patch
 #
 # Optional patches - set the appropriate environment variables to include
 #                    them when building the package/spec file
@@ -144,7 +145,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.53 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.54 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -253,6 +254,7 @@ patch -p1 <%{tlsno}/pfixtls.diff
 %patch1 -p1 -b .config
 %patch2 -p1 -b .chk
 %patch3 -p1 -b .install
+%patch4 -p1 -b .smtp
 
 # APPLY OPTIONAL PATCHES
 
@@ -687,6 +689,9 @@ fi
 #
 
 %changelog
+
+* Sun Jul 08 2001 Simon J Mudd <sjmudd@pobox.com>
+- postfix-20010228-pl03-7, include Wietse's smtp_addr.c Patch
 
 * Fri Jun 29 2001 Simon J Mudd <sjmudd@pobox.com>
 - postfix-20010228-pl03-5, update pflogsumm.pl to 1.0.3, in line with the
