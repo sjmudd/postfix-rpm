@@ -29,7 +29,7 @@ For those of you looking for newer versions of my packages you can find
 them at:
 
 via http:
-        http://pobox.com/~sjmudd/postfix/ftp/
+        http://postfix.WL0.org/ftp/
  
 via anonymous ftp:
         ftp://ftp.WL0.org/              Madrid, Spain
@@ -38,6 +38,6 @@ or at the mirrors listed at http://pobox.com/~sjmudd/postfix/en/mirrors/
  
 My main Postfix website can be found at:
 
-	http://pobox.com/~sjmudd/postfix
+	http://postfix.WL0.org
 
-Simon Mudd <sjmudd@pobox.com>
+Simon J Mudd <sjmudd@pobox.com>

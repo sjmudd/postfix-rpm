@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.79 2003/01/07 08:57:35 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.80 2003/01/14 13:46:04 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -66,7 +66,7 @@
 %define official 1 
 %define ver 1.1.12
 %define mail_release_date 20020115
-%define rel 5
+%define rel 6
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -203,11 +203,11 @@ a slightly outdated FAQ, which covers the steps involved in installing
 and configuring postfix.
 
 The binary and source rpms I produce are currently available at
-	http://pobox.com/~sjmudd/postfix, ftp://ftp.WL0.org
+	http://postfix.WL0.org, ftp://ftp.WL0.org
 and the mirrors which can be found at the following URL:
-	http://pobox.com/~sjmudd/postfix/en/mirrors/
+	http://postfix.WL0.org/en/mirrors
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.79 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.80 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -958,6 +958,9 @@ fi
 #
 
 %changelog
+
+* Tue Jan 07 2003 S J Mudd <sjmudd@pobox.com> 1.1.12-6
+  - update URLs in rpm -qi postfix output
 
 * Tue Jan 07 2003 S J Mudd <sjmudd@pobox.com> 1.1.12-5
   - remove LICENSE from %doc directory, already in /etc/postfix
