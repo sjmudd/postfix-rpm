@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.48 2001/01/19 20:59:09 root Exp $
+# $Id: postfix.spec.in,v 2.49 2001/01/20 09:00:20 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -150,6 +150,7 @@ options.
 %define whinge logger -p mail.info -t postfix/rpm
 
 %prep
+umask 022
 
 # warn before we start if we aren't root
 if [ `id -u` != "0" ]; then
@@ -163,7 +164,6 @@ ENDTEXT
     exit 1
 fi
 
-umask 022
 %setup -q -n snapshot-%{version}
 
 # setup master.cf to be chrooted
@@ -218,7 +218,6 @@ grep -q ^postfix: /etc/passwd || {
 }
 
 %build
-
 umask 022
 
 CCARGS=
@@ -274,6 +273,7 @@ grep -q ^postfix: /etc/passwd || {
 
 %install
 umask 022
+
 /bin/rm -rf ${RPM_BUILD_ROOT}
 mkdir -p ${RPM_BUILD_ROOT}
 
@@ -335,6 +335,7 @@ touch ${RPM_BUILD_ROOT}/%{config_directory}/aliases.db
 # directories we've created with local-dependent files.
 %post
 umask 022
+
 /sbin/chkconfig --add postfix
 
 # setup missing directory structures
@@ -364,7 +365,11 @@ if [ "$1" = 0 ]; then
     # stop postfix silently if it's running
     %{daemon_directory}/master -t 2>/dev/null || {
         echo "Stopping the Postfix mail system"
-        kill `sed 1q %{queue_directory}/pid/master.pid`
+        if [ -f %{queue_directory}/pid/master.pid ]; then
+            kill `sed 1q %{queue_directory}/pid/master.pid`
+        else
+            echo "BUG: postfix.spec (preun) - please inform packager" 2>/dev/null
+        fi
     }
 
     /sbin/chkconfig --del postfix                    
@@ -429,7 +434,11 @@ if [ "$1" != 0 ]; then
     # stop postfix silently if it's running
     %{daemon_directory}/master -t 2>/dev/null || {
         echo "Stopping   the Postfix mail system"
-        kill `sed 1q %{queue_directory}/pid/master.pid` 
+        if [ -f %{queue_directory}/pid/master.pid ]; then
+            kill `sed 1q %{queue_directory}/pid/master.pid`
+        else
+            echo "BUG: postfix.spec (postun) - please inform packager" 2>/dev/null
+        fi
         sleep 2 # to give things time to stop
         %{daemon_directory}/master &
         echo "Restarting the Postfix mail system"
