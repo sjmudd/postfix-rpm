@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.7 2000/12/22 22:05:51 root Exp $
+#  $Id: make-postfix.spec,v 1.8 2000/12/22 22:08:28 root Exp $
 
 POSTFIX_SUFFIX=
 POSTFIX_CCARGS=
@@ -52,7 +52,7 @@ fi
 if [ `rpm -q redhat-release` ]; then
     # We are running RedHat Linux
     # check for RedHat 7 and change Requires for new db3 if necessary
-    A=`rpm -q redhat-release | grep -q 7 | echo $?`
+    A=`rpm -q redhat-release | grep -q 7; echo $?`
     if [ "X$A" = "X0" ]; then
         POSTFIX_REQUIRES="${POSTFIX_REQUIRES},db3"
         POSTFIX_BUILDREQUIRES="${POSTFIX_BUILDREQUIRES},db3,db3-devel"
