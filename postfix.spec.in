@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.244 2003/02/13 10:48:24 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.245 2003/02/17 13:32:09 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -64,14 +64,14 @@
 %define vdaver 2.0.0.2
 %define pfixtls pfixtls-0.8.13-2.0.3-0.9.7
 %define pgver 1.1.4
-%define pfixipv6 tls+ipv6-1.10-pf-2.0.0-20030101
+%define pfixipv6 tls+ipv6-1.12-pf-2.0.3-20030126
 %define cdbver 1.1.11-20021104
 
 # If set to 1 if official version, 0 if snapshot
 %define official 0
 %define ver 2.0.3
 %define mail_release_date 20030126
-%define rel 1
+%define rel 2
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -124,7 +124,7 @@ Packager: Simon J Mudd <sjmudd@pobox.com>
 Summary: Postfix Mail Transport Agent
 Vendor: Built on %{distribution}
 Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_dir}/postfix-%{tarball_version}.tar.gz
-Source1: postfix-new-RPM-packages
+Source1: postfix-RPM-new-packages
 Source2: postfix-get-distribution
 Source3: postfix-etc-init.d-postfix
 Source5: postfix-aliases
@@ -134,7 +134,8 @@ Source8: make-postfix.spec
 Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{pfixtls}.tar.gz
 Source11: postfix-build
 Source12: http://www.corpit.ru/ftp/postfix/postfix-dict_cdb-%{cdbver}.tar.gz
-Source14: ftp://ftp.stack.nl/pub/postfix/tls+ipv6/1.10/%{pfixipv6}.patch.gz
+Source14: ftp://ftp.stack.nl/pub/postfix/tls+ipv6/1.12/%{pfixipv6}.patch.gz
+Source15: postfix-RPM-TODO
 
 # Obligatory Patches
 Patch2: postfix-smtp_sasl_proto.c.patch
@@ -214,7 +215,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.244 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.245 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -241,32 +242,28 @@ distribution=`sh ${tmpdir}/postfix-get-distribution`
 
 if [ "${distribution}" != "%{distribution}" ]; then
     cat <<ENDTEXT
+*** ERROR ***
 
-			W A R N I N G
-			=============
+This postfix.spec file was built for %{distribution}, while you are
+running ${distribution}.
 
-This package's spec file was built for a different distribution to the
-version which you are using.  If the differences (shown below) are only
-a difference in MINOR version number this should not be a problem.
-
-Current Distribution:	${distribution}
-postfix.spec built for:	%{distribution}
-
-If not it is advisable to rebuild the postfix.spec file as indicated below:
-
-To rebuild the spec file (and thus avoid this warning) follow the following
-steps:
+Rebuild the postfix.spec file for your distribution by performing the
+following steps:
 
 	cd `rpm --eval '%{_sourcedir}'`
-	sh make-postfix.spec	# to rebuild the spec file
+	# define the POSTFIX_XXX variables according to your requirements
+	sh make-postfix.spec
+
+Once you have rebuilt the spec file, you can build the RPM files as
+follows:
+
 	cd `rpm --eval '%{_specdir}'`
-	rpm -ba postfix.spec	# to build postfix
+	rpmbuild -ba postfix.spec
 
-If this procedure doesn't allow you to produce a working package, please
-adivse me so I can take appropriate steps.
-
+If this procedure does not allow you to produce a working package, please
+let me know.
 ENDTEXT
-	sleep 10
+	exit 1
 fi
 
 %setup -q -n postfix-%{tarball_version} -a 9
@@ -326,7 +323,9 @@ w
 q
 EOF
 
-cp %{_sourcedir}/postfix-new-RPM-packages postfix-new-RPM-packages
+for i in postfix-RPM-new-packages postfix-RPM-TODO; do
+    cp %{_sourcedir}/$i $i
+done
 
 %build
 umask 022
@@ -890,7 +889,8 @@ fi
 %doc PGSQL_README
 %endif
 
-%doc postfix-new-RPM-packages
+%doc postfix-RPM-new-packages
+%doc postfix-RPM-TODO
 
 %if %{tls}
 %doc ACKNOWLEDGEMENTS.TLS
@@ -966,9 +966,13 @@ fi
 
 %changelog
 
-* Thu Feb 13 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.3-20030126-1
-  - update the Postfix snapshot
+* Mon Feb 17 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.3-20030126-2
+  - update to latest snapshot
   - update TLS patches
+  - update IPv6 patches
+  - update postfix-new-RPM-packages -> postfix-RPM-new-packages
+  - add postfix-RPM-TODO
+  - don't allow rpm to build using a spec file built for another distribution
 
 * Thu Jan 16 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.2-20030115-1
   - update URLs in rpm -qi postfix output
