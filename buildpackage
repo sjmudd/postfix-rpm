@@ -177,7 +177,7 @@ else
     echo "	checking files in repository..."
     cvs diff 2>&1 >/dev/null || {
 	echo ""
-	echo "WARNING Commit changes before building, or use the --no_check option";
+	echo "WARNING Commit changes before building, or use the --no-check option"
 	exit 1;
     }
 fi
