@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.8 2000/10/14 17:34:38 root Exp $
+# $Id: postfix.spec.in,v 2.9 2000/10/28 09:08:47 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -16,7 +16,7 @@ PreReq: /sbin/chkconfig
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
 Version: 20001005
-Release: 5
+Release: 6
 Packager: Simon J Mudd <sjmudd@pobox.com> but see description below
 Vendor: None -- see packager
 Distribution: Experimental
@@ -29,6 +29,7 @@ Source5: postfix-aliases
 Source6: postfix-chroot-setup.awk
 Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
+Patch3:  postfix-makedefs.patch
 #  ** Patch99 is applied only on builds on my machines **
 Patch99: postfix-smtpd_reply_multiline.patch
 BuildRoot: /var/tmp/%{name}-%{version}-root
@@ -86,6 +87,8 @@ mv conf/master.cf conf/master.cf-nochroot
 awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > conf/master.cf
 %patch1 -p1 -b .config
 %patch2 -p1 -b .chk
+# remove this when Wietse provides the next snapshot/release
+%patch3 -p1 -b .old
 
 # apply this patch ONLY if built on my machines
 if [ `hostname`="phoenix.ea4els.ampr.org" -o \
@@ -328,6 +331,10 @@ rm -rf ${RPM_BUILD_ROOT}
 #	Bennett Todd <bet@mordor.net>
 
 %changelog
+* Fri Oct 27 2000 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001005-6, include patch so will build on RedHat 7,
+  provided by Jim Drash <jdrash@one.net>
+                    
 * Sat Oct 14 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001005-5, include lmtp, nqmgr, spawn in %files section
 
