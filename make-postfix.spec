@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.15 2003/05/15 11:34:37 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.16 2003/05/24 15:47:32 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -114,22 +114,31 @@ if [ "$POSTFIX_CDB" = 1 ]; then
     SUFFIX="${SUFFIX}.cdb"
 fi
 
-# LDAP support is provided by default on redhat >= 7.2, and yellowdog >= 2.3.
-# Therefore if adding LDAP support on these platforms don't bother to include
-# the .ldap suffix:  It is assumed.  We also automatically include LDAP support
-# on these platforms, if it's not been explicitly disabled.
+# LDAP support is provided by default on:
+#	redhat >= 7.2
+#	rhes >= 2.1
+#	yellowdog >= 2.3.
+# Therefore if adding LDAP support on these platforms don't include the .ldap
+# suffix:  It is assumed.  We also automatically include LDAP support on
+# these platforms, unless it has been explicitly disabled.
 
 DEFAULT_LDAP=0
 case ${releasename} in
 mandrake)
-    # Not sure from when Mandrake supported LDAP, but it's now the
-    # default.
+    # Not sure from when Mandrake supported LDAP,
+    # however it's now the default.
     DEFAULT_LDAP=1
     ;;
+
+rhes)
+    DEFAULT_LDAP=1
+    ;;
+
 redhat)
     [ "${major}" -eq 7 -a "${minor}" -ge 2 ] && DEFAULT_LDAP=1
     [ "${major}" -ge 8 ] && DEFAULT_LDAP=1
     ;;
+
 yellowdog)
     [ "${major}" -eq 2 -a "${minor}" -ge 3 ] && DEFAULT_LDAP=1
     [ "${major}" -ge 3 ] && DEFAULT_LDAP=1
@@ -276,6 +285,12 @@ case ${releasename} in
 yellowdog)
     DEFAULT_DB=3
     REQUIRES_INIT_D=1
+    ;;
+
+rhes)
+    DEFAULT_DB=3
+    REQUIRES_INIT_D=1
+    DIST=".rhes21"
     ;;
 
 redhat)
