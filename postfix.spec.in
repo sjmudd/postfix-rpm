@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.88 2003/08/26 16:14:11 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.89 2003/09/06 07:56:47 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -77,9 +77,9 @@
 
 # If set to 1 if official version, 0 if snapshot
 %define official 1
-%define ver 2.0.14
+%define ver 2.0.15
 %define mail_release_date 20021219
-%define rel 1.1
+%define rel 1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -139,6 +139,7 @@ Source15: postfix-RPM-TODO
 Source16: http://postfix.wl0.org/ftp/postfinger/%{postfinger}
 
 # Obligatory Patches
+Patch1: postfix-dict_ldap.c.patch
 Patch2: postfix-smtp_sasl_proto.c.patch
 Patch3: postfix-files.patch
 
@@ -222,7 +223,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.88 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.89 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -287,6 +288,7 @@ fi
 %endif
 
 # Apply obligatory patches
+%patch1 -p1 -b .ldapcache
 %patch2 -p1 -b .auth
 %patch3 -p1 -b .alternatives
 %patch7 -p1 -b .logrcpt
@@ -931,9 +933,13 @@ umask 022
 
 %changelog
 
-* Thu Aug 21 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.14-1.1
+* Sat Sep 06 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.15-1
   - fix a typo with mysql source support: should require libmysqlclient.so
     not mysqlclient.so.  Reported by Szabo Akos <fonya@mail.fatav.hu>.
+  - update to postfix-2.0.15
+  - add postfix-dict_ldap.c.patch from Hans Eric Sandström <hes@xinit.se>
+    - the LDAP_CACHE feature is now a depreciated option. This should work
+      on openldap 2.0 and 2.1
 
 * Tue Aug 12 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.14-1
   - update to postifx-2.0.14
