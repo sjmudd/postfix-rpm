@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.206 2002/11/26 11:11:10 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.207 2002/12/02 16:00:23 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -59,7 +59,6 @@
 %define debug %{?_with_debug:1}%{?!_with_debug:0}
 
 # Version information
-%define pflogno -1.0.4
 %define vdaver 1.1.11-20020822
 %define pfixtls pfixtls-0.8.11a-1.1.11-20021031-0.9.6g
 %define pgver 1.1.4
@@ -68,7 +67,7 @@
 %define official 0
 %define ver 1.1.12
 %define mail_release_date 20021124
-%define rel 1
+%define rel 2
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -131,7 +130,6 @@ Source6: postfix-chroot-setup.awk
 Source7: postfix.spec.in
 Source8: make-postfix.spec
 Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{pfixtls}.tar.gz
-Source10: http://jimsun.linxnet.com/downloads/pflogsumm%{pflogno}.pl
 Source11: postfix-build
 Source12: http://www.corpit.ru/ftp/postfix/postfix-dict_cdb.tar.gz
 Source13: http://www.corpit.ru/ftp/postfix/README.CDB
@@ -213,7 +211,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.206 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.207 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -481,15 +479,6 @@ mkdir -p %{buildroot}%{queue_dir}/etc
 mkdir -p %{buildroot}%{queue_dir}/lib
 mkdir -p %{buildroot}%{queue_dir}/usr/lib/zoneinfo
 %endif
-
-# This is the /etc/cron.daily directory
-/bin/mkdir -p %{buildroot}%{cron_directory}
-
-# This file is named 1postfix to ensure it is run _before_ logrotate
-install %{_sourcedir}/postfix-etc-cron.daily-postfix %{buildroot}%{cron_directory}/1postfix
-
-# install pflogsumm.pl (used by daily cron) into %{_sbindir}
-install -m 755 %{_sourcedir}/pflogsumm%{pflogno}.pl %{buildroot}%{_sbindir}/pflogsumm.pl
 
 install auxiliary/rmail/rmail %{buildroot}%{rmail_path}
 
@@ -876,8 +865,6 @@ fi
 
 %dir %attr(0755, root, root)        %verify(not md5 size mtime) %{queue_dir}/pid
 
-%attr(0755, root, root) %verify(not md5 size mtime) %config(noreplace) %{cron_directory}/1postfix
-
 %doc 0README
 %doc COMPATIBILITY
 %doc HISTORY
@@ -948,8 +935,6 @@ fi
 %{_sbindir}/smtp-source
 %{_sbindir}/qmqp-source
 
-%attr(555,root,root) %{_sbindir}/pflogsumm.pl
-
 %{sendmail_path}
 %{mailq_path}
 %{newaliases_path}
@@ -965,6 +950,9 @@ fi
 #
 
 %changelog
+
+* Mon Dec 02 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021124-2
+  - remove pflogsum, now a seperate package
 
 * Tue Nov 26 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021124-1
   - add missing hold queue
