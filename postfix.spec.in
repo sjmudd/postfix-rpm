@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.53 2002/11/22 13:22:51 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.54 2002/11/22 14:43:31 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -140,7 +140,7 @@ Patch2: postfix-smtp_sasl_proto.c.patch
 Patch3: postfix-files.patch
 
 # Optional patches
-Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}_quota_maildirsize.patch 
+Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}_quota_maildirsize.patch.gz
 Patch5: postfix-rbl_reply_maps.patch
 # Provided by Wietse, smtpd_chat.c from the 1.1 snapshot
 Patch6: postfix-smtpd_chat.c.diff
@@ -211,7 +211,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.53 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.54 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -289,7 +289,7 @@ cp $RPM_SOURCE_DIR/README.CDB .
 sh dict_cdb.sh
 %endif
 %if %{vda}
-%patch4 -p1 -b .vda
+gunzip < %{_sourcedir}/postfix-%{vdaver}_quota.patch.gz | patch -p1 -b --suffix .vda -s
 %endif
 # Apply RBL Reply maps
 %if %{RBL_MAPS}

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.35.2.17 2002/11/22 12:45:23 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.35.2.18 2002/11/22 14:43:31 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -10,7 +10,6 @@
 # The following external variables if set to 1 affect the behaviour
 #
 # POSTFIX_REDHAT_MYSQL	include support for RedHat's mysql packages
-# POSTFIX_REDHAT_DB3	include support for RedHat's db3 packages (rh6.x)
 # POSTFIX_MYSQL		include support for MySQL's  MySQL packages
 # POSTFIX_LDAP		include support for openldap packages
 # POSTFIX_PCRE		include support for pcre maps

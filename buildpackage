@@ -181,8 +181,7 @@ cat <<EOF
 	VDA patch tarball name:	${file}
 	URL location:		${base}
 EOF
-download_if_necessary . ${base} ${file}.gz
-gunzip < ${file}.gz > ${file}
+download_if_necessary . ${base} ${file}
 
 echo "===> checking CVS Status"
 if [ $no_check ]; then
