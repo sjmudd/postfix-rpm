@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.90 2001/04/04 20:01:25 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.91 2001/04/04 20:02:15 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -141,7 +141,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.90 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.91 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -209,7 +209,6 @@ awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > co
 %patch1 -p1 -b .config
 %patch2 -p1 -b .chk
 %patch3 -p1 -b .install
-%patch4 -p1 -b .cleanup
 %patch5 -p1 -b .flush
 
 # APPLY OPTIONAL PATCHES
