@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.192 2002/01/17 16:23:29 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.193 2002/01/17 16:24:31 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -174,7 +174,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.192 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.193 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -411,7 +411,7 @@ perl -e '$uid=getpwnam("postfix"); exit 1 unless defined( $uid )' || {
 # Due to a few of my previous packages adding a symbolic link (and not
 # removing it), ensure that any links to samples and README_FILES are removed
 # before installing # the package
-for i in samples html README_FILES; do
+for i in samples README_FILES; do
   test -L %{config_directory}/$i && rm %{config_directory}/$i
 done
 
@@ -645,7 +645,7 @@ if [ "$1" = 0 ]; then
 fi
 
 # Remove unneeded symbolic links
-for i in samples html README_FILES; do
+for i in samples README_FILES; do
   test -L %{config_directory}/$i && rm %{config_directory}/$i
 done
 
