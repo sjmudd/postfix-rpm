@@ -22,3 +22,4 @@ postfix-RPM-TODO
 postfix-smtp_sasl_proto.c.patch
 postfix.spec.in
 tls+ipv6-1.14-pf-2.0.10.patch.gz
+postfinger-1.25
