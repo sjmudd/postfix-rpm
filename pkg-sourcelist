@@ -1,6 +1,6 @@
 make-postfix.spec
 pfixtls-0.8.17-2.0.16-20031231-0.9.7c.tar.gz
-postfinger-1.26
+postfinger-1.29
 postfix-2.0.16-20031026-multiline-greeting.patch
 postfix-2.0.16.patch.gz
 postfix-aliases
