@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.231 2002/12/31 09:15:33 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.232 2002/12/31 09:24:55 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -70,7 +70,7 @@
 %define official 0
 %define ver 2.0.0
 %define mail_release_date 20021223
-%define rel 0.1
+%define rel 0.2
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -210,7 +210,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.231 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.232 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -926,6 +926,7 @@ fi
 %{daemon_dir}/smtpd
 %{daemon_dir}/spawn
 %{daemon_dir}/trivial-rewrite
+%{daemon_dir}/verify
 %{daemon_dir}/virtual
 
 %if %{tls}
@@ -963,6 +964,9 @@ fi
 #
 
 %changelog
+
+* Tue Dec 31 2002 Simon J Mudd <sjmudd@pobox.com> 2.0.0-20021223-0.2
+  - add missing verify daemon
 
 * Tue Dec 31 2002 Simon J Mudd <sjmudd@pobox.com> 2.0.0-20021223-0.1
   - update to latest snapshot
