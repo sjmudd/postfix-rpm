@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.209 2002/12/03 08:10:48 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.210 2002/12/03 14:24:53 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -43,7 +43,9 @@
 %define pgsql2 __PGSQL2__
 %define sasl __SASL__
 %define sasl_library __SASL_LIBRARY__
+# TLS patches don't appear to work on these snapshots
 %define tls __TLS__
+%define tls 0
 %define tlsfix __TLSFIX__
 %define include_db __INCLUDE_DB__
 %define requires_db __REQUIRES_DB__
@@ -67,7 +69,7 @@
 %define official 0
 %define ver 1.1.12
 %define mail_release_date 20021202
-%define rel 1
+%define rel 1.1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -209,7 +211,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.209 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.210 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -729,34 +731,39 @@ chroot_remove () {
 
     for dir in usr/lib/zoneinfo usr/lib usr lib etc; do
         test -d $dir && /bin/rmdir $dir || \
-	    echo "WARNING: preun - unable to remove directory %{queue_dir}/$dir"
+	    %whinge "WARNING: preun - unable to remove directory %{queue_dir}/$dir"
     done
 }
 
-# selectively remove the rest of the queue directory structure
-# first remove the "queues" (and assume the hash depth is still 2)
-queue_directory_remove () {
-    for dir in active bounce defer deferred flush incoming; do
+# remove the directory and depth levels of subdirectories
+
+queue_hash_depth_remove () {
+    local dir=$1
+    local depth=$2
+    local new_depth
+    local a
+    if [ "$depth" -gt 0 ]; then
+        new_depth=$(($depth - 1))
         for a in 0 1 2 3 4 5 6 7 8 9 A B C D E F; do
-   	    test -d $dir/$a && {
-	        for b in 0 1 2 3 4 5 6 7 8 9 A B C D E F; do
-		    test -d $dir/$a/$b && (
-		        /bin/rm -f $dir/$a/$b/*
-		        /bin/rmdir $dir/$a/$b
-		    )
-		done
-		/bin/rmdir $dir/$a || echo "WARNING: preun - unable to remove directory %{queue_dir}/$dir/$a"
-	    }
+            test -d $dir/$a && queue_hash_depth_remove $dir/$a $new_depth
         done
-	/bin/rmdir $dir || echo "WARNING: preun - unable to remove directory %{queue_dir}/$dir"
+    fi
+    /bin/rm -f $dir/*
+    /bin/rmdir $dir || %whinge "WARNING: preun - unable to remove directory %{queue_dir}/$dir"
+}
+
+# remove the rest of the queue directory structure
+queue_directory_remove () {
+    # remove the hashed directories
+    depth=`postconf -h hash_queue_depth`
+    for dir in `postconf -h hash_queue_names| sed -e 's/,/\
+/g'`; do
+        queue_hash_depth_remove $dir $depth
     done
 
-    # now remove the other directories
+    # remove the other directories
     for dir in corrupt hold maildrop pid private public saved; do
-        test -d $dir && {
-            /bin/rm -f $dir/*
-            /bin/rmdir $dir || echo "WARNING: preun - unable to remove directory %{queue_dir}/$dir"
-        }
+        queue_hash_depth_remove $dir 0
     done
 }
 
@@ -948,6 +955,9 @@ fi
 #
 
 %changelog
+
+* Tue Dec 03 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021202-1.1
+  - tidy up postfix queue removal on package deletion
 
 * Mon Dec 02 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021202-1
   - update to latest snapshot
