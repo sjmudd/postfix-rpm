@@ -1,8 +1,8 @@
 make-postfix.spec
-pfixtls-0.7.13d-snap20011210-0.9.6b.tar.gz
+pfixtls-0.7.14-snap20020107-0.9.6c.tar.gz
 pflogsumm-1.0.3.pl
-postfix-INSTALL.sh.non-root.patch
-postfix-INSTALL.sh.patch
+postfix-INSTALL.sh.patch.ms
+postfix-INSTALL.sh.patch.non-root
 postfix-README_maildrop_security.txt
 postfix-aliases
 postfix-bounce_notify_util.c.patch
@@ -13,7 +13,6 @@ postfix-chroot_setup.patch
 postfix-config.patch
 postfix-etc-cron.daily-postfix
 postfix-etc-init.d-postfix
-postfix-fallback_relay.patch
 postfix-makedefs.patch
 postfix-new-RPM-packages
 postfix-smtp_sasl_proto.c.patch
