@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.2.13 2004/07/24 16:23:24 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.2.14 2004/07/28 17:39:22 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -239,7 +239,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.2.13 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.2.14 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -858,8 +858,7 @@ queue_hash_depth_remove () {
 queue_directory_remove () {
     # remove the hashed directories
     depth=$(postconf -h hash_queue_depth)
-    for dir in $(postconf -h hash_queue_names | sed -e 's/,/\\
-/g'); do
+    for dir in $(postconf -h hash_queue_names | sed -e 's/,/\n/g; s/ //g'); do
         queue_hash_depth_remove $dir $depth
     done
 
@@ -1076,6 +1075,7 @@ umask 022
     and QSHAPE_README file
   - define %mps macro directly in spec file
   - remove support for RH 6.x (macros requires_init_d & include_db)
+  - fix in queue_directory_remove by Alain NAKACHE <anakache@alinto.net>
 
 * Sun Jul 18 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.4-3
   - update V_ipv6 version to 1.25-pf-2.1.4
