@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.83 2003/11/15 10:17:45 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.84 2004/09/03 18:14:27 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -66,7 +66,7 @@
 %define official 1 
 %define ver 1.1.13
 %define mail_release_date 20020115
-%define rel 3
+%define rel 4
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -142,6 +142,9 @@ Patch5: postfix-rbl_reply_maps.patch
 Patch6: postfix-smtpd_chat.c.diff
 # Adapted from http://www.stahl.bau.tu-bs.de/~hildeb/postfix/duchovni/log_recipient.gz
 Patch7: postfix-log_recipient
+# Patch to use db4 with postfix-1.1 provided by Sivasankar Chander <siva@dias.ath.cx>
+# info referenced from http://archives.neohapsis.com/archives/postfix/2002-10/3004.html
+Patch8: postfix-db4.patch
 Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pgver}.patch
 Patch51: postfix-pg-raw.patch
 Patch99: ftp://ftp.wl0.org/SOURCES/postfix-1.1.13-20031026-multiline-greeting.patch
@@ -207,7 +210,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.83 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.84 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -277,6 +280,9 @@ patch -p1 <%{pfixtls}/pfixtls.diff
 %patch3 -p1 -b .alternatives
 %patch7 -p1 -b .logrcpt
 
+%if %{requires_db} == 4
+%patch8 -p1 -b .db4
+%endif
 # Apply optional patches
 %if %{cdb}
 %setup -D -T -a 12
@@ -958,6 +964,10 @@ fi
 #
 
 %changelog
+
+* Fri Sep 03 2004 S J Mudd <sjmudd@pobox.com> 1.1.13-4
+  - bug fix when using db4, patch Postfix to use the correct parameters to 
+    db_open(). Info and patch provided by Sivasankar Chander <siva@dias.ath.cx>
 
 * Sat Nov 15 2003 S J Mudd <sjmudd@pobox.com> 1.1.13-3
   - update smtpd multiline greeting patch as a memory leak can occur under
