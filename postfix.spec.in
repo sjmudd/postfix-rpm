@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.20 2002/03/13 21:15:17 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.21 2002/03/20 20:07:49 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -69,7 +69,7 @@
 %define version1 %{ver}-%{releasedate}
 %define ftp_directory experimental
 %endif
-%define rel 2
+%define rel 3
 
 # Postfix requires one exlusive uid/gid,
 # and a 2nd exclusive gid for its own use.
@@ -130,9 +130,10 @@ Source11: postfix-build
 # Obligatory Patches
 Patch1: postfix-config.patch
 Patch2: postfix-smtp_sasl_proto.c.patch
+Patch3: postfix-smtp-helo-name.patch
 
 # Optional patches
-Patch3: postfix-%{vdaver}_quota.patch 
+Patch4: postfix-%{vdaver}_quota.patch 
 Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pgver}.patch
 Patch51: postfix-pg-raw.patch
 Patch99: postfix-smtpd_multiline_greeting.patch
@@ -190,18 +191,20 @@ BuildRequires: openssl-devel
 
 %description
 Postfix is a Mail Transport Agent (MTA), intended to be an alternative
-to the widely-used sendmail.  This is a reasonably sophisticated package
-which includes optional support for LDAP, pcre, mysql, SMTP AUTH (SASL) and
-TLS; by default it sets up chroot for added security.
+to the widely-used sendmail.  This package includes optional support for
+LDAP, pcre, mysql, SMTP AUTH (SASL) and TLS; by default it sets up
+chroot for added security.
 
 See http://www.redhat.com/support/docs/faqs/RH-postfix-FAQ/book1.html,
 a slightly outdated FAQ, which covers the steps involved in installing
 and configuring postfix.
 
-The binary and source rpms I produce are currently stored on
-	http://pobox.com/~sjmudd/postfix
+The binary and source rpms I produce are currently available at
+	http://pobox.com/~sjmudd/postfix, ftp://ftp.WL0.org
+and the following mirrors:
+	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.20 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.21 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING},VDA=%{VDA},PGSQL=%{PGSQL}, PGSQL2=%{PGSQL2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -272,10 +275,11 @@ patch -p1 <%{tlsno}/pfixtls.diff
 # Apply obligatory patches
 %patch1 -p1 -b .config
 %patch2 -p1 -b .auth
+%patch3 -p1 -b .helo
 
 # Apply optional patches
 %if %{VDA}
-%patch3 -p1 -b .vda
+%patch4 -p1 -b .vda
 %endif
 # Apply the PostgreSQL patches only if required
 %if %{PGSQL}
@@ -808,6 +812,9 @@ fi
 #
 
 %changelog
+
+* Wed Mar 20 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.5-3
+  - include Wietse's smtp-helo-name patch
 
 * Wed Mar 13 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.5-2
   - upgrade TLS patches to 0.8.5
