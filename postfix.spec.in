@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.61 2001/09/18 22:19:16 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.62 2001/10/15 15:07:09 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -46,9 +46,9 @@
 %define patchlevel pl05
 %define version1 %{vers}-%{patchlevel}
 %define version2 %{vers}_%{patchlevel}
-%define rel  1
+%define rel  2
 
-%define tlsno pfixtls-0.7.9-20010228-pl04-0.9.6b
+%define tlsno pfixtls-0.7.11-20010228-pl05-0.9.6b
 %define pflogno -1.0.3
 
 Name: postfix
@@ -145,7 +145,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.61 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.62 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -692,6 +692,10 @@ fi
 
 %changelog
 
+* Mon Oct 15 2001 Simon J Mudd <sjmudd@pobox.com>
+- postfix-20010228-pl05-1
+  - update TLS patch to 0.7.11 (and pl05)
+
 * Wed Sep 19 2001 Simon J Mudd <sjmudd@pobox.com>
 - postfix-20010228-pl05-1
   - update to latest patch level
@@ -760,7 +764,7 @@ fi
 
 * Wed May 02 2001 Simon Mudd <sjmudd@pobox.com>
 - postfix-20010228_pl02release-3, update support for TLS patch
-  - see http://www.aet.tu-cottbus.de-personen-jaenicke/postfix_tls/
+  - see http://www.aet.tu-cottbus.de/personen/jaenicke/postfix_tls/
   - report from: Peter Tuschy <peter@tuschy.com>
 
 * Wed May 02 2001 Simon Mudd <sjmudd@pobox.com>
