@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.62 2001/10/15 15:07:09 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.63 2001/10/17 08:59:30 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -46,7 +46,7 @@
 %define patchlevel pl05
 %define version1 %{vers}-%{patchlevel}
 %define version2 %{vers}_%{patchlevel}
-%define rel  2
+%define rel  3
 
 %define tlsno pfixtls-0.7.11-20010228-pl05-0.9.6b
 %define pflogno -1.0.3
@@ -84,6 +84,7 @@ Patch2:  postfix-chroot_chk.patch
 # required to install smtp-sink and smtp-source
 Patch3:  postfix-INSTALL.sh.patch
 Patch4:  postfix-smtp_addr.c.patch
+Patch5:  postfix-errors-to.patch
 #
 # Optional patches - set the appropriate environment variables to include
 #                    them when building the package/spec file
@@ -145,7 +146,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.62 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.63 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -255,6 +256,7 @@ patch -p1 <%{tlsno}/pfixtls.diff
 %patch2 -p1 -b .chk
 %patch3 -p1 -b .install
 %patch4 -p1 -b .smtp
+%patch5 -p1 -b .errorsto
 
 # APPLY OPTIONAL PATCHES
 
@@ -693,7 +695,12 @@ fi
 %changelog
 
 * Mon Oct 15 2001 Simon J Mudd <sjmudd@pobox.com>
-- postfix-20010228-pl05-1
+- postfix-20010228-pl05-3
+  - add Wietse's patch to cleanup which fixes Errors-to:
+    header processing.
+
+* Mon Oct 15 2001 Simon J Mudd <sjmudd@pobox.com>
+- postfix-20010228-pl05-2
   - update TLS patch to 0.7.11 (and pl05)
 
 * Wed Sep 19 2001 Simon J Mudd <sjmudd@pobox.com>
