@@ -7,12 +7,12 @@ HERE=`pwd`
 cvs diff 2>&1 >/dev/null || { echo "WARNING please commit changes before building"; exit 1; }
 
 ./makelinks
-( cd /usr/src/redhat/SOURCES && \
+( cd `rpm --eval '%{_sourcedir}'` && \
   sh make-postfix.spec && \
-  cd /usr/src/redhat/SPECS && \
-  (( grep Name:    postfix.spec | awk '{ print $2 }' ) || true ) && \
-  (( grep "define vers" postfix.spec | awk '{ print $3 }' ) || true ) && \
-  (( grep "define rel" postfix.spec | awk '{ print $3 }' ) || true ) && \
+  cd `rpm --eval '%{_specdir}'` && \
+  (( grep Name:		postfix.spec | awk '{ print $2 }' ) || true ) && \
+  (( grep "define vers"	postfix.spec | awk '{ print $3 }' ) || true ) && \
+  (( grep "define rel"	postfix.spec | awk '{ print $3 }' ) || true ) && \
   sleep 2 && \
   rpm -ba --sign postfix.spec ) 2>&1 | tee build-output
 ./removelinks

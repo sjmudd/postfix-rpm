@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.131 2001/06/01 17:51:12 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.132 2001/06/08 16:24:43 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -16,8 +16,8 @@
 # If you need to make changes do them to the postfix.spec.in file and
 # regenerate the spec file.  See
 #
-#	SOURCES/make-postfix.spec
-#	SOURCES/postfix-build
+#	%{_sourcedir}/make-postfix.spec
+#	%{_sourcedir}/postfix-build
 #
 # for more information.
 #
@@ -52,13 +52,12 @@
 #Used when we have patchlevels, as can't include '-' in the package name
 #define version1 %{vers}-%{patchlevel}
 #define version2 %{vers}_%{patchlevel}
-%define rel  4
+%define rel  5
 
 %define tlsno pfixtls-0.7.3a-snap20010525-0.9.6a
 %define pflogno -1.0.3
 
 Name: postfix
-Summary: Postfix Mail Transport Agent
 Group: System Environment/Daemons
 URL: http://www.postfix.org
 Copyright: IBM Public License
@@ -72,7 +71,7 @@ Conflicts: sendmail, exim, qmail, smail
 Version: %{version2}%{branch}
 Release: %{rel}__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
-Summary: Postfix Mail Server
+Summary: Postfix Mail Transport Agent
 Vendor: Built on %{distribution}
 Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/%{branch}-%{version1}.tar.gz
 Source1: postfix-new-RPMS
@@ -98,7 +97,7 @@ Patch6:  postfix-smtp_sasl_proto.c.patch
 # applied if %SMTPD_MULTILINE_GREETING=1
 Patch99: postfix-smtpd_multiline_greeting.patch
 
-BuildRoot: %{_tmppath}/%{name}-%{version1}-root
+BuildRoot: %{_tmppath}/%{name}-%{version1}-buildroot
 
 # Determine the different packages required for building postfix
 BuildRequires: gawk, perl, sed
@@ -152,7 +151,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.131 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.132 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -222,9 +221,9 @@ If not it is advisable to rebuild the postfix.spec file as indicated below:
 To rebuild the spec file (and thus avoid this warning) follow the following
 steps:
 
-	cd ../SOURCES
+	cd `rpm --eval '%{_sourcedir}'`
 	sh make-postfix.spec	# to rebuild the spec file
-	cd ../SPECS
+	cd `rpm --eval '%{_specdir}'`
 	rpm -ba postfix.spec	# to build postfix
 
 If this procedure doesn't allow you to produce a working package, please
@@ -280,12 +279,12 @@ done
 
 # setup master.cf to be chrooted
 mv conf/master.cf conf/master.cf-nochroot
-awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > conf/master.cf
+awk -f %{_sourcedir}/postfix-chroot-setup.awk < conf/master.cf-nochroot > conf/master.cf
 
 # Copy README files allowing us to just go %doc below, and have rpm(1)
 # automatically tuck it in alongside the READMEs and COPYRIGHTs.
-cp ${RPM_SOURCE_DIR}/postfix-new-RPMS postfix-new-RPMS
-cp ${RPM_SOURCE_DIR}/postfix-README_maildrop_security.txt postfix-README_maildrop_security.txt
+cp %{_sourcedir}/postfix-new-RPMS postfix-new-RPMS
+cp %{_sourcedir}/postfix-README_maildrop_security.txt postfix-README_maildrop_security.txt
 
 # create postfix user and group on BUILD machine if necessary
 
@@ -377,14 +376,14 @@ grep -q ^postfix: /etc/passwd || {
 %install
 umask 022
 
-/bin/rm -rf ${RPM_BUILD_ROOT}
-/bin/mkdir -p ${RPM_BUILD_ROOT}
+/bin/rm -rf %{buildroot}
+/bin/mkdir -p %{buildroot}
 
 strip -R .comment bin/* libexec/*
 
 # now install postfix into buildroot
 
-export install_root=${RPM_BUILD_ROOT} \
+export install_root=%{buildroot} \
        config_directory=%{config_directory} \
        daemon_directory=%{daemon_directory} \
        command_directory=%{command_directory} \
@@ -397,15 +396,15 @@ sh INSTALL.sh < /dev/null
 
 # Change the default directory for alias_maps and alias_database
 # to %{config_directory}
-bin/postconf -c ${RPM_BUILD_ROOT}%{config_directory} -e \
+bin/postconf -c %{buildroot}%{config_directory} -e \
 	"alias_maps = hash:%{config_directory}/aliases" \
 	"alias_database = hash:%{config_directory}/aliases" \
 || exit 1 
 
 # This installs into the /etc/rc.d/init.d directory
-/bin/mkdir -p ${RPM_BUILD_ROOT}%{init_directory}
-install -c ${RPM_SOURCE_DIR}/postfix-etc-init.d-postfix \
-                  ${RPM_BUILD_ROOT}%{init_directory}/postfix
+/bin/mkdir -p %{buildroot}%{init_directory}
+install -c %{_sourcedir}/postfix-etc-init.d-postfix \
+                  %{buildroot}%{init_directory}/postfix
 
 # Copy the Linux chroot setup script to %{config_directory} so
 # we can use it to build the chroot environment during the install
@@ -414,29 +413,29 @@ install -c ${RPM_SOURCE_DIR}/postfix-etc-init.d-postfix \
 sed '
 s;postfix reload;#postfix reload # - do not reenable - used by rpm;
 ' examples/chroot-setup/LINUX2 \
-    > ${RPM_BUILD_ROOT}%{config_directory}/chroot-setup-LINUX2
+    > %{buildroot}%{config_directory}/chroot-setup-LINUX2
 
-chmod 0744 ${RPM_BUILD_ROOT}%{config_directory}/chroot-setup-LINUX2
+chmod 0744 %{buildroot}%{config_directory}/chroot-setup-LINUX2
 
 # This is the /etc/cron.daily directory
-/bin/mkdir -p ${RPM_BUILD_ROOT}%{cron_directory}
+/bin/mkdir -p %{buildroot}%{cron_directory}
 
 # This file is named 1postfix to ensure it is run _before_ logrotate
-install -c ${RPM_SOURCE_DIR}/postfix-etc-cron.daily-postfix ${RPM_BUILD_ROOT}%{cron_directory}/1postfix
+install -c %{_sourcedir}/postfix-etc-cron.daily-postfix %{buildroot}%{cron_directory}/1postfix
 
 # install pflogsumm.pl used by cron daily into %{command_directory}
 #
-install -c -m u=rx,go= ${RPM_SOURCE_DIR}/pflogsumm%{pflogno}.pl ${RPM_BUILD_ROOT}%{command_directory}/pflogsumm.pl
+install -c -m u=rx,go= %{_sourcedir}/pflogsumm%{pflogno}.pl %{buildroot}%{command_directory}/pflogsumm.pl
 
-install -c auxiliary/rmail/rmail ${RPM_BUILD_ROOT}%{rmail_path}
+install -c auxiliary/rmail/rmail %{buildroot}%{rmail_path}
 
 #
 # copy new aliases files and generate a ghost aliases.db file
 #
-cp -f  ${RPM_SOURCE_DIR}/postfix-aliases ${RPM_BUILD_ROOT}%{config_directory}/aliases
-chmod 644 ${RPM_BUILD_ROOT}%{config_directory}/aliases
+cp -f %{_sourcedir}/postfix-aliases %{buildroot}%{config_directory}/aliases
+chmod 644 %{buildroot}%{config_directory}/aliases
 
-touch ${RPM_BUILD_ROOT}/%{config_directory}/aliases.db
+touch %{buildroot}/%{config_directory}/aliases.db
 
 
 ##############################################################################
@@ -587,7 +586,7 @@ if [ "$1" != 0 ]; then
 fi
 
 %clean
-/bin/rm -rf ${RPM_BUILD_ROOT}
+/bin/rm -rf %{buildroot}
 
 
 %files
@@ -697,6 +696,11 @@ fi
 #
 
 %changelog
+
+* Wed May 30 2001 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20010525-5, changes in macro usage to try and ensure there are no
+  redhat specific instructions or directories mentioned.  This should help
+  portability across rpm distributions.
 
 * Wed May 30 2001 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20010525-4, remove a couple of files
