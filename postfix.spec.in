@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.158 2001/11/05 16:57:27 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.159 2001/11/05 17:00:09 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -87,7 +87,6 @@ Patch2: postfix-chroot_chk.patch
 Patch3: postfix-INSTALL.sh.patch
 Patch4: postfix-smtp_sasl_proto.c.patch
 Patch5: postfix-INSTALL.sh.non-root.patch
-Patch6: postfix-cleanup_map1n.c.patch
 
 # Optional patches - set the appropriate environment variables to include
 #                    them when building the package/spec file
@@ -149,7 +148,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.158 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.159 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -248,7 +247,6 @@ patch -p1 <%{tlsno}/pfixtls.diff
 %patch3 -p1 -b .install
 %patch4 -p1 -b .auth
 %patch5 -p1 -b .inistall-non-root
-%patch6 -p1 -b .recursive
 
 # Apply optional patches
 
@@ -717,6 +715,8 @@ fi
 - snapshot-20011104-1
   - update to latest snapshot
   - update TLS patches to pfixtls-0.7.12-snap20011104-0.9.6b
+  - remove errors-to patch (incorporated into snapshot)
+  - remove cleanup_map1n patch (incorporated into snapshot)
 
 * Sat Nov 03 2001 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20011008-5
