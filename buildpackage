@@ -2,25 +2,26 @@
 
 echo Building postfix...
 
-# Long-winded way of finding the source file from the postfix.spec file
 
 echo "Checking for Source file..."
 
-VERS=`grep "^%define vers "	postfix.spec.in | awk '{ print $3 }'`
-VERSION1=`sed -e "s;%{vers};${VERS};"     < postfix.spec.in | grep "^%define version1" | awk '{ print $3 }'`
-BRANCH=`sed -e "s;%{version1};${VERS};" < postfix.spec.in | grep "^%define branch"   | awk '{ print $3 }'`
-SOURCE0=`sed -e "s;%{branch};${BRANCH};" -e "s;%{version1};${VERSION1};" < postfix.spec.in | grep "^Source0:" | awk '{ print $2 } '`
-FILENAME=`echo ${SOURCE0} | sed -e 's;.*/;;'`
-BASENAME=`dirname ${SOURCE0}`
-SOURCEDIR=`rpm --eval '%{_sourcedir}'`
-SPECDIR=`rpm --eval '%{_specdir}'`
+# Long-winded way of finding the source file from the postfix.spec file
+# so we can automatically download it if necessary.
+XVERS=`grep "^%define vers " postfix.spec.in | awk '{ print $3 }'`
+XVERSION1=`sed -e "s;%{vers};${XVERS};" < postfix.spec.in | grep "^%define version1" | awk '{ print $3 }'`
+XBRANCH=`sed -e "s;%{version1};${XVERS};" < postfix.spec.in | grep "^%define branch" | awk '{ print $3 }'`
+SOURCE0=`sed -e "s;%{branch};${XBRANCH};" -e "s;%{version1};${XVERSION1};" < postfix.spec.in | grep "^Source0:" | awk '{ print $2 } '`
+XFILE=`echo ${SOURCE0} | sed -e 's;.*/;;'`
+XBASE=`dirname ${SOURCE0}`
+XSRCDIR=`rpm --eval '%{_sourcedir}'`
+XSPECDIR=`rpm --eval '%{_specdir}'`
 
-if [ ! -f "${SOURCEDIR}/${FILENAME}" ]; then
-    echo "  ${FILENAME} not found, downloading to ${SOURCEDIR}"
-    echo "  from ${BASENAME}..."
-    ( cd ${SOURCEDIR} && wget ${SOURCE0} || ( echo Failed!; exit 1 ) )
+if [ ! -f "${XSRCDIR}/${XFILE}" ]; then
+    echo "  ${XFILE} not found, downloading to ${XSRCDIR}"
+    echo "  from ${XBASE}..."
+    ( cd ${XSRCDIR} && wget ${SOURCE0} || ( echo Failed!; exit 1 ) )
 else
-    echo "  ${FILENAME} found"
+    echo "  ${XFILE} found"
 fi
 echo ""
 
@@ -29,9 +30,9 @@ HERE=`pwd`
 cvs diff 2>&1 >/dev/null || { echo "WARNING please commit changes before building"; exit 1; }
 
 ./makelinks
-( cd ${SOURCEDIR} && \
+( cd ${XSRCDIR} && \
   sh make-postfix.spec && \
-  cd ${SPECDIR} && \
+  cd ${XSPECDIR} && \
   (( grep "^%define branch"	postfix.spec | awk '{ print $3 }' ) || true ) && \
   (( grep "^%define vers"	postfix.spec | awk '{ print $3 }' ) || true ) && \
   (( grep "^%define patchlevel"	postfix.spec | awk '{ print $3 }' ) || true ) && \
