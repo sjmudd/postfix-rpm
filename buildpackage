@@ -171,7 +171,6 @@ patch4=`grep '^Patch4: http://ftp.oav.net/others/postfix/VDA/postfix' postfix.sp
 
 base=`dirname ${patch4}`
 file=`echo ${patch4} | sed -e 's;.*/;;'`
-file="$file
 
 cat <<EOF
 Checking VDA patches...
