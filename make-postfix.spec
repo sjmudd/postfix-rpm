@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.30 2001/11/03 11:00:12 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.31 2001/11/05 08:47:07 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -117,8 +117,8 @@ if [ ${releasename} = 'redhat' ]; then
         REQUIRES_DB3=1
 
         case ${minor} in
-        0) SUFFIX=".rh70-1${SUFFIX}" ;;
-        1) SUFFIX=".rh70-1${SUFFIX}" ;;
+        0) SUFFIX=".rh70.1${SUFFIX}" ;;
+        1) SUFFIX=".rh70.1${SUFFIX}" ;;
         2) ;;
         *) ;;
         esac

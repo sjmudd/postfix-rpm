@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.155 2001/11/03 11:00:12 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.156 2001/11/05 08:47:07 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -150,7 +150,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.155 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.156 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -540,7 +540,7 @@ if [ "$1" = 0 ]; then
         true
     fi
 
-    /sbin/chkconfig --del postfix                 
+    /sbin/chkconfig --del postfix
 
     # userdel also deletes the user's group
     userdel postfix || : %whinge "WARNING: failed to remove user postfix"
