@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.2.17 2004/08/24 18:12:16 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.2.18 2004/09/06 15:45:08 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -84,7 +84,7 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 1
 %define V_postfix 2.1.4
-%define rel 5__SUFFIX__
+%define rel 6__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -240,7 +240,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.2.17 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.2.18 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -562,7 +562,7 @@ install -m 644 %SOURCE100 ${RPM_BUILD_ROOT}%{sasl_lib_dir}/smtpd.conf
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/pam.d
 install -m 644 %SOURCE101 ${RPM_BUILD_ROOT}%{_sysconfdir}/pam.d/smtp.postfix
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
-install -m 644 %SOURCE102 ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig/saslauthd
+install -m 644 %SOURCE102 ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig/saslauthd.postfix
 %endif
 
 # fix path to perl and certs
@@ -720,6 +720,17 @@ cat <<EOF >>%{_sysconfdir}/services
 smtps		465/tcp			# SMTP over SSL (TLS)
 EOF
 fi
+
+# If using sasl create %{_sysconfdir}/sysconfig/saslauthd if necessary
+# - this file is provided in some (but not all) cyrus-sasl packages
+#   - RHEL3 provides this file in cyrus-sasl >= 2.1.18-2
+%if %{with_sasl}
+[ -f %{_sysconfdir}/sysconfig/saslauthd ] || {
+	grep -v "^# NOTE: " %{_sysconfdir}/sysconfig/saslauthd.postfix > %{_sysconfdir}/sysconfig/saslauthd
+	chmod 644 %{_sysconfdir}/sysconfig/saslauthd
+	%{whinge} "creating new %{_sysconfdir}/sysconfig/saslauthd from local Postfix copy"
+}
+%endif
 
 # Apply the alternatives scripts ONLY if installing (not upgrading) to
 # ensure a link exists from %{_sbindir}/sendmail to
@@ -924,7 +935,7 @@ umask 022
 %if %{with_sasl}
 %config(noreplace) %{sasl_lib_dir}/smtpd.conf
 %config(noreplace) %{_sysconfdir}/pam.d/smtp.postfix
-%config(noreplace) %{_sysconfdir}/sysconfig/saslauthd
+%config(noreplace) %{_sysconfdir}/sysconfig/saslauthd.postfix
 %endif
 
 %verify(not md5 size mtime) %config %dir %{_sysconfdir}/postfix
