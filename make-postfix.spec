@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.33 2002/01/07 09:33:51 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.34 2002/01/11 19:25:33 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -18,6 +18,11 @@
 # POSTFIX_SMTPD_MULTILINE_GREETING
 #			include support for multitline SMTP banner
 #
+# The following external variable can be used to define the postdrop
+# gid if the standard value I'm assigning is not correct on your system.
+#
+# POSTFIX_POSTDROP_GID  (default value 90)
+#
 # Red Hat Linux 7.x (at the moment) specific requirements
 # (This is detected automatically when you rebuild the spec file)
 #
@@ -34,10 +39,11 @@
 # cd `rpm --eval '%{_specdir}'`
 # rpm -ba postfix.spec
 
+# ensure that these variables are not set from outside
 SUFFIX=
 REQUIRES_DB3=
 REQUIRES_INIT_D=
-TLSFIX=0
+TLSFIX=
 
 # Determine the distribution
 DISTRIBUTION=`rpm -qa | grep -- -release | egrep '(redhat-|mandrake-)'`
@@ -150,17 +156,19 @@ mandrake)
 *)  ;;
 esac
 
-# ensure if undefined the value is 0
+# set default values if they are still undefined
 
-[ -z "$REQUIRES_DB3" ]			&& REQUIRES_DB3=0
-[ -z "$REQUIRES_INIT_D" ]		&& REQUIRES_INIT_D=0
-[ -z "$POSTFIX_LDAP" ]			&& POSTFIX_LDAP=0
-[ -z "$POSTFIX_MYSQL" ]			&& POSTFIX_MYSQL=0
-[ -z "$POSTFIX_REDHAT_MYSQL" ]		&& POSTFIX_REDHAT_MYSQL=0
-[ -z "$POSTFIX_PCRE" ]			&& POSTFIX_PCRE=0
-[ -z "$POSTFIX_SASL" ]			&& POSTFIX_SASL=0
-[ -z "$POSTFIX_TLS" ]			&& POSTFIX_TLS=0
+[ -z "$REQUIRES_DB3" ]			   && REQUIRES_DB3=0
+[ -z "$REQUIRES_INIT_D" ]		   && REQUIRES_INIT_D=0
+[ -z "$POSTFIX_LDAP" ]			   && POSTFIX_LDAP=0
+[ -z "$POSTFIX_MYSQL" ]			   && POSTFIX_MYSQL=0
+[ -z "$POSTFIX_REDHAT_MYSQL" ]		   && POSTFIX_REDHAT_MYSQL=0
+[ -z "$POSTFIX_PCRE" ]			   && POSTFIX_PCRE=0
+[ -z "$POSTFIX_SASL" ]			   && POSTFIX_SASL=0
+[ -z "$POSTFIX_TLS" ]			   && POSTFIX_TLS=0
+[ -z "$TLSFIX" ]			   && TLSFIX=0
 [ -z "$POSTFIX_SMTPD_MULTILINE_GREETING" ] && POSTFIX_SMTPD_MULTILINE_GREETING=0
+[ -z "$POSTFIX_POSTDROP_GID" ]             && POSTFIX_POSTDROP_GID=90
 
 cat > `rpm --eval '%{_specdir}'`/postfix.spec <<EOF
 ##############################################################################
@@ -188,6 +196,7 @@ s!__PCRE__!$POSTFIX_PCRE!g
 s!__SASL__!$POSTFIX_SASL!g
 s!__TLS__!$POSTFIX_TLS!g
 s!__TLSFIX__!$TLSFIX!g
+s!__POSTDROP_GID__!$POSTFIX_POSTDROP_GID!g
 " postfix.spec.in >> `rpm --eval '%{_specdir}'`/postfix.spec
 
 # end of make-postfix.spec

@@ -1,0 +1,300 @@
+--- snapshot-20020110/postfix-install.orig	2002/01/11 02:54:25
++++ snapshot-20020110/postfix-install	2002/01/11 07:29:27
+@@ -148,7 +148,7 @@
+ for arg
+ do
+     case $arg in
+-             *=*) IFS= eval $arg;;
++             *=*) OIFS="$IFS"; IFS= eval "$arg"; IFS="$OIFS";;
+ -non-interactive) non_interactive=1;;
+                *) echo Error: usage: $0 [-non-interactive] name=value ... 1>&2
+ 		  exit 1;;
+@@ -514,23 +514,6 @@
+ $queue_directory:d:root::755:u
+ EOF
+ 
+-# Generate instructions only for queue subdirectories.
+-
+-for dir in active bounce corrupt defer deferred flush incoming private saved
+-do
+-    echo $queue_directory/$dir:d:$mail_owner::700:u:c \
+-	>>$CONFIG_DIRECTORY/postfix-files || exit 1
+-done
+-
+-echo $queue_directory/maildrop:d:$mail_owner:$setgid_group:730:u:c \
+-    >>$CONFIG_DIRECTORY/postfix-files || exit 1
+-
+-echo $queue_directory/public:d:$mail_owner:$setgid_group:710:u:c \
+-    >>$CONFIG_DIRECTORY/postfix-files || exit 1
+-
+-echo $queue_directory/pid:d:root::755:u:c \
+-    >>$CONFIG_DIRECTORY/postfix-files || exit 1
+-
+ # Install daemon programs.
+ 
+ for file in `censored_ls libexec`
+@@ -632,7 +615,7 @@
+  for dir in man?
+      do test -d $MANPAGE_PATH/$dir || mkdir -p $MANPAGE_PATH/$dir || exit 1
+  done
+- for file in `censored_ls man?/*`
++ for file in `censored_ls -d man?/*`
+  do
+      compare_or_replace 644 $file $MANPAGE_PATH/$file || exit 1
+      echo "$manpage_path/$file:f:root::644" \
+--- snapshot-20020110/conf/post-install.orig	2002/01/11 02:54:30
++++ snapshot-20020110/conf/post-install	2002/01/11 07:24:26
+@@ -9,7 +9,7 @@
+ # SUMMARY
+ #	Postfix post-installation script
+ # SYNOPSIS
+-#	post-install [options] config_directory
++#	post-install [options] [name=value ...]
+ # DESCRIPTION
+ #	The post-install script performs the finishing touch of a Postfix
+ #	installation, after the executable programs and configuration
+@@ -28,18 +28,13 @@
+ # .PP
+ #	Arguments
+ # .IP -create
+-#	Create missing queue directories with ownerships and permissions
+-#	according to the contents of $config_directory/postfix-files.
++#	Create missing queue directories with appropriate ownerships and
++#	permissions based on $mail_owner and $setgid_group.
+ #
+ #	This is required at Postfix start-up time.
+-# .IP -set-permissions
+-#	Set all file/directory ownerships and permissions according to the 
+-#	contents of $config_directory/postfix-files. Implies -create.
+-#
+-#	This is required when installing Postfix from a pre-built package.
+ # .IP -upgrade-permissions
+-#	Update ownership and permission of selected files/directories as
+-#	specified in $config_directory/postfix-files. Implies -create.
++#	Update ownership and permission of queue directories as
++#	based on $mail_owner and $setgid_group.
+ #
+ #	This is required when installing Postfix from source code, while
+ #	Postfix was already installed on the machine.
+@@ -61,9 +56,25 @@
+ #	aliases file, and that newaliases needs to be run.
+ #
+ #	This is recommended when Postfix is installed for the first time.
++# .IP name=value
++#	When not invoked from "postfix-scipt" (via "postfix"), the
++#	following configuration variables must be set in the environment
++#	of provided as name/value pairs on the command line:
++# .IP command_directory
++#	Directory with Postfix administrative commands.
++# .IP daemon_directory
++#	Directory with Postfix daemon programs.
+ # .IP config_directory
+-#	Directory with Postfix configuration files. This must be an absolute
+-#	pathname.
++#	Directory with Postfix configuration files and with administrative
++#	shell scripts.
++# .IP queue_directory
++#	The directory with Postfix queue files, with local inter-process
++#	communication endpoints, and with files needed for daemon programs
++#	that run in the optional chrooted environment.
++# .IP mail_owner
++#	The owner of Postfix queue files and of most Postfix processes.
++# .IP setgid_group
++#	The group for mail submission and queue management commands.
+ # SEE ALSO
+ #	postfix-install(1) Postfix primary installation script for installation
+ #	from source code, or for building a package for distribution to other
+@@ -96,8 +107,6 @@
+ 
+     -first-install-reminder Remind of mandatory configuration steps.
+ 
+-    config_directory        Must be an absolute path name."
+-
+ # Process command-line settings
+ 
+ for arg
+@@ -110,8 +119,7 @@
+         -upgrade-source) create=1; upgrade_conf=1; upgrade_perms=1;;
+        -upgrade-package) create=1; upgrade_conf=1; set_perms=1;;
+         -first-install*) first_install_reminder=1;;
+-                     /*) config_dir=$1;;
+-                     "") break;;
++                     *=*) OIFS="$IFS"; IFS= eval "$arg"; IFS="$OIFS";;
+                       *) echo "Error: $USAGE" 1>&2; exit 1;;
+     esac
+     shift
+@@ -124,21 +132,60 @@
+     exit 1
+ }
+ 
+-test -n "$config_dir" || {
+-    echo "Error: $USAGE" 1>&2
+-    exit 1
+-}
++checkdir() {
++    eval "testdir=\$$1"
+ 
+-test -d "$config_dir" || {
+-    echo Error: $config_dir is not a directory. 1>&2
+-    exit 1
++    test -n "$testdir" || {
++	echo "Error: $1 not set: $USAGE" 1>&2
++	exit 1
++    }
++
++    case "$testdir" in
++    /*) : OK;;
++     *) echo "Error: $testdir is not an absolute path name." 1>&2; exit 1;;
++    esac
++
++    test -d "$testdir" || {
++	echo "Error: $testdir is not a directory."  1>&2
++	exit 1
++    }
+ }
+ 
+-test -f $config_dir/postfix-files || {
+-    Error: $config_dir/postfix-files is not a file. 1>&2
+-    exit 1
++checkset() {
++    eval "testvar=\$$1"
++    test -n "$testvar" || {
++	echo "Error: $1 not set: $USAGE" 1>&2
++	exit 1
++    }
+ }
+ 
++checkdir config_directory
++checkdir command_directory
++checkdir daemon_directory
++checkdir queue_directory
++checkvar mail_owner
++checkvar setgid_group
++
++# Support for command directory not in default system dirs.
++#
++PATH="$PATH:$command_directory"
++
++METADB=`cat <<EOF
++$queue_directory:d:root::755:u
++$queue_directory/active:d:$mail_owner::700:u:c
++$queue_directory/bounce:d:$mail_owner::700:u:c
++$queue_directory/corrupt:d:$mail_owner::700:u:c
++$queue_directory/defer:d:$mail_owner::700:u:c
++$queue_directory/deferred:d:$mail_owner::700:u:c
++$queue_directory/flush:d:$mail_owner::700:u:c
++$queue_directory/incoming:d:$mail_owner::700:u:c
++$queue_directory/private:d:$mail_owner::700:u:c
++$queue_directory/saved:d:$mail_owner::700:u:c
++$queue_directory/maildrop:d:$mail_owner:$setgid_group:730:u:c
++$queue_directory/public:d:$mail_owner:$setgid_group:710:u:c
++$queue_directory/pid:d:root::755:u:c
++EOF`
++
+ # 
+ # LINUX by default does not synchronously update directories -
+ # that's dangerous for mail.
+@@ -150,13 +197,14 @@
+     CHATTR=echo
+ fi
+ 
+-# Use file/directory status information in $config_dir/postfix-files.
++# Use file/directory status information in $config_directory/postfix-files.
+ 
+ test -n "$create" && {
++    OIFS="$IFS"
+     IFS=:
++    echo "$METADB" |
+     while read path type owner group mode upgrade_flag create_flag junk
+     do
+-	set_permission=
+ 	case $path in
+ 	/*) # Create missing directories with proper owner/group/mode settings.
+ 	    if [ -n "$create" -a "$type" = "d" -a -n "$create_flag" -a ! -d "$path" ]
+@@ -180,7 +228,8 @@
+ 	    }
+ 	    ;;
+ 	esac
+-    done <$config_dir/postfix-files
++    done
++    IFS="$OIFS"
+ }
+ 
+ # Upgrade existing Postfix configuration files if necessary.
+@@ -189,9 +238,9 @@
+ 
+     # Add missing flush service to master.cf.
+ 
+-    grep 'flush.*flush' $config_dir/master.cf >/dev/null || {
+-	echo Editing $config_dir/master.cf, adding missing entry for flush service
+-	cat >>$config_dir/master.cf <<EOF
++    grep 'flush.*flush' $config_directory/master.cf >/dev/null || {
++	echo Editing $config_directory/master.cf, adding missing entry for flush service
++	cat >>$config_directory/master.cf <<EOF
+ flush     unix  -       -       n       1000?   0       flush
+ EOF
+     }
+@@ -199,9 +248,9 @@
+     # Change privileged pickup service into unprivileged.
+ 
+     grep "^pickup[ 	]*fifo[ 	]*n[ 	]*n" \
+-	$config_dir/master.cf >/dev/null && {
+-	    echo Editing $config_dir/master.cf, making the pickup service unprivileged
+-	    ed $config_dir/master.cf <<EOF
++	$config_directory/master.cf >/dev/null && {
++	    echo Editing $config_directory/master.cf, making the pickup service unprivileged
++	    ed $config_directory/master.cf <<EOF
+ /^pickup[ 	]*fifo[ 	]*n[ 	]*n/
+ s/\(n[ 	]*\)n/\1-/
+ p
+@@ -215,9 +264,9 @@
+     for name in cleanup flush
+     do
+ 	grep "^$name[ 	]*unix[ 	]*-" \
+-	    $config_dir/master.cf >/dev/null && {
+-		echo Editing $config_dir/master.cf, making the $name service public
+-	    ed $config_dir/master.cf <<EOF
++	    $config_directory/master.cf >/dev/null && {
++		echo Editing $config_directory/master.cf, making the $name service public
++	    ed $config_directory/master.cf <<EOF
+ /^$name[ 	]*unix[ 	]*-/
+ s/-/n/
+ p
+@@ -236,7 +285,7 @@
+     # If you don't want slow mailq, be sure to hash defer and deferred,
+     # because those two directories can contain lots of files.
+ 
+-    found=`bin/postconf -c $config_dir -h hash_queue_names`
++    found=`postconf -c $config_directory -h hash_queue_names`
+     missing=
+     (echo "$found" | grep active >/dev/null) || missing="$missing active"
+     (echo "$found" | grep bounce >/dev/null) || missing="$missing bounce"
+@@ -246,7 +295,7 @@
+     (echo "$found" | grep deferred>/dev/null)|| missing="$missing deferred"
+     test -n "$missing" && {
+ 	echo fixing main.cf hash_queue_names for missing $missing
+-	bin/postconf -c $config_dir -e hash_queue_names="$found$missing"
++	postconf -c $config_directory -e hash_queue_names="$found$missing"
+     }
+ 
+ }
+@@ -260,7 +309,7 @@
+     cat <<EOF 1>&2
+ 
+     Warning: you still need to edit myorigin/mydestination/mynetworks
+-    parameter settings in $config_dir/main.cf.
++    parameter settings in $config_directory/main.cf.
+ 
+     See also http://www.postfix.org/faq.html for information about
+     dialup sites or about sites inside a firewalled network.
+--- snapshot-20020110/conf/postfix-script.orig	2002/01/11 02:54:28
++++ snapshot-20020110/conf/postfix-script	2002/01/11 07:34:06
+@@ -164,7 +164,7 @@
+ 		\( -perm -020 -o -perm -002 \) -type f \
+ 		-exec $WARN group or other writable: {} \;
+ 
+-	$SHELL $config_directory/post-install -create $config_directory || {
++	$SHELL $config_directory/post-install -create || {
+ 		$WARN unable to create missing queue directories
+ 		exit 1
+ 	}

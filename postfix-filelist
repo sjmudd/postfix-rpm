@@ -1,9 +1,7 @@
 make-postfix.spec
 pfixtls-0.7.14-snap20020107-0.9.6c.tar.gz
 pflogsumm-1.0.3.pl
-postfix-INSTALL.sh.patch.ms
-postfix-INSTALL.sh.patch.non-root
-postfix-README_maildrop_security.txt
+postfix-install.patch
 postfix-aliases
 postfix-bounce_notify_util.c.patch
 postfix-build
