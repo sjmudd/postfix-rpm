@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.180 2002/01/09 14:52:32 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.181 2002/01/09 15:05:05 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -148,7 +148,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.180 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.181 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -737,23 +737,7 @@ fi
 %doc RELEASE_NOTES
 %doc RESTRICTION_CLASS
 %doc TODO
-%doc README_FILES/DB_README
-%doc README_FILES/DEBUG_README
-%doc README_FILES/ETRN_README
-%doc README_FILES/FILTER_README
-%doc README_FILES/LDAP_README
-%doc README_FILES/LINUX_README
-%doc README_FILES/LMTP_README
-%doc README_FILES/MACOSX_README
-%doc README_FILES/MYSQL_README
-%doc README_FILES/NFS_README
-%doc README_FILES/PCRE_README
-%doc README_FILES/QMQP_README
-%doc README_FILES/SASL_README
-%doc README_FILES/ULTRIX_README
-%doc README_FILES/UUCP_README
-%doc README_FILES/VERP_README
-%doc README_FILES/VIRTUAL_README
+%doc README_FILES/*
 
 %doc postfix-new-RPM-packages
 
