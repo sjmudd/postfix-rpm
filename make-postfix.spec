@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.34 2002/01/11 19:25:33 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.35 2002/01/15 13:57:38 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -111,7 +111,7 @@ if [ "$POSTFIX_TLS" = 1 ]; then
     echo "  adding TLS support to spec file"
     SUFFIX="${SUFFIX}.tls"
 
-    if [ ${releasename} = 'redhat' && ${major} = 6 ]; then
+    if [ ${releasename} = 'redhat' -a ${major} = 6 ]; then
         TLSFIX=1
     fi
 fi

@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.184 2002/01/12 09:40:31 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.185 2002/01/15 13:57:38 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -48,7 +48,7 @@
 %define POSTDROP_GID __POSTDROP_GID__
 
 %define branch snapshot
-%define vers 20020111
+%define vers 20020113
 %define patchlevel pl01
 %define version1 %{vers}
 %define version2 %{vers}
@@ -123,7 +123,7 @@ Patch99: postfix-smtpd_multiline_greeting.patch
 BuildRoot: %{_tmppath}/%{name}-%{version1}-buildroot
 
 # Determine the different packages required for building postfix
-BuildRequires: gawk, perl, sed
+BuildRequires: gawk, perl, sed, ed
 
 # Used on Red Hat 7.x, Mandrake 8.1 (?)
 %if %{REQUIRES_DB3}
@@ -174,7 +174,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.184 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.185 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -418,6 +418,21 @@ umask 022
 
 strip -R .comment --strip-unneeded bin/* libexec/*
 
+#### patch postfix-install so that config_directory/sample-xxx.cf -->
+####                               config_directory/samples/sample-xxxx.cf
+###grep config_directory/sample- conf/postfix-files >/dev/null || {
+###       echo "Packager's Note:"
+###       echo "postfix-files no longer contains 'config_directory/sample-' files, fix or remove the ed script"
+###       exit 1
+###}
+###
+###echo "Patching postfix-files (sample files -> samples/ directory)"
+###ed conf/postfix-files <<EOF || exit 1
+###%s/config_directory\/sample-/config_directory\/samples\/sample-/g
+###w
+###q
+###EOF
+
 # install postfix into buildroot
 sh postfix-install -non-interactive \
        install_root=%{buildroot} \
@@ -430,7 +445,33 @@ sh postfix-install -non-interactive \
        mailq_path=%{mailq_path} \
        mail_owner=postfix \
        setgid_group=%{maildrop_group} \
-       manpage_path=%{_mandir}
+       manpage_path=%{_mandir} || exit 1
+
+#### Change the main.cf file to correctly tell you where the sample files are
+###grep -q "# of all 100+ parameters. See the sample-xxx.cf files for a full list." \
+###    %{buildroot}%{config_directory}/main.cf >/dev/null || {
+###      echo "Packager's Note:"
+###      echo "Line 2 of main.cf appears to have changed, fix the ed script"
+###      exit 1
+###}
+###ed %{buildroot}%{config_directory}/main.cf <<EOF || exit 1
+###/# of all 100+ parameters. See the sample-xxx.cf files for a full list./
+###a
+####
+#### -- RPM Packaging Note --
+#### These files are in %{config_directory}/samples, a symbolic link to
+#### /usr/share/doc/%{name}-%{version}-%{release}/conf.
+####
+#### If you've upgraded postfix look in /usr/share/doc/postfix-<version>/conf,
+#### where <version> is the current version you are using.
+####
+#### The postfix html documentation and various README files are also stored
+#### in subdirectories of the /usr/share/doc/postfix-<version>.
+#### -- RPM Packaging Note --
+###.
+###w
+###q
+###EOF
 
 # Change alias_maps and alias_database default directory to %{config_directory}
 bin/postconf -c %{buildroot}%{config_directory} -e \
@@ -477,24 +518,32 @@ chmod 644 %{buildroot}%{config_directory}/aliases
 touch %{buildroot}/%{config_directory}/aliases.db
 
 # For me: Do I need to do this now?
-mkdir -p %{buildroot}%{queue_directory}/active
-mkdir -p %{buildroot}%{queue_directory}/bounce
-mkdir -p %{buildroot}%{queue_directory}/corrupt
-mkdir -p %{buildroot}%{queue_directory}/defer
-mkdir -p %{buildroot}%{queue_directory}/deferred
-mkdir -p %{buildroot}%{queue_directory}/flush
-mkdir -p %{buildroot}%{queue_directory}/incoming
-mkdir -p %{buildroot}%{queue_directory}/private
-mkdir -p %{buildroot}%{queue_directory}/saved
-
-mkdir -p %{buildroot}%{queue_directory}/maildrop
-mkdir -p %{buildroot}%{queue_directory}/public
-mkdir -p %{buildroot}%{queue_directory}/pid
+# -start-
+for i in active bounce corrupt defer deferred flush incoming private saved; do
+    mkdir -p %{buildroot}%{queue_directory}/$i
+done
+for i in maildrop public pid; do
+    mkdir -p %{buildroot}%{queue_directory}/$i
+done
+# -stop-
 
 # install smtp-sink/smtp-source by hand
 for i in smtp-sink smtp-source; do
   install -c -m 755 bin/$i %{buildroot}%{command_directory}/
 done
+
+# setup a symbolic link in the config directory of the following
+# documentation directories:
+#	samples -> config
+#	html -> html
+#	README_FILES -> README_FILES
+#
+# - not sure what the correct macro for /usr/share/doc/postfix-<version>/ is
+#   so do this by hand until some kind soul tells me!
+#
+###ln -s ../../usr/share/doc/%{name}-%{version}/conf %{buildroot}%{config_directory}/samples
+ln -s ../../usr/share/doc/%{name}-%{version}/html %{buildroot}%{config_directory}/html
+ln -s ../../usr/share/doc/%{name}-%{version}/README_FILES %{buildroot}%{config_directory}/README_FILES
 
 ##############################################################################
 # The post script executes after the package has been installed.  Here
@@ -515,19 +564,12 @@ ldap_chroot_setup() {
 
 /sbin/chkconfig --add postfix
 
-# ensure clean upgrade from RedHat's postfix, which uses mail_owner=mail
-
-[ `%{command_directory}/postconf mail_owner | awk '{ print $3 }'` = 'mail' ] && {
-    %{command_directory}/postconf -e mail_owner=postfix
-    for dir in incoming active bounce defer deferred flush; do
-        chown -R postfix %{queue_directory}/$dir
-    done
-}
-
 # upgrade configuration files if necessary
-%{config_directory}/post-install \
+sh %{config_directory}/post-install \
 	config_directory=%{config_directory} \
-	upgrade_package
+	mail_owner=postfix \
+	setgid_group=%{maildrop_group} \
+	upgrade-package
 
 # build the aliases.db file on the INSTALL machine
 %{command_directory}/postalias %{config_directory}/aliases
@@ -664,13 +706,27 @@ fi
 %files
 %defattr(-, root, root)
 %verify(not md5 size mtime) %config %dir %{config_directory}
+%attr(0644, root, root)         %{config_directory}/LICENSE
 %attr(0755, root, root) %config %{config_directory}/postfix-script
 %attr(0755, root, root) %config %{config_directory}/post-install
 %attr(0644, root, root)                                                %{config_directory}/postfix-files
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/main.cf
+%attr(0644, root, root)                                                %{config_directory}/main.cf.default
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/master.cf
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/access
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/aliases
 %attr(0644, root, root) %verify(not md5 size mtime) %ghost             %{config_directory}/aliases.db
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/canonical
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/pcre_table
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/regexp_table
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/relocated
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/transport
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/virtual
+
+###%attr(0644, root, root) %{config_directory}/samples
+%attr(0644, root, root) %{config_directory}/sample-*.cf
+%attr(0644, root, root) %{config_directory}/html
+%attr(0644, root, root) %{config_directory}/README_FILES
 
 %attr(0755, root, root) %config %{init_directory}/postfix
 
@@ -706,7 +762,6 @@ fi
 %doc RELEASE_NOTES
 %doc RESTRICTION_CLASS
 %doc TODO
-%doc README_FILES/*
 
 %doc postfix-new-RPM-packages
 
@@ -718,8 +773,9 @@ fi
 %doc html/TLS/*
 %endif
 
-%doc conf
+###%doc conf
 %doc html
+%doc README_FILES
 
 %attr(0744, root, root) %config %{config_directory}/chroot-setup-LINUX2
 
@@ -735,6 +791,7 @@ fi
 %{daemon_directory}/pickup
 %{daemon_directory}/pipe
 %{daemon_directory}/qmgr
+%{daemon_directory}/qmqpd
 %{daemon_directory}/showq
 %{daemon_directory}/smtp
 %{daemon_directory}/smtpd
@@ -778,6 +835,11 @@ fi
 #
 
 %changelog
+
+* Fri Jan 11 2002 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20020113-1, update to latest snapshot
+  - sample files have moved, they are now (temporarily?) in /etc/postfix
+    following Wietse's wish.
 
 * Fri Jan 11 2002 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20020111-1, update to latest snapshot
