@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.2.4 2004/07/17 12:55:56 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.2.5 2004/07/17 13:00:35 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -240,7 +240,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.2.4 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.2.5 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -651,11 +651,11 @@ cat - %{_sourcedir}/postfix.spec.cf <<EOF | sed -e '/^# NOTE:/d' > ${RPM_BUILD_R
 #
 # This file contains the following information:
 #
-# - configuration options used to build the postfix rpm you are using
+# - configuration options used to build the installed postfix rpm
 #   - generated when the binary rpm was built
 #
 # - Postfix RPM build instructions
-#   - for upgrading the rpm you are using the same options
+#   - for upgrading the installed rpm with the same options
 #   - for building the rpm with other options
 #
 # 1. CONFIGURATION OPTIONS OF INSTALLED BINARY RPM
