@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.25 2000/12/13 21:47:21 root Exp $
+# $Id: postfix.spec.in,v 2.26 2000/12/13 21:48:22 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -119,6 +119,7 @@ awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > co
 # APPLY OBLIGATORY PATCHES
 %patch1 -p1 -b .config
 %patch2 -p1 -b .chk
+%patch3 -p1 -b .install
 
 # APPLY OPTIONAL PATCHES
 
