@@ -28,20 +28,19 @@ else
     release=0.0
 fi
 
-grep -q '\.' <<END
-$release
-END
-if [ $? ]; then
-    major=$release
-    minor=0
-else
+echo $release | grep -q '\.' && {
+    # there's a '.' in release (e.g. 8.0)
     major=`echo $release | sed -e 's;\.[0-9]*$;;'`
     minor=`echo $release | sed -e 's;^[0-9]*\.;;'`
-fi
+} || {
+    # there's no '.' in release (e.g. 9)
+    major=$release
+    minor=0
+}
 
-#echo releasename=$releasename
-#echo release=$release
-#echo major=$major
-#echo minor=$minor
+echo releasename=$releasename
+echo release=$release
+echo major=$major
+echo minor=$minor
  
 echo ${releasename}-${major}.${minor}
