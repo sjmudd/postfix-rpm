@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.40 2000/12/22 23:06:53 root Exp $
+# $Id: postfix.spec.in,v 2.41 2000/12/31 20:30:11 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -102,6 +102,17 @@ too. If anyone want to provide binary rpms please let me know.
 %define whinge logger -p mail.info -t postfix/rpm
 
 %prep
+
+# warn before we start if we aren't root
+if [ `id -u` != "0" ]; then
+    echo "ERROR: Not building postfix package as the superuser"
+    echo "ERROR: You MUST be the superuser to build the postfix package"
+    echo "ERROR: as part of the package build process requires superuser privileges"
+    echo ""
+    echo "Please su - root and try again"
+    exit 1
+fi
+
 umask 022
 %setup -q -n snapshot-%{version}
 
@@ -332,7 +343,7 @@ if [ "$1" != 0 ]; then
     # -- need to fix this to stop during install and keep note of the state for use here ---
     # stop postfix silently if it's running
     %{daemon_directory}/master -t 2>/dev/null || {
-        echo "Stopping the Postfix mail system"
+        echo "Stopping   the Postfix mail system"
         kill `sed 1q %{queue_directory}/pid/master.pid` 
         sleep 2 # to give things time to stop
         %{daemon_directory}/master &
@@ -348,8 +359,8 @@ rm -rf ${RPM_BUILD_ROOT}
 %defattr(-, root, root)
 %verify(not md5 size mtime) %config %dir %{config_directory}
 %attr(0755, root, root) %config %{config_directory}/postfix-script
-%attr(0644, root, root) %verify(not md5 size mtime) %config %{config_directory}/main.cf
-%attr(0644, root, root) %verify(not md5 size mtime) %config %{config_directory}/master.cf
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/main.cf
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/master.cf
 %attr(0644, root, root) %verify(not md5 size mtime) %config %{config_directory}/install.cf
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/aliases
 %attr(0644, root, root) %verify(not md5 size mtime) %ghost             %{config_directory}/aliases.db
@@ -442,6 +453,14 @@ rm -rf ${RPM_BUILD_ROOT}
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Mon Dec 31 2000 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001217-6, suggestions from Daniel Roesen <droesen@entire-systems.com>
+- remove default LDAP support: RedHat only supports this by default on RH 6.2
+  and later
+- remove package build after building spec file (I was being lazy)
+- fix a couple of typos
+- warn if user is trying to build the package when he is not the superuser
+
 * Fri Dec 22 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001217-5
 - include Requires: /etc/init.d if built on rh7
@@ -452,7 +471,7 @@ rm -rf ${RPM_BUILD_ROOT}
   - if built on a rh7 machine, the spec file will include a Requires:
     for db3/db3-devel.
   - include the Requires: and BuildRequires: support for use with
-    openldap, mysql, pcre, and cyrus-auth packages
+    openldap, mysql, pcre, and cyrus-sasl packages
   ( current build also shows the version of redhat the spec file
     was generated on, just to make things a bit clearer )
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.9 2000/12/22 22:54:49 root Exp $
+#  $Id: make-postfix.spec,v 1.10 2000/12/31 20:29:58 root Exp $
 #
 
 POSTFIX_SUFFIX=
@@ -10,16 +10,14 @@ POSTFIX_REQUIRES=
 REDHAT_PREREQ=
 REDHAT_RELEASE='Unknown Linux Distribution'
 
-# supposedly redhat now include LDAP libraries in the default install, so
-# include LDAP support by default
-POSTFIX_LDAP=1
+# RedHat 6.2 and later include LDAP support, earlier versions don't
+# For this reason LDAP support is not compiled by default
 
 echo ""
-echo "Generating Postfix spec file: ../postfix.spec"
+echo "Generating Postfix spec file: ../SPECS/postfix.spec"
 if [ "X$POSTFIX_LDAP" = "X1" ]; then
     echo "  adding LDAP support to spec file"
-#   as it's the default don't add it to the name
-#   POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+ldap"
+    POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+ldap"
     POSTFIX_CCARGS="${POSTFIX_CCARGS} -DHAS_LDAP"
     POSTFIX_AUXLIBS="${POSTFIX_AUXLIBS} -L/usr/lib -lldap -llber"
     POSTFIX_REQUIRES="openldap >= 1.2.9"
@@ -103,7 +101,6 @@ s!__REDHAT_RELEASE__!$REDHAT_RELEASE!g
 s!__REDHAT_PREREQ__!$REDHAT_PREREQ!g
 " postfix.spec.in >> ../SPECS/postfix.spec
 
-echo " "
-
-( cd ../SPECS; rpm -ba postfix.spec )
-
+#echo " "
+#
+#( cd ../SPECS; rpm -ba postfix.spec )
