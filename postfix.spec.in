@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.21 2000/12/12 22:49:57 root Exp $
+# $Id: postfix.spec.in,v 2.22 2000/12/13 21:03:11 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -15,7 +15,7 @@ Copyright: IBM Public License -- see LICENSE for details
 PreReq: /sbin/chkconfig
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
-Version: 20001211
+Version: 20001212
 Release: 1
 Packager: Simon J Mudd <sjmudd@pobox.com> but see description below
 Vendor: None -- see packager
@@ -28,6 +28,8 @@ Source4: postfix-etc-cron.daily-postfix
 Source5: postfix-aliases
 Source6: postfix-chroot-setup.awk
 Source7: postfix-RPM-TODO-list
+# PENDING
+#Source8: postfix-Makefile
 Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
 #
@@ -40,6 +42,20 @@ Patch98: postfix-safe_mynetworks.patch
 Patch99: postfix-smtpd_reply_multiline.patch
 
 BuildRoot: /var/tmp/%{name}-%{version}-root
+
+##########
+# Requires for different packages - at the moment adjust this by hand
+# later I intend to automatically generate the spec file correctly
+##########
+# Requires for pcre
+#Requires: pcre - confirm this please someone?
+##########
+# Requires for SASL
+#Requires: ? - please help me and confirm the package required
+##########
+# Requries for MySQL build
+#Requries: MySQL-3.22.32-1
+#Requires: MySQL-devel
 
 
 %description
@@ -61,8 +77,11 @@ The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
 Binary RPMS for alpha and S/390-Linux architectures were built by
-Klaus Jaehne <klaus.jaehne@to.com>.  Please contact him for information
-related to these platforms.
+Klaus Jaehne <klaus.jaehne@to.com>.
+Please contact him for information related to these platforms.
+
+I have received reports that this package builds on the sparc platform
+too. If anyone want to provide binary rpms please let me know.
 
 
 %define setupdir %{name}-%{version}
@@ -249,7 +268,6 @@ gzip -9f ${RPM_BUILD_ROOT}%{_mandir}/man{1,5,8}/* ||:
 #
 cp -f  ${RPM_SOURCE_DIR}/postfix-aliases ${RPM_BUILD_ROOT}%{config_directory}/aliases
 chmod 644 ${RPM_BUILD_ROOT}%{config_directory}/aliases
-${RPM_BUILD_ROOT}/%{command_directory}/postalias -c ${RPM_BUILD_ROOT}/%{config_directory} ${RPM_BUILD_ROOT}/%{config_directory}/aliases
 
 
 ##############################################################################
@@ -261,8 +279,13 @@ ${RPM_BUILD_ROOT}/%{command_directory}/postalias -c ${RPM_BUILD_ROOT}/%{config_d
 umask 022
 
 /sbin/chkconfig --add postfix
-# setups missing directory structures
+
+# setup missing directory structures
 %{command_directory}/postfix check
+
+# this is the correct place to build the alias.db file
+%{command_directory}/postalias %{config_directory}/aliases
+
 # setup chroot structure
 %{config_directory}/chroot-setup-LINUX2
 
@@ -284,38 +307,30 @@ if [ "$1" = 0 ]; then
     test "%{queue_directory}Z" = "Z" && echo "WARNING: chroot removal buggy - check .spec file" && exit 0
 
     # cd to %{queue_directory} before removing unwanted files
-    if [ -d %{queue_directory} ]; then
-        cd %{queue_directory}
+    cd %{queue_directory} && {
 
-
-
-        XXXXX
-
-    # remove chroot jail when uninstalling the package
-    for i in etc/localtime usr/lib/zoneinfo/localtime \
+        # remove chroot jail when uninstalling the package
+        for i in etc/localtime usr/lib/zoneinfo/localtime \
 		etc/host.conf etc/resolv.conf etc/nsswitch.conf \
 		etc/hosts etc/passwd etc/services \
 		lib/libnss_* lib/libresolv*; do
-        test -f $i && rm -f $i
-    done
-    for dir in usr/lib/zoneinfo usr/lib usr lib etc; do
-        test -d $i && rmdir $i
-    done
-    # selectively remove the rest of the queue directory structure
-    # first the ones which are easy
-    for dir in corrupt deferred incoming maildrop pid private public saved ; do
-        ( cd $dir && rm * )
-        test -d $dir && ( rmdir $dir || echo "unable to remove directory %{queue_directory}/$dir" )
-    done
-    # second the rest
-    for dir in active bounce defer flush; do
-        ( cd $dir && rm -rf * ) # dangerous I know
-        test -d $dir && ( rmdir $dir || echo "unable to remove directory %{queue_directory}/$dir" )
-    done  
-    else
-        echo "WARNING: missing directory %{queue_directory}";
-        exit 1
-    fi
+            test -f $i && rm -f $i
+        done
+        for dir in usr/lib/zoneinfo usr/lib usr lib etc; do
+            test -d $i && rmdir $i
+        done
+        # selectively remove the rest of the queue directory structure
+        # first the ones which are easy
+        for dir in corrupt deferred incoming maildrop pid private public saved; do
+            ( cd $dir && find . -type f -exec rm {}\; )
+            test -d $dir && ( rmdir $dir || echo "unable to remove directory %{queue_directory}/$dir" )
+        done
+        # second the rest
+        for dir in active bounce defer flush; do
+            ( cd $dir && rm -rf * ) # dangerous I know
+            test -d $dir && ( rmdir $dir || echo "unable to remove directory %{queue_directory}/$dir" )
+        done  
+    }
 fi
 
 %postun
@@ -326,7 +341,7 @@ if [ "$1" != 0 ]; then
     # stop postfix silently (if it's running)
     %{daemon_directory}/master -t 2>/dev/null || {
     echo "Stopping the Postfix mail system"
-    kill `sed 1q pid/master.pid` 
+    kill `sed 1q %{queue_directory}/pid/master.pid` 
     sleep 2 # to give things time to stop
     %{daemon_directory}/master &
     echo "Restarting the Postfix mail system" }
@@ -343,10 +358,8 @@ rm -rf ${RPM_BUILD_ROOT}
 %attr(0644, root, root) %verify(not md5 size mtime) %config %{config_directory}/main.cf
 %attr(0644, root, root) %verify(not md5 size mtime) %config %{config_directory}/master.cf
 %attr(0644, root, root) %verify(not md5 size mtime) %config %{config_directory}/install.cf
-# not sure about the ghost directive so leave alone for the moment
-#%attr(0644, root, root) %verify(not md5 size mtime) %ghost             %{config_directory}/aliases.db
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/aliases
-%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/aliases.db
+%attr(0644, root, root) %verify(not md5 size mtime) %ghost             %{config_directory}/aliases.db
 
 %attr(0755, root, root) %{init_directory}/postfix
 %attr(-, postfix, root) %verify(not md5 size mtime) %{queue_directory}
@@ -434,6 +447,21 @@ rm -rf ${RPM_BUILD_ROOT}
 #	Bennett Todd <bet@mordor.net>
 
 %changelog
+* Wed Dec 13 2000 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001212-1, several changes following comments from
+  Daniel Roesen <droesen@entire-systems.com>
+  Tuomo Soini <tis@foobar.fi>
+  - change chroot removal on package uninstallation
+  - rebuild aliases.db on package installation not build
+  - tidy up stop/start over package upgrade
+  - change method for selectively installing patches
+      now use POSTFIX_SMTPD_MULTILINE=1 for smtpd multiline greetings
+              POSTFIX_SAFE_MYNETWORKS=1 for droeson's patch
+  - create postfix user/group on package build if necessary
+  - include smtpsource/smtpsink for testing
+  - include comments in spec file for building with other libraries
+      this is so later I can do this automatically
+
 * Thu Nov 23 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001121-4, several minor fixes following comments from
   Daniel Roesen <droesen@entire-systems.com>
