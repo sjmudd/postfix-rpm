@@ -13,35 +13,6 @@
 # 25/02/99: Hacked by jam.  Mostly s/sendmail/postfix/g :-)
 # 23/11/00: Further changes, suggestions of Ajay Ramaswamy <ajayr@bigfoot.com>
 
-cond_copy() {
-  # find files as per pattern in $1
-  # if any, copy to directory $2
-  dir=`dirname "$1"`
-  pat=`basename "$1"`
-  lr=`find "$dir" -name "$pat"`
-  if test ! -d "$2" ; then exit 1 ; fi
-  if test "x$lr" != "x" ; then cp -p $1 "$2" ; fi
-}
-
-setup_chroot() {
-  set -e
-  umask 022
-
-  POSTFIX_DIR=${POSTFIX_DIR-/var/spool/postfix}
-  cd ${POSTFIX_DIR}
-
-  mkdir -p etc lib
-
-  lt=/etc/localtime
-  if test ! -f $lt ; then echo "cannot find localtime" ; exit 1 ; fi
-  cp -p -f $lt /etc/services /etc/resolv.conf /etc/nsswitch.conf etc
-  cp -p -f /etc/host.conf /etc/hosts /etc/passwd etc
-  ln -s -f /etc/localtime usr/lib/zoneinfo
-
-  cond_copy '/lib/libnss_*' lib
-  cond_copy '/lib/libresolv*' lib
-}
-
 # Source function library.
 . /etc/rc.d/init.d/functions
 
@@ -60,8 +31,6 @@ case "$1" in
   start)
 	# Start daemons.
 	echo -n "Starting postfix: "
-	# build chroot jail before starting postfix
-	setup_chroot
 	newaliases
 	/usr/sbin/postfix start
 	RETVAL=$?
@@ -106,22 +75,3 @@ case "$1" in
 esac
 
 exit $RETVAL
-
-
-
-
-
-
-
-
-
- # Source function library.
- . /etc/rc.d/init.d/functions
-
-@@ -30,6 +58,8 @@
-   start)
- 	# Start daemons.
- 	echo -n "Starting postfix: "
- 	/usr/sbin/postfix start
- 	RETVAL=$?
- 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/postfix
