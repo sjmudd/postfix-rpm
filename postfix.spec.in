@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.6 2000/10/12 16:06:41 root Exp $
+# $Id: postfix.spec.in,v 2.7 2000/10/12 17:33:36 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -16,7 +16,7 @@ PreReq: /sbin/chkconfig
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
 Version: 20001005
-Release: 3
+Release: 4
 Packager: Simon J Mudd <sjmudd@pobox.com> but see description below
 Vendor: None -- see packager
 Distribution: Experimental
@@ -325,6 +325,9 @@ rm -rf ${RPM_BUILD_ROOT}
 #	Bennett Todd <bet@mordor.net>
 
 %changelog
+* Thu Oct 12 2000 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001005-4, fix chroot awk script which was wrong
+
 * Thu Oct 12 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001005-3, changes url shown for my packages.
 
