@@ -1,0 +1,44 @@
+diff -uNr postfix-19990317-orig/conf/postfix-script-nosgid postfix-19990317/conf/postfix-script-nosgid
+--- postfix-19990317-orig/conf/postfix-script-nosgid	Fri Feb 26 08:13:31 1999
++++ postfix-19990317/conf/postfix-script-nosgid	Thu Mar 18 10:42:30 1999
+@@ -208,6 +208,18 @@
+ 
+ 	find corrupt -type f -exec $WARN damaged message: {} \;
+ 
++	for src in /etc/localtime /etc/services /etc/resolv.conf \
++		/lib/libnss_dns.so.1; do
++	    dst=$queue_directory$src
++	    test -f $src -a -f $dst || continue
++	    cmp -s $src $dst && continue
++	    (
++	      echo WARNING: The file $dst was originally created as a copy of
++	      echo $src. They are now different. If you have updated $src
++	      echo successfully you probably want to copy that update to $dst.
++	    ) | logger -t postfix-script -p mail.warning -s
++	done
++
+ 	# XXX also: look for weird stuff, weird permissions, etc.
+ 	;;
+ 
+diff -uNr postfix-19990317-orig/conf/postfix-script-sgid postfix-19990317/conf/postfix-script-sgid
+--- postfix-19990317-orig/conf/postfix-script-sgid	Fri Feb 26 08:13:34 1999
++++ postfix-19990317/conf/postfix-script-sgid	Thu Mar 18 10:42:30 1999
+@@ -209,6 +209,18 @@
+ 
+ 	find corrupt -type f -exec $WARN damaged message: {} \;
+ 
++	for src in /etc/localtime /etc/services /etc/resolv.conf \
++		/lib/libnss_dns.so.1; do
++	    dst=$queue_directory$src
++	    test -f $src -a -f $dst || continue
++	    cmp -s $src $dst && continue
++	    (
++	      echo WARNING: The file $dst was originally created as a copy of
++	      echo $src. They are now different. If you have updated $src
++	      echo successfully you probably want to copy that update to $dst.
++	    ) | logger -t postfix-script -p mail.warning -s
++	done
++
+ 	# XXX also: look for weird stuff, weird permissions, etc.
+ 	;;
+ 
