@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.21 2003/09/30 16:50:14 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.22 2003/09/30 17:15:02 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -181,14 +181,23 @@ fi
 if [ "$POSTFIX_PGSQL2" = 1 ]; then
     echo "  including additional experimental PostGres patches"
 fi
-if [ "$POSTFIX_MYSQL" = 1 ]; then
-    [ -n "$POSTFIX_MYSQL_REDHAT" ] && {
+# Check for conflicting MySQL requests and report an error if necessary
+MYSQL_COUNT=0
+[ -n "$POSTFIX_MYSQL"        -a "$POSTFIX_MYSQL"        != 0 ] && MYSQL_COUNT=$(($MYSQL_COUNT + 1))
+[ -n "$POSTFIX_MYSQL_REDHAT" -a "$POSTFIX_MYSQL_REDHAT" != 0 ] && MYSQL_COUNT=$(($MYSQL_COUNT + 1))
+[ -n "$POSTFIX_MYSQL_PATHS"                                ] && MYSQL_COUNT=$(($MYSQL_COUNT + 1))
+[ ${MYSQL_COUNT} -gt 1 ] && {
         cat <<-END
-	ERROR: You can only select ONE of POSTFIX_MYSQL_REDHAT and POSTFIX_MYSQL.
-	  Select the variable you want and unset the other one.
+	ERROR: You can only set ONE of the following:
+	  POSTFIX_MYSQL_REDHAT (use RedHat built MySQL packages)
+	  POSTFIX_MYSQL        (use MySQL built MySQL packages)
+	  POSTFIX_MYSQL_PATHS  (provide paths to include and library directories
+	                        for manually installed MySQL server)
+	  Select the variable you want and unset the other ones.
 	END
 	exit 1
-    }
+}
+if [ "$POSTFIX_MYSQL" = 1 ]; then
     POSTFIX_MYSQL_REDHAT=0
     POSTFIX_MYSQL_PATHS=
     echo "  adding MySQL support (www.mysql.com MySQL* packages) to spec file"
