@@ -94,21 +94,19 @@ rpm_release=`grep '^%define rel ' postfix.spec.in | awk '{ print $3 } '`
 
 RC=`grep -q '%define official 1' postfix.spec.in; echo $?`
 if [ ${RC} = "0" ]; then
-    name=postfix
     ftpdir=official
 else
-    name=snapshot
     version="${version}-${release_date}"
     ftpdir=experimental
 fi
 
 # convert 
-#	Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_directory}/%{name}-%{version1}.tar.gz
+#	Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_directory}/postfix-%{version1}.tar.gz
 # into one of
 #	ftp://ftp.porcupine.org/mirrors/postfix-release/official/postfix-1.1.0.tar.gz
-#	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-1.1.0-20020115.tar.gz
+#	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/postfix-1.1.0-20020115.tar.gz
 
-source0=`grep "^Source0:" postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{name};${name};" -e "s;%{ftp_directory};${ftpdir};" -e "s;%{version1};${version};"`
+source0=`grep "^Source0:" postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{ftp_directory};${ftpdir};" -e "s;%{version1};${version};"`
 
 file=`echo ${source0} | sed -e 's;.*/;;'`
 base=`dirname ${source0}`

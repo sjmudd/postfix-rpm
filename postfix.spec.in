@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.24 2002/04/01 20:32:16 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.25 2002/04/03 16:14:27 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -115,7 +115,7 @@ Release: %{rel}__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Summary: Postfix Mail Transport Agent
 Vendor: Built on %{distribution}
-Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_directory}/%{name}-%{version1}.tar.gz
+Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_directory}/postfix-%{version1}.tar.gz
 Source1: postfix-new-RPM-packages
 Source3: postfix-etc-init.d-postfix
 Source4: postfix-etc-cron.daily-postfix
@@ -137,7 +137,7 @@ Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pgver}.patch
 Patch51: postfix-pg-raw.patch
 Patch99: postfix-smtpd_multiline_greeting.patch
 
-BuildRoot: %{_tmppath}/%{name}-buildroot
+BuildRoot: %{_tmppath}/postfix-buildroot
 
 # Determine packaging requirements
 Requires: gawk, perl, sed, ed
@@ -203,7 +203,7 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.24 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.25 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING},VDA=%{VDA},PGSQL=%{PGSQL}, PGSQL2=%{PGSQL2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -264,7 +264,7 @@ ENDTEXT
 	sleep 10
 fi
 
-%setup -q -n %{name}-%{version1} -a 9
+%setup -q -n postfix-%{version1} -a 9
 
 # Apply the TLS patch, must be at first, because the changes of master.cf
 %if %{TLS}
