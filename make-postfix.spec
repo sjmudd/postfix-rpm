@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.22 2003/09/30 17:15:02 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.23 2003/09/30 17:16:56 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -25,7 +25,7 @@
 #			George Barbarosie <georgeb@intelinet.ro>
 # POSTFIX_SASL		include support for SASL (1, 2 or 0 to disable)
 # POSTFIX_TLS		include support for TLS
-# POSTFIX_IPV6		include support for IPv6 (don't use with TLS)
+# POSTFIX_IPV6		include support for IPv6
 # POSTFIX_VDA		include support for Virtual Delivery Agent
 # POSTFIX_SMTPD_MULTILINE_GREETING
 #			include support for multitline SMTP banner
