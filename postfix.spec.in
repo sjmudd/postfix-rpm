@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.78 2003/07/24 21:57:51 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.79 2003/07/28 21:18:06 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -79,7 +79,7 @@
 %define official 1
 %define ver 2.0.13
 %define mail_release_date 20021219
-%define rel 3.99.4
+%define rel 3.99.5
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -221,7 +221,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.78 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.79 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -602,7 +602,7 @@ EOF
 fi
 
 # Apply the alternatives scripts ONLY if installing (not upgrading) to
-# ensure a link exists from # %{_sbindir}/sendmail to
+# ensure a link exists from %{_sbindir}/sendmail to
 # %{_sbindir}/sendmail.postfix (and other files).
 #
 # If performing an upgrade this MUST be done in the trigger scripts.
@@ -750,6 +750,13 @@ queue_directory_remove () {
     done
 }
 
+# No more postfix packages left so prepare to finish package removal.
+# _In theory_ there is no chroot environment now, so there is no need to
+# clean it out.
+# However it may be prudent later to add back a call to
+# /etc/postfix/postfix-chroot.sh disable
+# just to make sure, but won't do this yet. (If you think I should let
+# me know).
 [ "$1" = 0 ] && {
     service postfix stop >/dev/null 2>&1
     chkconfig --del postfix
@@ -922,6 +929,9 @@ umask 022
 #
 
 %changelog
+
+* Mon Jul 28 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.13-3.99.5
+  - as close as I'll get to a safe new package. Prepare final tests
 
 * Wed Jul 23 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.13-3.99.2
   - Finish postfix-chroot.sh script. It looks ok, prepare for testing
