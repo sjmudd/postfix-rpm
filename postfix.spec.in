@@ -1,0 +1,606 @@
+##############################################################################
+#
+# $Id: postfix.spec.in,v 2.1 2000/07/05 17:48:39 root Exp $
+#
+# Spec file for package postfix designed to be built on RedHat Linux.
+# Modifications which make this work on other rpm(1) platforms are welcome.
+#
+# Please send bugfixes and comments to the packager.
+#
+##############################################################################
+# misc documentation, which can be queried via rpm(1) invocations.
+Group: System Environment/Daemons
+URL: http://www.postfix.org
+Copyright: IBM Public License -- see LICENSE for details
+Summary: Postfix Mail Transport Agent
+Packager: Simon J Mudd <sjmudd@pobox.com> but see description below
+Vendor: None -- see packager
+Distribution: Experimental
+Prereq: /sbin/chkconfig
+
+# Help guide rpm(1) in its dependancy logic. Some applications require that
+# there be an SMTP daemon available; they demand it by various names.
+# Conflicts: tell rpm(1) to ensure sendmail is not installed as Postfix
+# provides a sendmail(1) executable.
+Provides: MTA smtpd smtpdaemon
+Conflicts: sendmail
+
+# Setup various defines relating to the package version and patch level.
+# Version can't have "-" in it so substitute this with "_".
+
+Name: postfix
+%define vers 19991231
+
+### WARNING: due to differences between rpm-2.x and rpm-3.x you can't
+### just comment out defines.  This worked with rpm-2.x, but doesn't
+### with rpm-3.x.  This means that the changes here, necessary for
+### using the releases with or without patch levels needs to be
+### modified carefully.  Only one of the two choices should have the
+### 'defines' preceded by a percentage sign
+
+# choice one - when we use patch levels
+%define patchlevel pl08
+%define versioX %{vers}-%{patchlevel}
+%define version %{vers}_%{patchlevel}
+
+# choice two - when we don't use patch levels
+#define versioX %{vers}
+#define version %{vers}
+
+###
+###
+
+%define setupdir %{name}-%{version}
+Version: %{version}
+
+# Package release number.  Update every time you change the spec file
+Release: 1
+
+# BuildRoot is as a temporary area used in the %install section to install
+# the binaries, avoiding overwriting the real files on the build machine.
+# WARNING: avoid changing this to a directory you use as %install executes
+# "rm -rf" on it.
+BuildRoot: /var/tmp/%{name}-%{version}-root
+
+##############################################################################
+# These are constant variable definitions used throughout the spec file
+%define config_directory /etc/postfix
+%define daemon_directory /usr/libexec/postfix
+%define command_directory /usr/sbin
+%define queue_directory /var/spool/postfix
+%define newaliases_path /usr/bin/newaliases
+
+%define mailq_path /usr/bin/mailq
+%define rmail_path /usr/bin/rmail
+%define manpath /usr/man
+%define uid 89
+%define gid 89
+
+# These paths were system specific when the spec file also worked on
+# non-linux platforms.
+%define init_directory /etc/rc.d/init.d
+%define sendmail_path /usr/sbin/sendmail
+%define cron_directory /etc/cron.daily
+
+# Whinge is a macro used throughout the spec file, whining at syslog
+# so as not to output to the screen.  This definition allows us to use
+# logger(1)'s "-s" option, to whine at stderr as well as the syslog,
+# if we want to.
+
+%define whinge logger -p mail.info -t postfix/rpm
+
+##############################################################################
+# List all the source and patch files needed to build the package.
+# NOTE: Patch99 is applied only on builds on my machines.
+
+#Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{versioX}.tar.gz
+Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/official/postfix-%{versioX}.tar.gz
+Source1: postfix-README_rpm.txt
+Source2: postfix-README_maildrop_security.txt
+Source3: postfix-init_script.sh
+Source4: postfix-cron.daily.sh
+Source5: postfix-aliases
+
+Patch0: postfix-chroot_setup.patch
+Patch1: postfix-config.patch
+Patch2: postfix-chroot_chk.patch
+Patch3: postfix-smtpd_size.patch
+
+Patch99: postfix-smtpd_reply_multiline.patch
+
+##############################################################################
+# Describe the package
+
+%description
+Postfix, see http://www.postfix.org, aims to be an alternative to the
+widely-used sendmail program, which is responsible for 70 percent of
+all e-mail delivered on the Internet.
+
+Although IBM supported the Postfix development, it abstains from control
+over its evolution.  The goal is to have Postfix installed on as many
+systems as possible.  To this end, the software is given away with no
+strings attached, so that it can evolve with input from and under control
+of its users.
+
+Be sure to read http://www.moongroup.com/postfix-faq/c22.html which covers
+steps which should be taken prior to and after the installation of Postfix.
+
+See http://post.dialin.co.uk/~sjmudd/postfix for source and binary rpms.
+
+You can contact the authors of the binary rpms built as follows:
+   i386: Simon J Mudd <sjmudd@pobox.com> (built on RH 5.1 & rpm 2.5.3)
+   s390: Klaus Jaehne <klaus.jaehne@to.com> (for S/390-Linux)
+  alpha: Klaus Jaehne <klaus.jaehne@to.com>
+
+
+##############################################################################
+# This section unpacks and patches the sources.
+%prep
+umask 022
+
+# install postfix from tar-ball
+%setup -q -n %{name}-%{versioX}
+#%setup -n snapshot-%{versioX}
+
+# apply various minor patches
+%patch0 -p1 -b .p0
+%patch1 -p1 -b .p1
+%patch2 -p1 -b .p2
+%patch3 -p1 -b .p3
+
+# apply this patch ONLY if built on my machines
+if [ `hostname`="phoenix.ea4els.ampr.org" -o \
+     `hostname`="www2.alltrading.es" ]; then
+%patch99 -p1 -b .p99
+fi
+
+# Copy README files allowing us to just go %doc below, and have rpm(1)
+# automatically tuck it in alongside the READMEs and COPYRIGHTs.
+cp ${RPM_SOURCE_DIR}/postfix-README_rpm.txt README_rpm.txt
+cp ${RPM_SOURCE_DIR}/postfix-README_maildrop_security.txt \
+	README_maildrop_security.txt
+
+##############################################################################
+# Build compiles the software and makes the binaries.
+%build
+
+umask 022
+make DEBUG="" OPT="$RPM_OPT_FLAGS"
+
+##############################################################################
+# The pre script executes just before the package is to be installed.
+# We need to check a postfix user and group exists, creating them if
+# necessary.
+%pre
+
+# If the user "postfix" isn't in passwd, but the UID I like to use _is_, then
+# don't try to find a free UID, just scream and leap...err...shriek and die.
+die(){ %whinge "$*"; exit 1; }
+
+# Add the postfix group if not found
+grep -q ^postfix: /etc/group || {
+    groupadd -g %{gid} -r postfix || die \
+            'gid collision, aborting install' \
+	    'either add "postfix" group or delete the group using GID %{gid}'
+    %whinge "Adding postfix to /etc/group."
+}
+
+# Add the postfix user if not found
+grep -q ^postfix: /etc/passwd || {
+    grep -q "^.*:.*:%{uid}:" /etc/passwd && die \
+          'uid collision, aborting install' \
+          'either add "postfix" user or delete the user using UID %{uid}'
+    %whinge "Adding postfix to /etc/passwd."
+    useradd -d %{queue_directory} -s /bin/true -g postfix -M -r -u %{uid} postfix
+}
+
+
+##############################################################################
+# "Install" the software placing the files into their final destination
+# within the install_root, ${RPM_BUILD_ROOT}.
+
+%install
+
+# Ensure the file permissions are correct regardless of the umask settings
+# of the builder.
+umask 022
+
+# Empty ${RPM_BUILD_ROOT}, re-create the needed directories, and finally
+# populate with all the needed files.
+# Make sure ${RPM_BUILD_ROOT} is sane--it gets deleted here.
+/bin/rm -rf ${RPM_BUILD_ROOT}
+mkdir -p ${RPM_BUILD_ROOT}
+
+# strip bin/* and libexec/* to reduce rpm file size
+# Hope Wietse doesn't frown on this
+strip bin/* libexec/*
+
+# use Wietse's INSTALL.sh supplying parameters for install_root and man_pages
+# leaving other default values.
+# WARNING: don't change the number of blank lines below - INSTALL.sh depends
+# on it to work correctly
+sh INSTALL.sh <<EOF
+${RPM_BUILD_ROOT}
+
+
+
+
+
+
+
+
+
+
+/usr/man
+EOF
+
+# Change the default directory for alias_maps and alias_database
+# to %{config_directory}
+bin/postconf -c ${RPM_BUILD_ROOT}%{config_directory} -e \
+	"alias_maps = hash:%{config_directory}/aliases" \
+	"alias_database = hash:%{config_directory}/aliases" \
+|| exit 1 
+
+# Enable the warning message after 4 hours (to be sendmail compatible)
+# This isn't default postfix behaviour so maybe I should NOT include this
+# -- comments welcome! sjm 28/01/2000
+bin/postconf -c ${RPM_BUILD_ROOT}%{config_directory} -e \
+	"delay_warning_time = 4" \
+|| exit 1 
+
+# This installs into the /etc/rc.d/init.d directory
+mkdir -p ${RPM_BUILD_ROOT}%{init_directory}
+install -c ${RPM_SOURCE_DIR}/postfix-init_script.sh ${RPM_BUILD_ROOT}%{init_directory}/postfix
+
+# These set up the chroot directory structure
+mkdir -p ${RPM_BUILD_ROOT}%{queue_directory}/etc
+mkdir -p ${RPM_BUILD_ROOT}%{queue_directory}/lib
+mkdir -p ${RPM_BUILD_ROOT}%{queue_directory}/usr/lib/zoneinfo
+
+# This is the /etc/cron.daily directory
+mkdir -p ${RPM_BUILD_ROOT}%{cron_directory}
+
+install -c ${RPM_SOURCE_DIR}/postfix-cron.daily.sh ${RPM_BUILD_ROOT}%{cron_directory}/postfix
+install -c auxiliary/rmail/rmail ${RPM_BUILD_ROOT}%{rmail_path}
+
+gzip ${RPM_BUILD_ROOT}%{manpath}/man{1,5,8}/* ||:
+
+#
+# copy new aliases files and build the aliases.db (ghost) file
+#
+cp -f  ${RPM_SOURCE_DIR}/postfix-aliases ${RPM_BUILD_ROOT}%{config_directory}/aliases
+chmod 644 ${RPM_BUILD_ROOT}%{config_directory}/aliases
+${RPM_BUILD_ROOT}/%{command_directory}/postalias -c ${RPM_BUILD_ROOT}/%{config_directory} ${RPM_BUILD_ROOT}/%{config_directory}/aliases
+
+
+##############################################################################
+# The post script executes after the package has been installed.  Here
+# we put things that invoke files we just installed, and populate the
+# directories we've created with local-dependent files.
+%post
+
+umask 022
+
+/sbin/chkconfig --add postfix
+
+# Populate the chroot jail
+# - this routine copies the files from the running system
+
+install -c -m 644 /etc/localtime /etc/services /etc/resolv.conf %{queue_directory}/etc
+ln -sf /etc/localtime %{queue_directory}/usr/lib/zoneinfo
+
+# install DNS resolver libraries
+if [ -e /lib/libnss_dns.so.2 ]; then
+#    %whinge "Installing /lib/libnss_dns.so.2 into chroot jail"
+    cmp -s /lib/libnss_dns.so.2 %{queue_directory}/lib/libnss_dns.so.2 2>/dev/null || \
+        install -c /lib/libnss_dns.so.2 %{queue_directory}/lib
+else
+    if [ -e /lib/libnss_dns.so.1 ]; then
+#        %whinge "Installing /lib/libnss_dns.so.1 into chroot jail"
+        cmp -s /lib/libnss_dns.so.1 %{queue_directory}/lib/libnss_dns.so.1 2>/dev/null || \
+        install -c /lib/libnss_dns.so.1 %{queue_directory}/lib
+		#	else
+#%whinge <<EOF
+#WARNING: Please check the Postfix chroot setup in %{queue_directory}
+#WARNING: I can't find the DNS library files in /lib to copy to the chroot jail
+#EOF
+    fi
+fi
+
+# This ensures us that the subdirectories below %{queue_directory} are populated
+%{command_directory}/postfix check
+
+#%whinge <<EOF
+#IMPORTANT: Please read the docs for configuration notes.
+#Please run '%{init_directory}/postfix start' to start Postfix.
+#Postfix will be started in run levels 3 and 5 when machine is booted.
+#EOF
+
+##############################################################################
+# Preun is run _before_ an "uninstall" --- when you're removing a package
+# This attempts to undo things that were done in %post above. This is a
+# good place to make sure the subsystem is shut down gracefully before we rip
+# it out:-).
+#
+# We don't want to erase the chroot environment or remove the postfix user
+# or group unless we are really deleting the package. (We may be upgrading)
+#
+# $1 is the number of package instances that will be left _after_
+# this rpm(1) invocation has completed, so when it's 0 we're totally
+# wiping out this package.
+%preun
+
+umask 022
+
+if [ "$1" = 0 ]; then
+    %{command_directory}/postfix stop
+    /sbin/chkconfig --del postfix                    
+
+#    %whinge "Removing Postfix user id"
+    userdel postfix || : #%whinge "WARNING: failed to remove user postfix"
+#    %whinge "Removing Postfix group id"
+    groupdel postfix || : #%whinge "WARNING: failed to remove group postfix"
+
+    rm -f %{queue_directory}/etc/localtime
+    rm -f %{queue_directory}/etc/services
+    rm -f %{queue_directory}/etc/resolv.conf
+    rm -f %{queue_directory}/usr/lib/zoneinfo/localtime
+    rm -f %{queue_directory}/lib/libnss_dns.so.1
+    rm -f %{queue_directory}/lib/libnss_dns.so.2
+fi
+
+##############################################################################
+# Postun is run after rpm(1) has ripped out the stuff populated in
+# %install (or rather, more precisely, the stuff that it knows about because
+# of %files, below).  Ideally postfix stop should be executed in %post and 
+# if it was running restarted here.  It is difficult to pass the state cleanly
+# between the two scripts.
+%postun
+
+if [ "$1" != 0 ]; then
+    (%{command_directory}/postfix stop && sleep 2 && %{command_directory}/postfix start) || true
+fi
+
+##############################################################################
+# Clean up after the build. Note that this is liable to be Bad if you were to
+# set {RPM_BUILD_ROOT} to /, for example. Danger Will Robinson!
+%clean
+rm -rf ${RPM_BUILD_ROOT}
+
+##############################################################################
+# Doc documents all the files that RPM knows about directly (as opposed to
+# manipulating with %pre and %post scripts).
+#
+# Special tags include %doc, to flag documentation (reported by "rpm -qd");
+# and %config, which says that the file is a config file, and so if the user
+# edits it, _don't_ overwrite it on a remove or upgrade, just
+# rename it (to filename.rpmsave).
+#
+# If a directory is mentioned, it means "... and everything in this directory",
+# a valuable shortcut.
+#
+# Don't bother naming individual files unless they are rattling around loose
+# in directories that are also used by other packages.
+#
+# If %doc names a file by relative name rather than by an absolute path name
+# (i.e. the name doesn't start with "/") it means several things: install it
+# into /usr/doc/NAME-VERSION/, and tag it as documentation. This is
+# the easy way to sweep up the READMEs and whatnots.
+#
+# The %attr(mode, owner, group) macro allows you to specify the installation
+# permissions RPM will use --- this overrides the owner and permissions found
+# on the files, as left by %install. This in turn makes it possible for a
+# non-root user (who isn't permitted to chown files to root) to build the
+# package.
+
+%files
+
+%defattr(-, root, root)
+
+%verify(not md5 size mtime) %config %dir %{config_directory}
+%attr(0755, root, root) %config %{config_directory}/postfix-script
+%attr(0644, root, root) %verify(not md5 size mtime) %config %{config_directory}/main.cf
+%attr(0644, root, root) %verify(not md5 size mtime) %config %{config_directory}/master.cf
+%attr(0644, root, root) %verify(not md5 size mtime) %config %{config_directory}/install.cf
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/aliases
+%attr(0644, root, root) %verify(not md5 size mtime) %ghost             %{config_directory}/aliases.db
+
+%attr(0755, root, root) %{init_directory}/postfix
+%attr(-, postfix, root) %verify(not md5 size mtime) %{queue_directory}
+%attr(0755, root, root) %{cron_directory}/postfix
+
+%doc 0README
+%doc BEWARE
+%doc COMPATIBILITY
+%doc DEBUG_README
+%doc HISTORY
+%doc INSTALL
+%doc INSTALL.sh
+%doc LDAP_README
+%doc LICENSE
+%doc MYSQL_README
+%doc PCRE_README
+%doc PORTING
+%doc README_maildrop_security.txt
+%doc README_rpm.txt
+%doc RELEASE_NOTES
+%doc RESTRICTION_CLASS
+%doc TODO
+%doc ULTRIX_README
+%doc UUCP_README
+
+%doc README_rpm.txt README_maildrop_security.txt
+
+%doc conf/access
+%doc conf/aliases
+%doc conf/canonical
+%doc conf/main.cf
+%doc conf/main.cf.default
+%doc conf/master.cf
+%doc conf/postfix-script
+%doc conf/postfix-script-nosgid
+%doc conf/postfix-script-sgid
+%doc conf/relocated
+%doc conf/sample-aliases.cf
+%doc conf/sample-canonical.cf
+%doc conf/sample-debug.cf
+%doc conf/sample-ldap.cf
+%doc conf/sample-local.cf
+%doc conf/sample-misc.cf
+%doc conf/sample-pcre.cf
+%doc conf/sample-rate.cf
+%doc conf/sample-regexp.cf
+%doc conf/sample-relocated.cf
+%doc conf/sample-resource.cf
+%doc conf/sample-rewrite.cf
+%doc conf/sample-smtp.cf
+%doc conf/sample-smtpd.cf
+%doc conf/sample-transport.cf
+%doc conf/sample-virtual.cf
+%doc conf/transport
+%doc conf/virtual
+
+%doc html
+
+%{daemon_directory}/bounce
+%{daemon_directory}/cleanup
+%{daemon_directory}/error
+%{daemon_directory}/local
+%{daemon_directory}/master
+%{daemon_directory}/pickup
+%{daemon_directory}/pipe
+%{daemon_directory}/qmgr
+%{daemon_directory}/showq
+%{daemon_directory}/smtp
+%{daemon_directory}/smtpd
+%{daemon_directory}/trivial-rewrite
+
+%{command_directory}/postalias
+%{command_directory}/postcat
+%{command_directory}/postconf
+%{command_directory}/postdrop
+%{command_directory}/postfix
+%{command_directory}/postkick
+%{command_directory}/postlock
+%{command_directory}/postlog
+%{command_directory}/postmap
+%{command_directory}/postsuper
+
+%{sendmail_path}
+%{mailq_path}
+%{newaliases_path}
+%attr(0755, root, root) %{rmail_path}
+
+%{manpath}/*/*
+
+##############################################################################
+# List of changes made to this package.
+#
+# Old changelog from Tue Dec 15 1998 - Sun Nov 07 has been removed.
+# This included changes and suggestions from:
+#
+#	Lars Hecking <lhecking@nmrc.ucc.ie> 
+#	John A. Martin <jam@jamux.com>
+#	Chuck Mead <chuck@moongroup.com>
+#	Simon J Mudd <sjmudd@pobox.com>
+#	Matt Shibla <mshibla@iname.com>
+#	Bennett Todd <bet@mordor.net>
+
+%changelog
+* Sun Jun 04 2000 Simon Mudd <sjmudd@pobox.com>
+- built for postfix-19991231-pl08
+
+* Sun Apr 15 2000 Simon Mudd <sjmudd@pobox.com>
+- built for postfix-19991231-pl07
+
+* Fri Mar 30 2000 Simon Mudd <sjmudd@pobox.com>
+- built for postfix-19991231-pl06
+
+* Fri Mar 10 2000 Simon Mudd <sjmudd@pobox.com>
+- built for postfix-19991231-pl05
+
+* Tue Feb 01 2000 Simon Mudd <sjmudd@pobox.com>
+- include the patch which optionally delays check_msg_size()
+
+* Mon Jan 31 2000 Simon Mudd <sjmudd@pobox.com>
+- built for postfix-19991231-pl04
+
+* Fri Jan 28 2000 Simon Mudd <sjmudd@pobox.com>
+- built for postfix-19991231-pl03
+- add warning option (which is not enabled by default on standard postfix
+  config)
+- add comments of possible builders of binary s390 and alpha packages
+
+* Thu Jan 13 2000 Tim Powers <timp@redhat.com>
+- removing the whinge stuff from the pre and post sections to meet Red Hat
+	policy
+- quiet setup 
+- built for Powertools 6.2
+
+* Thu Jan 13 2000 Simon Mudd <sjmudd@pobox.com>
+- fix the postalias command which needed the '-c' option
+  specified.  (Edward S. Marshall <emarshal@logic.net>)
+
+- fix the rpm-3.x problem with defines not being commented out
+  and comment that part of the spec file so that I don't get
+  caught again. (It works on my platform with rpm-2.x!)
+
+* Tue Jan 04 2000 Simon Mudd <sjmudd@pobox.com>
+- update to work with postfix-19991231-pl02
+
+* Tue Jan 04 2000 Simon Mudd <sjmudd@pobox.com>
+- update to work with postfix-19991231-pl01
+- and the ghost parameter for aliases.db
+
+* Tue Jan 04 2000 Simon Mudd <sjmudd@pobox.com>
+- Fix BEWARE problem in doc
+- change man page compression to work on required files
+
+* Fri Dec 24 1999 Simon Mudd <sjmudd@pobox.com>
+- update for 19991223 snapshot
+- setup the alias_maps and alias_database parameters correctly
+- rebuild aliases on install (should fix this to only do this if
+  required)
+- fix INSTALL.sh which didn't quite work
+
+* Thu Dec 23 1999 Simon Mudd <sjmudd@pobox.com>
+- modified the aliases file somewhat.
+- re-enabled the whinging after ensuring that output will NOT go to
+  stderr, but only syslog.
+
+* Wed Dec 22 1999 Chuck Mead <chuck@moongroup.com>
+- added an aliases file per discussions with Tim Powers
+
+* Wed Dec 22 1999 Tim Powers <timp@redhat.com>
+- changed group so that it's a valid Red Hat group
+- commented out the whinge stuff in the %pre and %post sections to conform
+	with Red Hat policy
+- changed BuildRoot to be in /var/tmp
+- gzip man pages
+- changed %{manpath} reference in %files section so that this package doesn't
+	claim ownership of /usr/man
+- commented out the Patch99 stuff since we don't need it
+
+* Fri Dec 17 1999 Simon J Mudd <sjmudd@pobox.com>
+  [19991216-1]: update for new snapshot
+
+* Mon Dec 13 1999 Simon J Mudd <sjmudd@pobox.com>
+  [19991126-1]: update for new snapshot
+
+* Sat Dec 03 1999 Simon J Mudd <sjmudd@pobox.com>
+  [19991126-1]: update for new snapshot
+
+* Fri Nov 26 1999 Simon J Mudd <sjmudd@pobox.com>
+  [19991123-4]: /etc/cron.daily/postfix was installed as well as a crontab
+                - remove the crontab entry as this isn't necessary
+  [19991123-3]: add a small delay between postfix stop && postfix start
+  [19991123-2]: Wietse's rbl code needed, patching - include the patch
+
+* Tue Nov 23 1999 Simon J Mudd <sjmudd@pobox.com>
+  [19991123-1]: try the snapshot which looks nice (?)
+
+* Mon Nov 22 1999 Simon J Mudd <sjmudd@pobox.com>
+  [19990906-pl07-1]: patch against pl07
+
+* Thu Nov 17 1999 Simon J Mudd <sjmudd@pobox.com>
+  [19990906-pl06-2]: tidy up spec file and include rmail
