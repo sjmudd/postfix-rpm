@@ -1,0 +1,11 @@
+--- snapshot-20001005/makedefs.orig	Thu Oct  5 14:09:30 2000
++++ snapshot-20001005/makedefs	Fri Oct 13 09:51:07 2000
+@@ -159,7 +159,7 @@
+ 		*)	echo "Unknown AIX version: `uname -v`." 1>&2; exit 1;;
+ 		esac;;
+     Linux.2*)	SYSTYPE=LINUX2
+-		if [ -f /usr/lib/lib/db-3.1.a -a -f /usr/include/db3/db_185.h ]
++		if [ -f /usr/lib/libdb-3.1.a -a -f /usr/include/db3/db_185.h ]
+ 		then
+ 		    CCARGS="$CCARGS -DPATH_DB_H='<db3/db_185.h>'"
+ 		    SYSLIBS="$SYSLIBS -ldb-3.1"
