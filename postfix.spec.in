@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.285 2004/04/27 20:54:17 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.286 2004/04/28 20:04:09 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -76,7 +76,7 @@
 
 # patch version information
 %define vda_version 2.0.16
-%define tls_version pfixtls-0.8.18-2.0.18-20040205-0.9.7c
+%define tls_version pfixtls-0.8.18-2.1.0-0.9.7d
 %define pg_version 2.0.0.2
 %define ipv6_version tls+ipv6-1.22-pf-2.0.19-20040312
 %define cdb_version 1.1.11-20021104
@@ -85,7 +85,7 @@
 %define official 1
 %define ver 2.1.0
 %define mail_release_date RC4-20040418
-%define rel 0.1__SUFFIX__
+%define rel 0.2__SUFFIX__
 %if %{official}
 %define tarball_version %{ver}
 %define ftp_dir official
@@ -241,7 +241,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.285 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.286 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -1066,6 +1066,9 @@ umask 022
 #
 
 %changelog
+
+* Tue Apr 27 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.0-0.2
+- update TLS patches
 
 * Tue Apr 27 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.0-0.1
 - update to 2.1.0
