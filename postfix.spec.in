@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.194.2.1 2002/01/18 19:19:38 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.2 2002/01/19 10:04:06 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -60,7 +60,7 @@
 %define version1 %{major}.%{minor}.%{patchlevel}-%{releasedate}
 %define ftp_directory experimental
 %endif
-%define rel 0.1
+%define rel 1
 
 %define tlsno pfixtls-0.7.15-1.1.0-0.9.6c
 %define pflogno -1.0.3
@@ -179,7 +179,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.1 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.2 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -810,6 +810,11 @@ fi
 #
 
 %changelog
+
+* Sat Jan 19 2002 Simon J Mudd <sjmudd@pobox.com>
+- postfix-1.1.0, update to the latest official release
+  - tidying up of the spec file to fit in line with Wietse's new
+    naming convention.
 
 * Wed Jan 16 2002 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20020115-1, update to latest snapshot

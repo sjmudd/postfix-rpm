@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.35.2.1 2002/01/18 19:19:37 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.35.2.2 2002/01/19 10:04:06 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -48,7 +48,7 @@ TLSFIX=
 echo ""
 echo "Creating Postfix spec file: `rpm --eval '%{_specdir}'`/postfix.spec"
 echo "  Checking rpm database for distribution information..."
-echo "  - if the script get stuck here:"
+echo "  - if the script gets stuck here:"
 echo "    check and remove /var/lib/rpm/__db.00? files"
 
 # Determine the distribution (is there a better way of doing this)
