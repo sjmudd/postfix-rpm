@@ -1,5 +1,6 @@
 make-postfix.spec
-pfixtls-0.8.17-2.0.16-20031231-0.9.7c.tar.gz
+pfixtls-0.8.18-2.0.18-20040205-0.9.7c.tar.gz
+pfixtls-0.8.18-2.0.18-20040205-0.9.7c.tar.gz
 postfinger-1.29
 postfix-2.0.16-20031026-multiline-greeting.patch
 postfix-2.0.16.patch.gz
@@ -20,4 +21,4 @@ postfix-sasl.conf
 postfix-smtp_sasl_proto.c.patch
 postfix.spec.in
 README-Postfix-SASL-RedHat.txt
-tls+ipv6-1.21-pf-2.0.18.patch.gz
+tls+ipv6-1.22-pf-2.0.19-20040312.patch.gz
