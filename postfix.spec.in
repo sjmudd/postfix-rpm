@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.125 2001/06/01 16:06:55 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.126 2001/06/01 16:35:37 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -74,17 +74,16 @@ Packager: Simon J Mudd <sjmudd@pobox.com>
 Summary: Postfix Mail Server
 Vendor: Built on %{distribution}
 Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/%{branch}-%{version1}.tar.gz
-Source1: postfix-README_rpm.txt
-Source2: postfix-README_maildrop_security.txt
-Source3: postfix-etc-init.d-postfix
-Source4: postfix-etc-cron.daily-postfix
-Source5: postfix-aliases
-Source6: postfix-chroot-setup.awk
-Source7: postfix.spec.in
-Source8: make-postfix.spec
-Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{tlsno}.tar.gz
-Source10: http://jimsun.linxnet.com/downloads/pflogsumm%{pflogno}.pl
-Source11: postfix-build
+Source1: postfix-new_RPMS
+Source2: postfix-etc-init.d-postfix
+Source3: postfix-etc-cron.daily-postfix
+Source4: postfix-aliases
+Source5: postfix-chroot-setup.awk
+Source6: postfix.spec.in
+Source7: make-postfix.spec
+Source8: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{tlsno}.tar.gz
+Source9: http://jimsun.linxnet.com/downloads/pflogsumm%{pflogno}.pl
+Source10: postfix-build
 Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
 # required to install smtp-sink and smtp-source
@@ -151,7 +150,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.125 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.126 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
