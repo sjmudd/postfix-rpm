@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.241 2003/01/14 13:41:55 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.242 2003/01/16 11:26:13 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -50,7 +50,7 @@
 %define requires_db __REQUIRES_DB__
 %define requires_init_d __REQUIRES_INIT_D__
 %define smtpd_multiline_greeting __SMTPD_MULTILINE_GREETING__
-# VDA doesn't appear to work on these snapshots
+# The VDA patch does not currently work
 %define vda __VDA__
 %define vda 0
 %define disable_chroot __DISABLE_CHROOT__
@@ -61,15 +61,15 @@
 %define debug %{?_with_debug:1}%{?!_with_debug:0}
 
 # Version information
-%define vdaver 1.1.11-20020822
+%define vdaver 2.0.0.2
 %define pfixtls pfixtls-0.8.12-2.0.0.1-0.9.6h
 %define pgver 1.1.4
 %define pfixipv6 tls+ipv6-1.10-pf-2.0.0-20030101
 
 # If set to 1 if official version, 0 if snapshot
 %define official 0
-%define ver 2.0.0
-%define mail_release_date 20030109
+%define ver 2.0.2
+%define mail_release_date 20030115
 %define rel 0.1
 %if %{official}
 %define tarball_version %{ver}
@@ -137,12 +137,11 @@ Source13: http://www.corpit.ru/ftp/postfix/README.CDB
 Source14: ftp://ftp.stack.nl/pub/postfix/tls+ipv6/1.10/%{pfixipv6}.patch.gz
 
 # Obligatory Patches
-Patch1: postfix-makedefs.patch
 Patch2: postfix-smtp_sasl_proto.c.patch
 Patch3: postfix-files.patch
 
 # Optional patches
-Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}_quota.patch.gz
+Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}.patch.gz
 # Adapted from http://www.stahl.bau.tu-bs.de/~hildeb/postfix/duchovni/log_recipient.gz
 Patch7: postfix-log_recipient
 Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pgver}.patch
@@ -210,7 +209,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.241 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.242 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -277,7 +276,6 @@ fi
 %endif
 
 # Apply obligatory patches
-%patch1 -p1 -b .makedefs
 %patch2 -p1 -b .auth
 %patch3 -p1 -b .alternatives
 %patch7 -p1 -b .logrcpt
@@ -289,7 +287,7 @@ cp $RPM_SOURCE_DIR/README.CDB .
 sh dict_cdb.sh
 %endif
 %if %{vda}
-  gzip -dc %{_sourcedir}/postfix-%{vdaver}_quota.patch.gz | patch -p1 -b --suffix .vda -s
+  gzip -dc %{_sourcedir}/postfix-%{vdaver}.patch.gz | patch -p1 -b --suffix .vda -s
 %endif
 # Apply the PostgreSQL patches only if required
 %if %{pgsql}
@@ -968,15 +966,19 @@ fi
 
 %changelog
 
-* Tue Jan 14 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.0-20030109-0.X
+* Thu Jan 16 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.2-20030115-0.1
+
   - update URLs in rpm -qi postfix output
   - update postfix-new-RPM-packages
+  - update to 2.0.2-20030115
+  - remove postfix-makedefs.patch (to not force pcre installaton)
+  - update VDA patch
 
 * Thu Jan 09 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.0-20030109-0.1
- - update to 2.0.0-20030109-0.1
+  - update to 2.0.0-20030109-0.1
 
 * Wed Jan 08 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.0-20030107-1.1
- - update ipv6 patch to tls+ipv6-1.10-pf-2.0.0-20030101.patch.gz
+  - update ipv6 patch to tls+ipv6-1.10-pf-2.0.0-20030101.patch.gz
 
 * Wed Jan 08 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.0-20030107-1
   - fix master.cf: virtual should not be chrooted
