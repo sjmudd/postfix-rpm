@@ -1,0 +1,41 @@
+Information related to the Postfix packages I build
+---------------------------------------------------
+
+The postfix packages were built on redhat-6.2 and haven't been tested on
+other redhat releases.
+
+These packages won't work on redhat 5.x due to library dependency problems.
+I think that all that is needed to build redhat 5.x packages is to follow
+the following steps:
+
+1. download source rpm package: postfix.....src.rpm
+2. install it (this doesn't affect the binary packages that are installed):
+	rpm -Uvh postfix...src.rpm
+   this puts files in /usr/src/redhat/ ready to build a package
+3. build the binary rpms (locally)
+	cd /usr/src/redhat/SPECS
+	rpm -ba postfix.spec
+   The binary and source rpms are put in
+	/usr/src/redhat/RPMS/i386 and
+	/usr/src/redhat/SRPMS respectively
+4. install the binary rpms
+	rpm -Uvh /usr/src/redhat/RPMS/i386/postfix...i386.rpm
+
+If you have any further questions regarding this package please let me know.
+Package building errors are mine alone, and not Wietse's.
+
+Alternative rpms are available.
+	Redhat
+		seem to have some somewhere, though I can't find a URL
+	cloud9.net
+		seem to have some too
+	moongroup.com
+		seem to have some too
+	Bennett Todd
+		http://people.oven.com/bet/bent/
+
+It would be nice if there were one "good" redhat rpm for postfix, but that
+doesn't appear to be the case at the moment.  Mine isn't perfect either.
+
+Simon J Mudd
+25/11/00
