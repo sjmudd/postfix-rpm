@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.17 2001/01/26 18:09:02 root Exp $
+#  $Id: make-postfix.spec,v 1.18 2001/01/26 18:11:46 root Exp $
 #
 
 SUFFIX=
@@ -30,7 +30,7 @@ if [ "$POSTFIX_MYSQL" = 1 ]; then
     else
         echo "(www.mysql.com MySQL* packages) to spec file"
         SUFFIX="${SUFFIX}+MySQL"
-    endif
+    fi
 fi
 if [ "$POSTFIX_SASL" = 1 ]; then
     echo "  adding SASL  support to spec file"
