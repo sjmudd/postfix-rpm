@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.1 2001/03/05 19:57:10 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.2 2001/03/05 20:05:12 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -48,11 +48,13 @@ Copyright: IBM Public License
 PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail, exim, qmail, smail
-Version: 20010228r
+%define package 20010228
+%define suffix r
+Version: %{package}%{suffix}
 Release: 1__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Vendor: Built under __DISTRIBUTION__
-Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/official/postfix-%{version}.tar.gz
+Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/official/release-%{package}.tar.gz
 Source1: postfix-README_rpm.txt
 Source2: postfix-README_maildrop_security.txt
 Source3: postfix-etc-init.d-postfix
@@ -120,7 +122,7 @@ packages in this FAQ may still be incorrect.]
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.1 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.2 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -593,6 +595,7 @@ fi
 %changelog
 * Mon Mar 05 2001 Simon Mudd <sjmudd@pobox.com>
 - build for postfix 20010228 release
+  change to use suffix of "r" for release version
 
 * Wed Mar 01 2001 Simon Mudd <sjmudd@pobox.com>
 - remove POSTFIX_SAFE_MYNETWORKS from make-postfix.spec
