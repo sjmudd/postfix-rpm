@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.27 2002/04/15 11:24:43 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.28 2002/04/17 22:30:41 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -60,7 +60,7 @@
 %define official 1 
 %define ver 1.1.7
 %define mail_release_date 20020115
-%define rel 2.101test
+%define rel 3
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -199,7 +199,7 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.27 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.28 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, VDA=%{VDA}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -854,7 +854,7 @@ fi
 
 %changelog
 
-* Wed Apr 10 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-3
+* Wed Apr 18 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-3
   - changes to names and stuff in spec file (basic tidy-up)
   - add qmqp-source
   - changes to use triggerin macros instead of chroot stuff
