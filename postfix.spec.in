@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.36 2001/05/02 10:47:28 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.37 2001/05/03 21:00:14 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -47,8 +47,8 @@
 %define patchlevel pl02
 %define version1 %{vers}-%{patchlevel}
 %define version2 %{vers}_%{patchlevel}
-%define rel  2
-%define tlsno pfixtls-0.7.1-20010228-pl01-0.9.6a
+%define rel  3
+%define tlsno pfixtls-0.7.2-20010228-pl02-0.9.6a
 
 Name: postfix
 Summary: Postfix Mail Transport Agent
@@ -138,7 +138,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.36 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.37 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -643,6 +643,11 @@ fi
 #
 
 %changelog
+
+* Wed May 02 2001 Simon Mudd <sjmudd@pobox.com>
+- postfix-20010228_pl02release-3, update support for TLS patch
+  - see http://www.aet.tu-cottbus.de-personen-jaenicke/postfix_tls/
+  - report from: Peter Tuschy <peter@tuschy.com>
 
 * Wed May 02 2001 Simon Mudd <sjmudd@pobox.com>
 - postfix-20010228_pl02release-2, pflogsumm.pl was not included as a 
