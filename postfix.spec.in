@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.2.12 2004/07/20 21:31:28 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.2.13 2004/07/24 16:23:24 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -12,11 +12,9 @@
 #
 # mysql_paths              - path where locally installed MySQL resides (or 0)
 #                            in mysql maps
-# requires_init_d          - set according to distribution: default: 1, 0 for RH<=6, Mandrake<=7
 # requires_db              - used to add dbX dependencies in the package
-# include_db               - include the dbX library when compiling (rh6.x with db3)
 # smtpd_multiline_greeting - my patch to allow multiline banner
-# mps			   - man page suffix, .gz except Mandrake 8 which uses .bz2
+# mps			   - man page suffix, .gz except Mandrake >= 8 which uses .bz2
 # with_cdb                 - include CDB support by Michael Tokarev
 #                            <mjt@corpit.ru>
 # with_ipv6                - include IPV6 support
@@ -38,10 +36,14 @@
 #
 # distribution which the spec file was built from
 %define distribution __DISTRIBUTION__
+
 # distribution which we are building Postfix on
-%define build_dist %(sh $(rpm --eval '%{_sourcedir}')/postfix-get-distribution)
 %define build_dist_full %(sh $(rpm --eval '%{_sourcedir}')/postfix-get-distribution --full)
-%define mps __MANPAGE_SUFFIX__
+%define build_dist      %(sh $(rpm --eval '%{_sourcedir}')/postfix-get-distribution)
+%define build_name      %(sh $(rpm --eval '%{_sourcedir}')/postfix-get-distribution --name)
+%define build_major     %(sh $(rpm --eval '%{_sourcedir}')/postfix-get-distribution --major)
+%define mps %(test "%{build_name}" = mandrake -a "%{build_major}" -ge 8 && echo .bz2 || echo .gz)
+
 %define mysql_paths __MYSQL_PATHS__
 %define mysql_local %(test "%{mysql_paths}" != 0 && echo 1 || echo 0)
 %define mysql_include %(echo "%{mysql_paths}" | cut -d: -f1)
@@ -54,10 +56,8 @@
 %define pcre_requires %(test %{build_dist} = mandrake && echo libpcre0 || echo pcre)
 # determine SASL library based on distribution name
 %define sasl_library %(test %{build_dist} = mandrake && echo libsasl-devel || echo cyrus-sasl-devel)
-%define include_db __INCLUDE_DB__
 %define requires_db __REQUIRES_DB__
 %define requires_zlib __REQUIRES_ZLIB__
-%define requires_init_d __REQUIRES_INIT_D__
 %define smtpd_multiline_greeting __SMTPD_MULTILINE_GREETING__
 
 %define with_cdb          __WITH_CDB__
@@ -85,7 +85,7 @@
 %define official 1
 %define V_postfix 2.1.4
 %define V_release_date RC4-20040418
-%define rel 3__SUFFIX__
+%define rel 3.1__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -125,9 +125,7 @@ Group: System Environment/Daemons
 URL: http://www.postfix.org
 License: IBM Public License
 PreReq: chkconfig, initscripts, shadow-utils
-%if %{requires_init_d}
 PreReq: /etc/init.d, /sbin/service
-%endif
 Epoch: 2
 
 Provides: MTA smtpd smtpdaemon
@@ -241,7 +239,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.2.12 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.2.13 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -338,12 +336,6 @@ AUXLIBS=
 
 %ifarch s390 s390x ppc
 CCARGS="${CCARGS} -fsigned-char"
-%endif
-
-%if %{include_db}
-  # Currently required by rh6x, perhaps tidy this up later
-  CCARGS="-I/usr/include/db%{requires_db} ${CCARGS}"
-  AUXLIBS="${AUXLIBS} -ldb-3.1"
 %endif
 
 %if %{with_cdb}
@@ -657,7 +649,6 @@ cat - %{_sourcedir}/postfix.spec.cf <<EOF | sed -e '/^# NOTE:/d' > ${RPM_BUILD_R
 
 POSTFIX_CDB=%{with_cdb}
 POSTFIX_DB=%{requires_db}
-POSTFIX_INCLUDE_DB=%{include_db}
 POSTFIX_IPV6=%{with_ipv6}
 POSTFIX_LDAP=%{with_ldap}
 POSTFIX_MYSQL=%{with_mysql}
@@ -680,9 +671,7 @@ export POSTFIX_MYSQL POSTFIX_MYSQL_PATHS POSTFIX_MYSQL_REDHAT \
 
 # other options used in the build (but not explicitly changeable by the user) are:
 # - debug=%{?_with_debug:1}%{?!_with_debug:0}
-# - include_db=%{include_db}
 # - pcre_requires=%{pcre_requires},
-# - requires_init_d=%{requires_init_d}
 # - requires_zlib=%{requires_zlib},
 # - sasl_library=%{sasl_library}
 # - tlsfix=%{with_tlsfix}
@@ -1082,9 +1071,11 @@ umask 022
 
 %changelog
 
-* Sun Jul 18 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.4-3.1.XXXX
+* Sun Jul 18 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.4-3.1
   - rename qshape.pl to qshape to reflect the name used in the man page
     and QSHAPE_README file
+  - define %mps macro directly in spec file
+  - remove support for RH 6.x (macros requires_init_d & include_db)
 
 * Sun Jul 18 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.4-3
   - update V_ipv6 version to 1.25-pf-2.1.4

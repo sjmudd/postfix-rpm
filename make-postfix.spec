@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.2.2 2004/07/18 21:59:42 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.2.3 2004/07/24 16:23:24 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -31,18 +31,12 @@
 # These two values will be setup according to your distribution, but
 # you may override them.
 # POSTFIX_DB		add support for dbX, (3, 4, or 0 to disable)
-# POSTFIX_INCLUDE_DB	include the dbX directory when compiling (0,1)
-#			and linking, basically a hack to allow db3 to
-#			work on rh6x. Maybe I should generalise this
-#			later.
-#
 #
 # Distribution Specific Configurations
 # ------------------------------------
 #
 # Please advise me if any of these assumptions are incorrect.
 #
-# REQUIRES_INIT_D	1 by default, 0 for RH <=6, Mandrake <= 7
 # REQUIRES_ZLIB		0 by default, 1 when used with TLS on RH9 & RHEL3
 #			              1 when used with mysql_redhat/mysql
 #
@@ -62,8 +56,6 @@
 # Red Hat Linux MAY require (according to configuration)
 # TLSFIX=1		enable a fix for TLS support on RH 6.2 (see spec file)
 # TLSFIX=2		enable a fix for TLS support on RH 9 (see spec file)
-# POSTFIX_INCLUDE_DB=1	add /usr/include/db3 to the includes list
-#			and the db-3.1 library to the build instructions
 #
 # For build instructions see:
 # - postfix.spec[.in]	if you have the source rpm installed
@@ -79,14 +71,10 @@ error() {
 # are.
 
 [ `set | grep ^SUFFIX= | wc -l`          = 0 ] || error "Please do not set SUFFIX"
-[ `set | grep ^REQUIRES_INIT_D= | wc -l` = 0 ] || error "Please do not set REQUIRES_INIT_D directly"
 [ `set | grep ^TLSFIX= | wc -l`          = 0 ] || error "Please do not set TLSFIX"
 
 SUFFIX=			# RPM package suffix
 TLSFIX=			# Apply "fixes" to TLS patches
-
-# This appears to be .gz, except for Mandrake Linux which uses .bz2
-MANPAGE_SUFFIX=".gz"
 
 # change location of spec/source dir so they can be referenced by "%{name}"
 specdir=$(rpm --eval '%{_specdir}' | sed 's;%{name};postfix;')
@@ -99,27 +87,22 @@ echo "  - if the script gets stuck here:"
 echo "    check and remove /var/lib/rpm/__db.00? files"
 
 # Determine the distribution (is there a better way of doing this?)
+# - give (example values as shown)
+#
+# redhat-release-9.0-3 | whitebox-release-3.0-6_i386
+# redhat-9.0           | rhel-3.0
+# redhat               | rhel
+# 9                    | 3
+# 0                    | 0
 
-fullname=`sh ${sourcedir}/postfix-get-distribution --full`	# redhat-release-9.0-3
-distribution=`sh ${sourcedir}/postfix-get-distribution`		# redhat-9.0
-releasename=`sh ${sourcedir}/postfix-get-distribution --name`	# redhat
-major=`sh ${sourcedir}/postfix-get-distribution --major`	# 9
-minor=`sh ${sourcedir}/postfix-get-distribution --minor`	# 0
+fullname=`sh ${sourcedir}/postfix-get-distribution --full`
+distribution=`sh ${sourcedir}/postfix-get-distribution`
+releasename=`sh ${sourcedir}/postfix-get-distribution --name`
+major=`sh ${sourcedir}/postfix-get-distribution --major`
+minor=`sh ${sourcedir}/postfix-get-distribution --minor`
 
 echo "  Distribution is: ${fullname} (${distribution})"
 echo ""
-
-# --- REQUIRES_INIT_D --- do we require /etc/init.d?
-
-REQUIRES_INIT_D=1
-
-if [ ${releasename} = redhat -a ${major} -le 6 ]; then
-    REQUIRES_INIT_D=0
-fi
-# This may need checking?
-if [ ${releasename} = mandrake -a ${major} -le 7 ]; then
-    REQUIRES_INIT_D=0
-fi
 
 if [ "$POSTFIX_CDB" = 1 ]; then
     echo "  adding CDB support to spec file"
@@ -340,21 +323,6 @@ redhat)
        esac
        ;;
 
-    6)
-	# This may need checking
-	DEFAULT_DB=0
-	[ -z "$POSTFIX_DB" ] && POSTFIX_DB=${DEFAULT_DB}
-	[ "${POSTFIX_DB}" != "${DEFAULT_DB}" ] && POSTFIX_INCLUDE_DB=1
-	DIST=".rh6x"
-	;;
-
-    5)
-	# Tested on an updated rh5.2
-	DEFAULT_DB=0
-	[ -z "$POSTFIX_DB" ] && POSTFIX_DB=${DEFAULT_DB}
-	DIST=".rh5x"
-	;;
-
     *)	;;
     esac
     ;;
@@ -374,11 +342,9 @@ mandrake)
 	DIST=".mdk7x"
 	;;
     8)	DEFAULT_DB=3
-	MANPAGE_SUFFIX=".bz2"
 	DIST=".mdk8x"
 	;;
     9)	DEFAULT_DB=4
-	MANPAGE_SUFFIX=".bz2"
 	DIST=".mdk9x"
 	;;
     *)	DIST=".mdk"
@@ -399,7 +365,6 @@ esac
 
 [ -z "$POSTFIX_CDB" ]	                   && POSTFIX_CDB=0
 [ -z "$POSTFIX_DB" ]			   && POSTFIX_DB=0
-[ -z "$POSTFIX_INCLUDE_DB" ]		   && POSTFIX_INCLUDE_DB=0
 [ -z "$POSTFIX_IPV6" ]			   && POSTFIX_IPV6=0
 [ -z "$POSTFIX_LDAP" ]			   && POSTFIX_LDAP=0
 [ -z "$POSTFIX_MYSQL" ]			   && POSTFIX_MYSQL=0
@@ -412,7 +377,6 @@ esac
 [ -z "$POSTFIX_SMTPD_MULTILINE_GREETING" ] && POSTFIX_SMTPD_MULTILINE_GREETING=0
 [ -z "$POSTFIX_TLS" ]			   && POSTFIX_TLS=0
 [ -z "$POSTFIX_VDA" ]			   && POSTFIX_VDA=0
-[ -z "$REQUIRES_INIT_D" ]		   && REQUIRES_INIT_D=0
 [ -z "$REQUIRES_ZLIB" ]			   && REQUIRES_ZLIB=0
 [ -z "$TLSFIX" ]			   && TLSFIX=0
 
@@ -428,11 +392,8 @@ cat > ${specdir}/postfix.spec <<EOF
 EOF
 sed "
 s!__DISTRIBUTION__!$distribution!g
-s!__INCLUDE_DB__!$POSTFIX_INCLUDE_DB!g
-s!__MANPAGE_SUFFIX__!$MANPAGE_SUFFIX!g
 s!__MYSQL_PATHS__!$POSTFIX_MYSQL_PATHS!g
 s!__REQUIRES_DB__!$POSTFIX_DB!g
-s!__REQUIRES_INIT_D__!$REQUIRES_INIT_D!g
 s!__REQUIRES_ZLIB__!$REQUIRES_ZLIB!g
 s!__SMTPD_MULTILINE_GREETING__!$POSTFIX_SMTPD_MULTILINE_GREETING!g
 s!__SUFFIX__!$SUFFIX!g
