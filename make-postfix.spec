@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.35.2.24 2003/08/04 19:15:46 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.35.2.25 2003/08/04 19:18:33 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -212,13 +212,13 @@ redhat)
     9)
 	DEFAULT_DB=4
 	REQUIRES_INIT_D=1
-	DIST=".rh9" ;;
+	DIST=".rh9"
 	;;
 
     8)
 	DEFAULT_DB=4
 	REQUIRES_INIT_D=1
-	DIST=".rh8" ;;
+	DIST=".rh8"
 	;;
 
     7)
