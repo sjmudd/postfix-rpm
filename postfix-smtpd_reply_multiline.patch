@@ -1,0 +1,87 @@
+--- postfix-19991231-pl07.orig/smtpd/smtpd_chat.c	Mon May 15 14:08:23 2000
++++ postfix-19991231-pl07/smtpd/smtpd_chat.c	Mon May 15 18:32:49 2000
+@@ -58,6 +58,8 @@
+ #include <unistd.h>
+ #include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
+ #include <stdarg.h>
++#include <string.h>
++#include <ctype.h>
+ 
+ /* Utility library. */
+ 
+@@ -128,18 +130,54 @@
+ 	msg_info("< %s[%s]: %s", state->name, state->addr, STR(state->buffer));
+ }
+ 
+-/* smtpd_chat_reply - format, send and record an SMTP response */
++/* smtpd_chat_reply - format, send and record an SMTP response
++ *
++ * The response can now be a multi-line response, individual lines
++ * are separated by the "|" char.  (I couldn't work out easily
++ * how to use the more intuitive "\\n" combination.)
++ */
++
++/* taken from ../util/dict.c */
++#define TRIM(s) { \
++    char *p; \
++    for (p= (s) + strlen(s); p > (s) && ISSPACE(p[-1]); p--); \
++        *p = 0; \
++}
+ 
+ void    smtpd_chat_reply(SMTPD_STATE *state, char *format,...)
+ {
+     va_list ap;
+     int     slept = 0;
++    size_t   size;                      /* size of line */
++    char    *reply_code;                /* reply code for each line */
++    char    *line;                      /* one line (of the multiline) reply */
++    char     separator;                 /* '-' or ' ' */
++    VSTRING *longline = vstring_alloc(512);    /* line before splitting */
+ 
+     va_start(ap, format);
+-    vstring_vsprintf(state->buffer, format, ap);
++    vstring_vsprintf(longline, format, ap);
+     va_end(ap);
+-    smtp_chat_append(state, "Out: ");
+ 
++    reply_code = vstring_str(longline);
++    separator = reply_code[3];
++    *(reply_code + 3) = 0;      /* terminate reply_code */
++    line = reply_code + 4;      /* rest of longline */
++
++    while ( (size = strcspn(line, "|")) < strlen(line) ) {
++        *(line + size) = 0;
++        TRIM(line);
++
++        vstring_sprintf(state->buffer, "%s-%s", reply_code, line);
++        smtp_chat_append(state, "Out: ");
++
++        if (msg_verbose)
++            msg_info("> %s[%s]: %s", state->name, state->addr, STR(state->buffer));
++        smtp_fputs(STR(state->buffer), LEN(state->buffer), state->client);
++
++        line += size + 1;
++    }
++
++    vstring_sprintf(state->buffer, "%s%c%s", reply_code, separator, line);
+     if (msg_verbose)
+ 	msg_info("> %s[%s]: %s", state->name, state->addr, STR(state->buffer));
+ 
+@@ -151,7 +189,7 @@
+      */
+     if (state->error_count > var_smtpd_soft_erlim)
+ 	sleep(slept = state->error_count);
+-    else if (STR(state->buffer)[0] == '4' || STR(state->buffer)[0] == '5')
++    else if (*reply_code == '4' || *reply_code == '5')
+ 	sleep(slept = var_smtpd_err_sleep);
+ 
+     smtp_fputs(STR(state->buffer), LEN(state->buffer), state->client);
+@@ -163,6 +201,8 @@
+      */
+     if (slept)
+ 	(vstream_fflush(state->client));
++
++    vstring_free( longline );
+ }
+ 
+ /* print_line - line_wrap callback */
