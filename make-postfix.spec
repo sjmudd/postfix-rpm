@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.35.2.21 2002/11/25 11:38:44 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.35.2.22 2002/12/10 10:00:51 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -137,7 +137,7 @@ if [ "${POSTFIX_LDAP}" = 1 ]; then
 fi
 
 if [ "$POSTFIX_PCRE" = 1 ]; then
-    echo "  adding PCRE  support to spec file"
+    echo "  adding PCRE support to spec file"
     SUFFIX="${SUFFIX}.pcre"
 fi
 if [ "$POSTFIX_PGSQL2" = 1 ]; then
@@ -171,7 +171,7 @@ mandrake)
     ;;
 esac
 if [ "$POSTFIX_SASL" = 1 ]; then
-    echo "  adding SASL  support to spec file"
+    echo "  adding SASL support to spec file"
     SUFFIX="${SUFFIX}.sasl"
 fi
 if [ "$POSTFIX_TLS" = 1 ]; then

@@ -7,7 +7,6 @@ postfix-bounce_notify_util.c.patch
 postfix-build
 postfix-chroot-setup.awk
 postfix-chroot_setup.patch
-postfix-config.patch
 postfix-dict_cdb.tar.gz
 postfix-etc-init.d-postfix
 postfix-files.patch
