@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.13 2000/11/25 11:23:47 root Exp $
+# $Id: postfix.spec.in,v 2.14 2000/11/25 17:40:13 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -177,10 +177,11 @@ mkdir -p ${RPM_BUILD_ROOT}%{init_directory}
 install -c ${RPM_SOURCE_DIR}/postfix-etc-rc.d-init.d-postfix \
                   ${RPM_BUILD_ROOT}%{init_directory}/postfix
 
-# These set up the chroot directory structure
-mkdir -p ${RPM_BUILD_ROOT}%{queue_directory}/etc
-mkdir -p ${RPM_BUILD_ROOT}%{queue_directory}/lib
-mkdir -p ${RPM_BUILD_ROOT}%{queue_directory}/usr/lib/zoneinfo
+# Copy the Linux chroot setup script to %{config_directory} so
+# we can use it to build the chroot environment during the install
+cp examples/chroot-setup/LINUX2 \
+		${RPM_BUILD_ROOT}%{config_directory}/chroot-setup-LINUX2
+chmod u=rx ${RPM_BUILD_ROOT}%{config_directory}/chroot-setup-LINUX2
 
 # This is the /etc/cron.daily directory
 mkdir -p ${RPM_BUILD_ROOT}%{cron_directory}
@@ -207,7 +208,10 @@ ${RPM_BUILD_ROOT}/%{command_directory}/postalias -c ${RPM_BUILD_ROOT}/%{config_d
 umask 022
 
 /sbin/chkconfig --add postfix
+# setups missing directory structures
 %{command_directory}/postfix check
+# setup chroot structure
+%{config_directory}/chroot-setup-LINUX2
 
 %preun
 umask 022
@@ -279,6 +283,8 @@ rm -rf ${RPM_BUILD_ROOT}
 %doc conf
 %doc html
 
+%{config_directory}/chroot-setup-LINUX2
+
 %{daemon_directory}/bounce
 %{daemon_directory}/cleanup
 %{daemon_directory}/error
@@ -329,6 +335,10 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %changelog
 * Thu Nov 23 2000 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001121-2,
+  didn't like chroot jail setup in -1, so now I use the example script
+  to build the jail on package installation
+
 - snapshot-20001121-1, makedefs should be fixed (but can't check)
   chroot jail now built on postfix start (from /etc/rc.d/init.d/postfix)
   change invocation of INSTALL.sh when installing into ${BUILD_ROOT}
