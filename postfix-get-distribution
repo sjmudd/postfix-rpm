@@ -32,11 +32,11 @@ grep -q '\.' <<END
 $release
 END
 if [ $? ]; then
-    major=`echo $release | sed -e 's;\.[0-9]*$;;'`
-    minor=`echo $release | sed -e 's;^[0-9]*\.;;'`
-else
     major=$release
     minor=0
+else
+    major=`echo $release | sed -e 's;\.[0-9]*$;;'`
+    minor=`echo $release | sed -e 's;^[0-9]*\.;;'`
 fi
 
 #echo releasename=$releasename
