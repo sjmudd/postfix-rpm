@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.160 2001/11/05 17:32:52 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.161 2001/11/15 11:55:23 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -42,7 +42,7 @@
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
 
 %define branch snapshot
-%define vers 20011105
+%define vers 20011114
 %define patchlevel pl01
 %define version1 %{vers}
 %define version2 %{vers}
@@ -99,7 +99,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version1}-buildroot
 # Determine the different packages required for building postfix
 BuildRequires: gawk, perl, sed
 
-# Used on Red Hat 7.x
+# Used on Red Hat 7.x, Mandrake 8.1 (?)
 %if %{REQUIRES_DB3}
 Requires: db3
 BuildRequires: db3, db3-devel
@@ -148,7 +148,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.160 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.161 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -278,6 +278,13 @@ umask 022
 
 CCARGS=
 AUXLIBS=
+
+# Obtained this from SuSE's postfix.spec file
+# - can someone using these architectures please confirm that this works and
+#   is necessary?
+%ifarch s390 ppc
+CCARGS="${CCARGS} -fsigned-char"
+%endif
 
 %if %{LDAP}
   CCARGS="${CCARGS} -DHAS_LDAP"
@@ -710,6 +717,14 @@ fi
 #
 
 %changelog
+
+* Mon Nov 15 2001 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20011114-1
+  - upgrade to latest snapshot
+
+* Mon Nov 05 2001 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20011105-2
+  - add a little more support to make-postfix.spec for Mandrake Linux.
 
 * Mon Nov 05 2001 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20011105-1
