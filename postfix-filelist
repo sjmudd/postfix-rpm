@@ -1,5 +1,5 @@
 make-postfix.spec
-pfixtls-0.8.5-1.1.5-0.9.6c.tar.gz
+pfixtls-0.8.7-1.1.6-0.9.6c.tar.gz
 pflogsumm-1.0.4.pl
 postfix-1.1.3_quota.patch
 postfix-aliases
@@ -17,4 +17,3 @@ postfix-pg.postfix-1.1.4.patch
 postfix-smtp_sasl_proto.c.patch
 postfix-smtpd_multiline_greeting.patch
 postfix.spec.in
-postfix-smtp-helo-name.patch

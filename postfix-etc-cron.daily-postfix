@@ -25,20 +25,21 @@ SUBJECT="`hostname` Daily Mail Report for `LC_TIME=C date +\"%A, %d %B %Y\"`"
 POSTMASTER="postmaster@`hostname`"
 SENDMAIL=/usr/sbin/sendmail
 SENDMAIL_OPTS="-oi -t"
+POSTFIX=/usr/sbin/postfix
 
 # Clean up when done or when aborting.
-trap "rm -f ${PFLOGSUMTMP}" 0 1 2 3 15 
-
-[ -x /usr/sbin/postfix ] || exit 0
-/usr/sbin/postfix check
+trap "test -x ${PFLOGSUMTMP} && rm -f ${PFLOGSUMTMP}" 0 1 2 3 15 
 
 # uncomment the next line to disable retrieval of mail statistics
 # exit 0
 
+[ -x ${POSTFIX} ] || { echo "${POSTFIX} not found or not executable - exiting"; exit 0; }
+${POSTFIX} check
+
 # Invoke pflogsumm.pl to gather statistics
 # see http://jimsun.linxnet.com/postfix_contrib.html for further info.
 
-[ -x /usr/sbin/pflogsumm.pl ] || exit 0
+[ -x ${EXECUTABLE} ] || { echo "${EXECUTABLE} not found or not executable - exiting"; exit 0; }
 
 # WARNING - This is a bit of a hack
 #
@@ -50,12 +51,12 @@ trap "rm -f ${PFLOGSUMTMP}" 0 1 2 3 15
 perl -e "use Date::Calc;" 2>/dev/null || {
     # strip out Date::Calc from pflogsumm.pl
     sed -e '/# ---Begin:/,/# ---End:/d' < ${EXECUTABLE} > ${PFLOGSUMTMP}
-    chmod u=x,go= ${PFLOGSUMTMP}
+    chmod u=rx,go= ${PFLOGSUMTMP}
     EXECUTABLE=${PFLOGSUMTMP}
 }
 
 # Double check that the sendmail binary exists before proceeding
-[ -x ${SENDMAIL} ] || exit 0
+[ -x ${SENDMAIL} ] || { echo "${SENDMAIL} not found or not executable - exiting"; exit 0; }
 (
 cat <<EOF
 To: ${POSTMASTER}
