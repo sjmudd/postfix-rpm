@@ -1,12 +1,12 @@
-diff -uNr postfix-19990317-orig/conf/postfix-script-nosgid postfix-19990317/conf/postfix-script-nosgid
---- postfix-19990317-orig/conf/postfix-script-nosgid	Fri Feb 26 08:13:31 1999
-+++ postfix-19990317/conf/postfix-script-nosgid	Thu Mar 18 10:42:30 1999
-@@ -208,6 +208,18 @@
+diff -uNr snapshot-20000531-orig/conf/postfix-script-nosgid snapshot-20000531/conf/postfix-script-nosgid
+--- snapshot-20000531-orig/conf/postfix-script-nosgid	Fri Dec 17 20:12:22 1999
++++ snapshot-20000531/conf/postfix-script-nosgid	Wed Jul  5 20:01:59 2000
+@@ -231,6 +231,18 @@
  
  	find corrupt -type f -exec $WARN damaged message: {} \;
  
 +	for src in /etc/localtime /etc/services /etc/resolv.conf \
-+		/lib/libnss_dns.so.1; do
++		/lib/libnss_dns.so.1 /lib/libnss_dns.so.2; do
 +	    dst=$queue_directory$src
 +	    test -f $src -a -f $dst || continue
 +	    cmp -s $src $dst && continue
@@ -20,15 +20,15 @@ diff -uNr postfix-19990317-orig/conf/postfix-script-nosgid postfix-19990317/conf
  	# XXX also: look for weird stuff, weird permissions, etc.
  	;;
  
-diff -uNr postfix-19990317-orig/conf/postfix-script-sgid postfix-19990317/conf/postfix-script-sgid
---- postfix-19990317-orig/conf/postfix-script-sgid	Fri Feb 26 08:13:34 1999
-+++ postfix-19990317/conf/postfix-script-sgid	Thu Mar 18 10:42:30 1999
-@@ -209,6 +209,18 @@
+diff -uNr snapshot-20000531-orig/conf/postfix-script-sgid snapshot-20000531/conf/postfix-script-sgid
+--- snapshot-20000531-orig/conf/postfix-script-sgid	Wed Jul  5 20:02:10 2000
++++ snapshot-20000531/conf/postfix-script-sgid	Wed Jul  5 20:03:57 2000
+@@ -232,6 +232,18 @@
  
  	find corrupt -type f -exec $WARN damaged message: {} \;
  
 +	for src in /etc/localtime /etc/services /etc/resolv.conf \
-+		/lib/libnss_dns.so.1; do
++		/lib/libnss_dns.so.1 /lib/libnss_dns.so.2; do
 +	    dst=$queue_directory$src
 +	    test -f $src -a -f $dst || continue
 +	    cmp -s $src $dst && continue
