@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.26 2003/11/15 14:33:35 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.27 2003/11/20 19:29:14 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -55,7 +55,7 @@
 # Red Hat Linux Enterprise 3 requires
 # POSTFIX_DB=4		add db4 package to requires list
 #
-# Red Hat Linux Enterprise 2.1 require
+# Red Hat Linux Enterprise 2.1 requires
 # POSTFIX_DB=3		add db3 package to requires list
 #
 # Red Hat Linux 9 requires
@@ -196,7 +196,7 @@ MYSQL_COUNT=0
         cat <<-END
 	ERROR: You can only set ONE of the following:
 	  POSTFIX_MYSQL_REDHAT (use RedHat built MySQL packages)
-	  POSTFIX_MYSQL        (use MySQL built MySQL packages)
+	  POSTFIX_MYSQL	       (use MySQL built MySQL packages)
 	  POSTFIX_MYSQL_PATHS  (provide paths to include and library directories
 	                        for manually installed MySQL server)
 	  Select the variable you want and unset the other ones.

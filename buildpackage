@@ -16,16 +16,15 @@ IFS="
 "
 BACKUP_IFS="$IFS"
 build_output=build-output
-current_directory=`pwd`
+pkgdir=`pwd`
 sign='--sign'
-test_tls=1
-test_vda=1
+test_patches=1
  
 USAGE="Usage: $0 [name=value] [option]
     --no-check              Do not check if the files have changed against the version stored in cvs.
     --no-sign               Do not sign the package.
-    --no-test-tls           Do not test the TLS patches apply cleanly before building the package
-    --no-test-vda           Do not test the VDA patches apply cleanly before building the package
+    --no-test-patches       Do not test the patches, or update
+                            postfix-test-patch-results
     name=value              Specify an installation parameter".
  
 # Process command-line options and parameter settings. Work around
@@ -35,12 +34,11 @@ USAGE="Usage: $0 [name=value] [option]
 for arg
 do
     case $arg in
-          *=*) IFS= eval $arg; IFS="$BACKUP_IFS";;
-   --no-check) no_check=1;;
-    --no-sign) sign=;;
---no-test-tls) test_tls=0;;
---no-test-vda) test_vda=0;;
-            *) echo $0: Error: $USAGE 1>&2; exit 1;;
+              *=*) IFS= eval $arg; IFS="$BACKUP_IFS";;
+       --no-check) no_check=1;;
+        --no-sign) sign=;;
+--no-test-patches) test_patches=0;;
+                *) echo $0: Error: $USAGE 1>&2; exit 1;;
     esac
     shift
 done
@@ -59,46 +57,28 @@ download_if_necessary() {
     local srcdir=$1
     local base=$2
     local file=$3
-    echo -n "===> checking for ${file} ..."
+    echo -n "===> checking ${file} ..."
     if [ ! -f "${srcdir}/${file}" ]; then
         echo " not found"
-	echo "	downloading to ${srcdir} from ${base}..."
-        ( cd ${srcdir} && wget ${base}/${file} || {
-            echo 'Failed!'
-            exit 1
-        }
+	echo "	downloading from ${base} to ${srcdir}..."
+        (
+            cd ${srcdir} && \
+            wget ${base}/${file} && \
+            echo ${file} >> ${pkgdir}/pkg-sourcelist && \
+            sort < ${pkgdir}/pkg-sourcelist > ${pkgdir}/pkg-sourcelist.n && \
+            mv ${pkgdir}/pkg-sourcelist.n ${pkgdir}/pkg-sourcelist || {
+                echo 'Failed!'
+                exit 1
+            }
         )
     else
         echo " found"
     fi
 }
 
-# Test the rpm prep stage for TLS patches - do they apply cleanly?
-testtls () {
-    [ "${test_tls}" = 1 ] && {
-    echo ""
-    echo "===> testing TLS patches"
-    ( cd ${srcdir} && \
-      POSTFIX_TLS=1 sh make-postfix.spec && \
-      cd ${specdir} && \
-      rpmbuild -bp postfix.spec ) || { echo "===> testing TLS patches: ** FAILED **"; exit 1; }
-      echo "===> testing TLS patches: ** OK **"
-      echo ""
-    }
-}
-
-# Test the rpm prep stage for VDA patches - do they apply cleanly?
-testvda () {
-    [ "${test_vda}" = 1 ] && {
-    echo ""
-    echo "===> testing VDA patches"
-    ( cd ${srcdir} && \
-      POSTFIX_VDA=1 sh make-postfix.spec && \
-      cd ${specdir} && \
-      rpmbuild -bp postfix.spec ) || { echo "===> testing VDA patches: ** FAILED **"; exit 1; }
-      echo "===> testing VDA patches: ** OK **"
-      echo ""
-    }
+# Test prep stage for different patches - do they apply cleanly?
+test_patches() {
+    [ "${test_patches}" = 1 ] && sh test-patches
 }
 
 # Perform the package build
@@ -109,10 +89,9 @@ build () {
   cd ${specdir} && \
   sleep 2 && \
   echo "" && \
-  echo "===> building RPM package" && \
-  echo "	output to ${build_output}..." && \
+  echo "===> building RPM package (output to ${build_output})..." && \
   if [ -z "$sign" ]; then echo "	NOT signing package"; fi && \
-  rpmbuild -ba $sign postfix.spec ) 2>&1 | tee ${build_output}
+  $RPM -ba $sign postfix.spec ) 2>&1 | tee ${build_output}
 }
 
 # Check postfix tar ball has been download
