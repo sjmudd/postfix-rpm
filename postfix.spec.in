@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.243 2003/01/16 15:12:33 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.244 2003/02/13 10:48:24 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -62,15 +62,15 @@
 
 # Version information
 %define vdaver 2.0.0.2
-%define pfixtls pfixtls-0.8.13-2.0.1-0.9.7
+%define pfixtls pfixtls-0.8.13-2.0.3-0.9.7
 %define pgver 1.1.4
 %define pfixipv6 tls+ipv6-1.10-pf-2.0.0-20030101
 %define cdbver 1.1.11-20021104
 
 # If set to 1 if official version, 0 if snapshot
 %define official 0
-%define ver 2.0.2
-%define mail_release_date 20030115
+%define ver 2.0.3
+%define mail_release_date 20030126
 %define rel 1
 %if %{official}
 %define tarball_version %{ver}
@@ -214,7 +214,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.243 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.244 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -966,8 +966,11 @@ fi
 
 %changelog
 
-* Thu Jan 16 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.2-20030115-1
+* Thu Feb 13 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.3-20030126-1
+  - update the Postfix snapshot
+  - update TLS patches
 
+* Thu Jan 16 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.2-20030115-1
   - update URLs in rpm -qi postfix output
   - update postfix-new-RPM-packages
   - update to 2.0.2-20030115
