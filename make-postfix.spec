@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.21 2004/05/31 20:39:18 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22 2004/06/14 18:52:49 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -79,7 +79,7 @@
 # export POSTFIX_MYSQL=1	# for example
 # sh make-postfix.spec
 # cd `rpm --eval '%{_specdir}'`
-# rpm -ba postfix.spec
+# rpmbuild -ba postfix.spec
 
 myname=`basename $0`
 

@@ -18,7 +18,7 @@
 # - Whitebox Linux (reports as RedHat Enterprise Linux for building)
 # - Mandrake Linux
 
-version=$(echo '$Revision: 1.9 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
+version=$(echo '$Revision: 1.10 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
 myname=$(basename $0)
 
 # Provide a usage message
@@ -117,6 +117,12 @@ elif [ $(check_release whitebox-release) = 0 ]; then
     full=`get_release ${rpmname}`
     name=rhel	# compatibility with RedHat Enterprise Linux
     release=`echo $full | sed -e "s;^${rpmname}-;;" -e 's;-[0-9.]*$;;'`
+elif [ $(check_release centos-release) = 0 ]; then
+    # CentOS SHOULD behave like rhel
+    rpmname=centos-release
+    full=`get_release ${rpmname}`
+    name=rhel  # compatibility with RedHat Enterprise Linux
+    release=`rpm -q --queryformat='%{VERSION}' ${rpmname}`
 elif [ $(check_release fedora-release) = 0 ]; then
     rpmname=fedora-release
     full=`get_release ${rpmname}`
