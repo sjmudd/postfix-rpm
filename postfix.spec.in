@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.56 2002/11/25 08:41:36 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.57 2002/11/25 09:14:22 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -42,6 +42,7 @@
 %define pgsql __PGSQL__
 %define pgsql2 __PGSQL2__
 %define sasl __SASL__
+%define sasl_library __SASL_LIBRARY__
 %define tls __TLS__
 %define tlsfix __TLSFIX__
 %define include_db __INCLUDE_DB__
@@ -188,7 +189,7 @@ BuildRequires: postgresql, libpq.so, postgresql-devel
 
 %if %{sasl}
 Requires: cyrus-sasl
-BuildRequires: cyrus-sasl, cyrus-sasl-devel
+BuildRequires: cyrus-sasl, %{sasl_library}
 %endif
 
 %if %{tls}
@@ -211,7 +212,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.56 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.57 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -972,6 +973,8 @@ fi
 
 * Mon Nov 25 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-1
   - update to 1.1.12
+  - fix SASL development library which in Mandrake is libsasl-devel
+    - Jim Lohiser <jim@imaginenet.net> pointed out the problem
 
 * Fri Nov 22 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-13
   - modify make-postfix.spec and postfix.spec.in to work correctly with RH 8

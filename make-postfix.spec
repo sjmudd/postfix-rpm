@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.35.2.19 2002/11/22 14:56:42 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.35.2.20 2002/11/25 09:14:22 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -160,6 +160,16 @@ if [ "$POSTFIX_REDHAT_MYSQL" = 1 ]; then
     echo "  adding MySQL support (RedHat mysql* packages) to spec file"
     SUFFIX="${SUFFIX}.mysql"
 fi
+
+# which is the "-devel" library used for SASL?
+case ${releasename} in
+mandrake)
+    POSTFIX_SASL_LIBRARY=libsasl-devel
+    ;;
+*)
+    POSTFIX_SASL_LIBRARY=cyrus-sasl-devel
+    ;;
+esac
 if [ "$POSTFIX_SASL" = 1 ]; then
     echo "  adding SASL  support to spec file"
     SUFFIX="${SUFFIX}.sasl"
@@ -306,6 +316,7 @@ s!__PCRE__!$POSTFIX_PCRE!g
 s!__PGSQL__!$POSTFIX_PGSQL!g
 s!__PGSQL2__!$POSTFIX_PGSQL2!g
 s!__SASL__!$POSTFIX_SASL!g
+s!__SASL_LIBRARY__!$POSTFIX_SASL_LIBRARY!g
 s!__TLS__!$POSTFIX_TLS!g
 s!__TLSFIX__!$TLSFIX!g
 s!__VDA__!$POSTFIX_VDA!g
