@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.16 2003/11/14 22:22:32 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.17 2003/11/20 19:06:21 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -25,7 +25,7 @@
 #			George Barbarosie <georgeb@intelinet.ro>
 # POSTFIX_SASL		include support for SASL (1, 2 or 0 to disable)
 # POSTFIX_TLS		include support for TLS
-# POSTFIX_IPV6		include support for IPv6 (don't use with TLS)
+# POSTFIX_IPV6		include support for IPv6
 # POSTFIX_VDA		include support for Virtual Delivery Agent
 # POSTFIX_SMTPD_MULTILINE_GREETING
 #			include support for multitline SMTP banner
@@ -48,9 +48,15 @@
 #
 # REQUIRES_INIT_D	1 by default, 0 for RH <=6, Mandrake <= 7
 #
-# Red Hat Linux Enterprise and Advanced Server 2.1 require
+# All Red Hat Enterprise Linuxes will now be treated identically
+# and named rhelXX
+# - LDAP support is included on all enterprise linux varieties
+#
+# Red Hat Linux Enterprise 3 requires
+# POSTFIX_DB=4		add db4 package to requires list
+#
+# Red Hat Linux Enterprise 2.1 requires
 # POSTFIX_DB=3		add db3 package to requires list
-# LDAP support is included
 #
 # Red Hat Linux 9 requires
 # POSTFIX_DB=4		add db4 package to requires list
@@ -93,7 +99,7 @@ error() {
 SUFFIX=			# RPM package suffix
 TLSFIX=			# Apply "fixes" to TLS patches
 
-# This appears to be .gz, except for Mandrake 8 which uses .bz2
+# This appears to be .gz, except for Mandrake Linux which uses .bz2
 MANPAGE_SUFFIX=".gz"
 
 echo ""
@@ -138,7 +144,7 @@ fi
 #
 # LDAP support is included by default: except
 #	redhat < 7.2
-#	rhes, rhas < 2.1
+#	rhel < 2.1
 #	yellowdog < 2.3.
 
 DEFAULT_LDAP=1
@@ -148,7 +154,7 @@ redhat)
     [ "${major}" -le 6 ] && DEFAULT_LDAP=0
     ;;
 
-rhes|rhas)
+rhel)
     [ "${major}" -eq 2 -a "${minor}" -lt 1 ] && DEFAULT_LDAP=0
     [ "${major}" -le 1 ] && DEFAULT_LDAP=0
     ;;
@@ -181,6 +187,22 @@ fi
 if [ "$POSTFIX_PGSQL2" = 1 ]; then
     echo "  including additional experimental PostGres patches"
 fi
+# Check for conflicting MySQL requests and report an error if necessary
+MYSQL_COUNT=0
+[ -n "$POSTFIX_MYSQL"        -a "$POSTFIX_MYSQL"        != 0 ] && MYSQL_COUNT=$(($MYSQL_COUNT + 1))
+[ -n "$POSTFIX_MYSQL_REDHAT" -a "$POSTFIX_MYSQL_REDHAT" != 0 ] && MYSQL_COUNT=$(($MYSQL_COUNT + 1))
+[ -n "$POSTFIX_MYSQL_PATHS"                                ] && MYSQL_COUNT=$(($MYSQL_COUNT + 1))
+[ ${MYSQL_COUNT} -gt 1 ] && {
+        cat <<-END
+	ERROR: You can only set ONE of the following:
+	  POSTFIX_MYSQL_REDHAT (use RedHat built MySQL packages)
+	  POSTFIX_MYSQL        (use MySQL built MySQL packages)
+	  POSTFIX_MYSQL_PATHS  (provide paths to include and library directories
+	                        for manually installed MySQL server)
+	  Select the variable you want and unset the other ones.
+	END
+	exit 1
+}
 if [ "$POSTFIX_MYSQL" = 1 ]; then
     POSTFIX_MYSQL_REDHAT=0
     POSTFIX_MYSQL_PATHS=
@@ -281,20 +303,21 @@ yellowdog)
     DEFAULT_DB=3
     ;;
 
-rhes|rhas)
+rhel)
     # Stop distinguishing between enterprise | advanced server or workstation
     # as this seems rather pointless (should run on all versions I think)
     DEFAULT_DB=4
     case ${major} in
     3)
-        DIST=".rhes3"
+        DIST=".rhel3"
         ;;
     2)
         DEFAULT_DB=3
-        DIST=".rhes21"
+        DIST=".rhel21"
         ;;
     *)
-        echo "ERROR: Do not recognise the version of Red Hat Enterprise Server/Advanced Server/Workstation"
+        echo "ERROR: Do not recognise the version of Red Hat Enterprise Linux you are using."
+        echo "ERROR: Please contact sjmudd@pobox.com with information about your distribution."
         exit 1
         ;;
     esac
