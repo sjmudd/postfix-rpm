@@ -4,7 +4,7 @@ prog V_cdb = {
   regex     = postfix-dict_cdb-(\d\.\d\.\d\d-\d\d\d\d\d\d\d\d).tar.gz
 }
 prog V_ipv6 = {
-  version   = 1.25-pf-2.1.5
+  version   = 1.26-pf-2.1.5
   url       = ftp://ftp.stack.nl/pub/postfix/tls+ipv6/current/
   regex     = tls\+ipv6-([^-]+-pf-\d\.\d\.\d)
 }
