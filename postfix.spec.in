@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.10 2000/11/01 16:21:17 root Exp $
+# $Id: postfix.spec.in,v 2.11 2000/11/01 16:27:51 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -88,8 +88,9 @@ mv conf/master.cf conf/master.cf-nochroot
 awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > conf/master.cf
 %patch1 -p1 -b .config
 %patch2 -p1 -b .chk
-# remove this when Wietse provides the next snapshot/release
-%patch3 -p1 -b .old
+## the previous patch, provided with 20001005 doesn't work
+## check whether Wietse's current version works with RH7
+#patch3 -p1 -b .old
 
 # apply this patch ONLY if built on my machines
 if [ `hostname`="phoenix.ea4els.ampr.org" -o \
@@ -333,7 +334,8 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %changelog
 * Wed Nov 01 2000 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001030-1
+- snapshot-20001030-1, need to refix patch for RedHat 7 which 
+  I don't yet have installed on my machine.
 
 * Fri Oct 27 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001005-6, include patch so will build on RedHat 7,
