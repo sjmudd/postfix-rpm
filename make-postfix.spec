@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.4.1 2005/02/07 18:41:24 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.4.2 2005/02/24 22:48:24 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -45,7 +45,7 @@
 # - LDAP support is included on all enterprise linux varieties
 #
 # POSTFIX_DB=4		add db4 package to requires list
-# - Red Hat Linux Enterprise 3
+# - Red Hat Linux Enterprise 3 / 4
 # - Red Hat Linux 9
 # - Red Hat Linux 8
 #
@@ -272,6 +272,9 @@ rhel)
     # as this seems rather pointless (should run on all versions I think)
     DEFAULT_DB=4
     case ${major} in
+    4)
+        DIST=".rhel4"
+        ;;
     3)
         DIST=".rhel3"
         ;;
