@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.2.4 2004/08/24 17:57:22 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.2.5 2004/09/17 16:16:00 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -25,6 +25,7 @@
 # POSTFIX_SASL		include support for SASL (1, 2 or 0 to disable)
 # POSTFIX_SMTPD_MULTILINE_GREETING
 #			include support for multitline SMTP banner
+# POSTFIX_SPF           include support for libspf2
 # POSTFIX_TLS		include support for TLS
 # POSTFIX_VDA		include support for Virtual Delivery Agent
 #
@@ -246,6 +247,11 @@ if [ "$POSTFIX_IPV6" = 1 ]; then
     SUFFIX="${SUFFIX}.ipv6"
 fi
 
+if [ "$POSTFIX_SPF" = 1 ]; then
+    echo "  adding SPF support to spec file"
+    SUFFIX="${SUFFIX}.spf"
+fi
+
 # --- REQUIRES_ZLIB --- do we require the zlib library?
 REQUIRES_ZLIB=
 [ "$POSTFIX_MYSQL" = 1 ]        && REQUIRES_ZLIB=1
@@ -376,6 +382,7 @@ esac
 [ -z "$POSTFIX_PGSQL" ]			   && POSTFIX_PGSQL=0
 [ -z "$POSTFIX_SASL" ]			   && POSTFIX_SASL=0
 [ -z "$POSTFIX_SMTPD_MULTILINE_GREETING" ] && POSTFIX_SMTPD_MULTILINE_GREETING=0
+[ -z "$POSTFIX_SPF" ]			   && POSTFIX_SPF=0
 [ -z "$POSTFIX_TLS" ]			   && POSTFIX_TLS=0
 [ -z "$POSTFIX_VDA" ]			   && POSTFIX_VDA=0
 [ -z "$REQUIRES_ZLIB" ]			   && REQUIRES_ZLIB=0
@@ -407,6 +414,7 @@ s!__WITH_MYSQL__!$POSTFIX_MYSQL!g
 s!__WITH_PCRE__!$POSTFIX_PCRE!g
 s!__WITH_PGSQL__!$POSTFIX_PGSQL!g
 s!__WITH_SASL__!$POSTFIX_SASL!g
+s!__WITH_SPF__!$POSTFIX_SPF!g
 s!__WITH_TLSFIX__!$TLSFIX!g
 s!__WITH_TLS__!$POSTFIX_TLS!g
 s!__WITH_VDA__!$POSTFIX_VDA!g
