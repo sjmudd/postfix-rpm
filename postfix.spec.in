@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.7 2000/10/12 17:33:36 root Exp $
+# $Id: postfix.spec.in,v 2.8 2000/10/14 17:34:38 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -16,7 +16,7 @@ PreReq: /sbin/chkconfig
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
 Version: 20001005
-Release: 4
+Release: 5
 Packager: Simon J Mudd <sjmudd@pobox.com> but see description below
 Vendor: None -- see packager
 Distribution: Experimental
@@ -283,14 +283,17 @@ rm -rf ${RPM_BUILD_ROOT}
 %{daemon_directory}/cleanup
 %{daemon_directory}/error
 %{daemon_directory}/flush
+%{daemon_directory}/lmtp
 %{daemon_directory}/local
 %{daemon_directory}/master
+%{daemon_directory}/nqmgr
 %{daemon_directory}/pickup
 %{daemon_directory}/pipe
 %{daemon_directory}/qmgr
 %{daemon_directory}/showq
 %{daemon_directory}/smtp
 %{daemon_directory}/smtpd
+%{daemon_directory}/spawn
 %{daemon_directory}/trivial-rewrite
 
 %{command_directory}/postalias
@@ -325,6 +328,9 @@ rm -rf ${RPM_BUILD_ROOT}
 #	Bennett Todd <bet@mordor.net>
 
 %changelog
+* Sat Oct 14 2000 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001005-5, include lmtp, nqmgr, spawn in %files section
+
 * Thu Oct 12 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001005-4, fix chroot awk script which was wrong
 
