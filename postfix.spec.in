@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.119 2001/05/26 08:18:05 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.120 2001/05/26 09:14:42 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -52,7 +52,7 @@
 #Used when we have patchlevels, as can't include '-' in the package name
 #define version1 %{vers}-%{patchlevel}
 #define version2 %{vers}_%{patchlevel}
-%define rel  1
+%define rel  1.1
 %define tlsno pfixtls-0.7.2-snap20010502-0.9.6a
 %define pflogno -1.0.3
 
@@ -151,7 +151,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.119 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.120 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -259,7 +259,7 @@ patch -p1 <%{tlsno}/pfixtls.diff
 %patch1 -p1 -b .config
 %patch2 -p1 -b .chk
 %patch3 -p1 -b .install
-###%patch6 -p1 -b .auth
+%patch6 -p1 -b .auth
 
 # APPLY OPTIONAL PATCHES
 
@@ -700,6 +700,11 @@ fi
 #
 
 %changelog
+* Mon May 26 2001 Simon J Mudd <sjmudd@pobox.com>
+  XXXXX
+- snapshot-20010525-X, incorporate Wietse's sasl auth patch and make
+  adjustments to get it working XXXXX
+
 * Mon May 26 2001 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20010525-1, incorporate Wietse's sasl auth patch, but don't
   enable as it doesn't seem to work
