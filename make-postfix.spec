@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.6 2002/12/10 08:28:22 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7 2002/12/16 19:53:06 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -225,6 +225,13 @@ redhat)
 	[ -z "$POSTFIX_DB" ] && POSTFIX_DB=${DEFAULT_DB}
 	[ "${POSTFIX_DB}" != "${DEFAULT_DB}" ] && POSTFIX_INCLUDE_DB=1
 	DIST=".rh6x"
+	;;
+
+    5)
+	# Tested on an updated rh5.2
+	DEFAULT_DB=0
+	[ -z "$POSTFIX_DB" ] && POSTFIX_DB=${DEFAULT_DB}
+	DIST=".rh5x"
 	;;
 
     *)	;;
