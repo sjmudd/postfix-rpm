@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.169 2001/11/28 13:14:53 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.170 2001/11/28 14:34:24 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -148,7 +148,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.169 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.170 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -327,13 +327,27 @@ umask 022
 # stop install if something is wrong
 die(){ %whinge "$*"; exit 1; }
 
-# The 'post' phase of installation requires use of various postfix commands:
-# postalias, postcheck and postconf.  These all require that the hostname
-# is a FQDN or that main.cf (if upgrading) has myhostname set to a FQDN.
-# To avoid problems later check the hostname and ensure that it is FQDN,
-# warning the user and aborting if it is not.
+# return 0 if hostname is a FQDN
+check_hostname() {
+    if [ "`hostname | grep -c '\.'`" = "1" ]; then
+        ok=0
+    else
+        ok=1
+    fi
+    return ${ok}
+}
 
-if [ "`hostname | grep -c '\.'`" = "0" ]; then
+# return 0 if myhostname is a FQDN
+check_myhostname() {
+    ok=1
+    test -f /etc/postfix/main.cf && \
+        test -x /usr/sbin/postconf && \
+        /usr/sbin/postconf myhostname 2>&1 >/dev/null && \
+        ok=0
+    return ${ok}
+}
+
+stop_install() {
     cat <<END
 ERROR: Postfix can't be installed - Please set your hostname to a FQDN.
 
@@ -348,7 +362,15 @@ Please set the hostname to a fully-qualified hostname to enable the package
 to be installed correctly.
 END
     whinge "Error - To install the postfix rpm please set your hostname to a FQDN"
-fi
+}
+
+# The 'post' phase of installation requires use of various postfix commands:
+# postalias, postcheck and postconf.  These all require that the hostname
+# is a FQDN or that main.cf (if upgrading) has myhostname set to a FQDN.
+# To avoid problems with the package installation failing in the %post phase
+# we check the hostname and myhostname (if upgrading) and warn the user if
+# the conditions are not met.
+check_myhostname || check_hostname || stop_install
 
 # create postfix user and group on INSTALL machine if necessary
 
