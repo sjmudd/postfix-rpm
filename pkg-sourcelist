@@ -13,7 +13,7 @@ postfix-files.patch
 postfix-get-distribution
 postfix-log_recipient
 postfix-mysql_query.patch
-postfix-pg.postfix-1.1.4.patch
+postfix-pg.postfix-2.0.0.2.patch
 postfix-pg-raw.patch
 postfix-rbl_reply_maps.patch
 postfix-RPM-new-packages
