@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.45 2001/01/04 22:32:19 root Exp $
+# $Id: postfix.spec.in,v 2.46 2001/01/04 22:47:00 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -9,27 +9,26 @@
 #
 ##############################################################################
 #
-# If you need to make changes do them to the postfix.spec.in
-# file and regenerate the spec file with
-#
-#     cd ../SOURCES
-#     sh make-postfix.spec
-#
-# after defining the relevent options you wish to use in
-# the spec file
-#
 # This spec file generated with the following options:
 #
 # POSTFIX_SMTPD_MULTILINE_GREETING=__POSTFIX_SMTPD_MULTILINE_GREETING__
-# POSTFIX_SAFE_MYNETWORKLS=__POSTFIX_SAFE_MYNETWORKS__
+# POSTFIX_SAFE_MYNETWORKS=__POSTFIX_SAFE_MYNETWORKS__
 # POSTFIX_BROKEN_AUTH=__POSTFIX_BROKEN_AUTH__
 # POSTFIX_LDAP=__POSTFIX_LDAP__
 # POSTFIX_PCRE=__POSTFIX_PCRE__
 # POSTFIX_MYSQL=__POSTFIX_MYSQL__
 # POSTFIX_SASL=__POSTFIX_SASL__
 #
-# Built on $DISTRIBUTION
+# Built on __DISTRIBUTION__
 # 
+# If you need to make changes do them to the postfix.spec.in file and
+# regenerate the spec file with:
+#
+#     cd ../SOURCES
+#     sh make-postfix.spec
+#
+# after defining the relevent options you wish to use.
+#
 ##############################################################################
 
 Name: postfix
@@ -106,8 +105,8 @@ too. If anyone want to provide binary rpms please let me know.
 This package has been built with the following options:
 
 POSTFIX_SMTPD_MULTILINE_GREETING=__POSTFIX_SMTPD_MULTILINE_GREETING__
-POSTFIX_SAFE_MYNETWORKLS=__POSTFIX_SAFE_MYNETWORKS__
-POSTFIX_BROKEN_AUTH=__$POSTFIX_BROKEN_AUTH__
+POSTFIX_SAFE_MYNETWORKS=__POSTFIX_SAFE_MYNETWORKS__
+POSTFIX_BROKEN_AUTH=__POSTFIX_BROKEN_AUTH__
 POSTFIX_LDAP=__POSTFIX_LDAP__
 POSTFIX_PCRE=__POSTFIX_PCRE__
 POSTFIX_MYSQL=__POSTFIX_MYSQL__
@@ -165,17 +164,17 @@ awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > co
 # APPLY OPTIONAL PATCHES
 
 # Optionally apply Daniel Roesen's support patch for 250-AUTH= ESMTP banner
-if [ "X$POSTFIX_BROKEN_AUTH" = "X1" ]; then
+if [ "$POSTFIX_BROKEN_AUTH" = 1 ]; then
 %patch97 -p1 -b .brokenauth
 fi
 
 # Optionally apply Daniel Roesen's safe mynetworks patch
-if [ "X$POSTFIX_SAFE_MYNETWORKS" = "X1" ]; then
+if [ "$POSTFIX_SAFE_MYNETWORKS" = 1 ]; then
 %patch98 -p1 -b .mynetworks
 fi
 
-# Optionally apply SMTPD Multiline greeting
-if [ "X$POSTFIX_SMTPD_MULTILINE_GREETING" = "X1" ]; then
+# Optionally apply my SMTPD Multiline greeting
+if [ "$POSTFIX_SMTPD_MULTILINE_GREETING" = 1 ]; then
 %patch99 -p1 -b .multiline
 fi
 
@@ -491,7 +490,7 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %changelog
 * Thu Jan 04 2001 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001217-7, minor touches
+- snapshot-20001217-8, minor touches to build procedure
 
 * Mon Dec 31 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001217-6, suggestions from Daniel Roesen <droesen@entire-systems.com>
