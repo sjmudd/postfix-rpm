@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.280 2004/04/18 14:17:17 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.281 2004/04/19 21:09:59 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -70,7 +70,6 @@
 %define smtpd_multiline_greeting __SMTPD_MULTILINE_GREETING__
 %define vda __VDA__
 %define ipv6 __IPV6__
-%define suffix __SUFFIX__
 
 # start to support the conditional builds via rpm's --with debug
 %define debug %{?_with_debug:1}%{?!_with_debug:0}
@@ -86,7 +85,7 @@
 %define official 0
 %define ver 2.1
 %define mail_release_date RC3-20040414
-%define rel 0.6%{suffix}
+%define rel 0.7__SUFFIX__
 %if %{official}
 %define tarball_version %{ver}
 %define ftp_dir official
@@ -242,7 +241,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.280 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.281 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -1069,6 +1068,9 @@ umask 022
 #
 
 %changelog
+
+* Mon Apr 19 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC3.20040414-0.7
+- suffix is wrong (so revert back)
 
 * Sun Apr 18 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC3.20040414-0.6
 - revoke %if %sasl <= 1 check to using a shell if, on rh9 it fails
