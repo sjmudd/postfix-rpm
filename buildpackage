@@ -167,7 +167,7 @@ EOF
 download_if_necessary . ${base} ${file}
 
 # Look for VDA Patch
-# Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}_quota.patch                                                                   
+# Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}_quota.patch.gz
 vdaver=`grep '^%define vdaver' postfix.spec.in | awk '{ print $3 } '`
 patch4=`grep '^Patch4: http://ftp.oav.net/others/postfix/VDA/postfix' postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{vdaver};${vdaver};"`
 

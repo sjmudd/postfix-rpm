@@ -1,6 +1,6 @@
 make-postfix.spec
-pfixtls-0.8.10-1.1.10-0.9.6d.tar.gz
-postfix-1.1.7_quota.patch
+pfixtls-0.8.11a-1.1.11-0.9.6g.tar.gz
+postfix-1.1.11_quota_maildirsize.patch
 pflogsumm-1.0.4.pl
 postfix-aliases
 postfix-files.patch

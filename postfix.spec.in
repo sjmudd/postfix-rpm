@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.44 2002/07/15 13:41:59 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.45 2002/08/20 07:54:04 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -56,15 +56,15 @@
 
 # Version information
 %define pflogno -1.0.4
-%define vdaver 1.1.7
-%define pfixtls pfixtls-0.8.10-1.1.10-0.9.6d
+%define vdaver 1.1.11
+%define pfixtls pfixtls-0.8.11a-1.1.11-0.9.6g
 %define pgver 1.1.4
 
 # If set to 1 if official version, 0 if snapshot
 %define official 1 
 %define ver 1.1.11
 %define mail_release_date 20020115
-%define rel 6
+%define rel 7
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -136,7 +136,7 @@ Patch2: postfix-smtp_sasl_proto.c.patch
 Patch3: postfix-files.patch
 
 # Optional patches
-Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}_quota.patch 
+Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}_quota_maildirsize.patch 
 Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pgver}.patch
 Patch51: postfix-pg-raw.patch
 Patch99: postfix-smtpd_multiline_greeting.patch
@@ -207,7 +207,7 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.44 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.45 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, VDA=%{VDA}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -952,6 +952,10 @@ fi
 #
 
 %changelog
+
+* Mon Jul 15 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-7
+  - update the TLS patches
+  - update the VDA patches
 
 * Mon Jul 15 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-6
   - add MANPAGE_SUFFIX in make-postfix.spec and %{mps} in spec file
