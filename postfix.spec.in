@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.36 2000/12/22 16:26:39 root Exp $
+# $Id: postfix.spec.in,v 2.37 2000/12/22 22:05:39 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -12,16 +12,16 @@ Name: postfix
 Summary: Postfix Mail Transport Agent
 Group: System Environment/Daemons
 URL: http://www.postfix.org
-Copyright: IBM Public License -- see LICENSE for details
+Copyright: IBM Public License
 #This line not used as on redhat-release-6.2-1 I don't have this directory
 #PreReq: /sbin/chkconfig, /etc/init.d
 PreReq: /sbin/chkconfig
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
 Version: 20001217
-Release: 2XX_POSTFIX_SUFFIX
-Packager: Simon J Mudd <sjmudd@pobox.com> but see description below
-Vendor: None -- see packager
+Release: 3XX_POSTFIX_SUFFIX
+Packager: Simon J Mudd <sjmudd@pobox.com>
+Vendor: None -- Built under XX_REDHAT_RELEASE
 Distribution: Experimental
 Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{version}.tar.gz
 Source1: postfix-README_rpm.txt
@@ -48,34 +48,18 @@ Patch98: postfix-safe_mynetworks.patch
 # applied if POSTFIX_SMTPD_MULTILINE_GREETING=1
 Patch99: postfix-smtpd_reply_multiline.patch
 
-BuildRoot: /var/tmp/%{name}-%{version}-root
+BuildRoot: %{_tmppath}/%{name}-%{version}-root
 
-##########
-# Requires for different packages - at the moment adjust this by hand
-# later I intend to automatically generate the spec file correctly
-##########
-# Requires for pcre
-#Requires: pcre - confirm this please someone?
-##########
-# Requires for SASL
-#BuildRequires: cyrus-sasl-devel
-#Requires: cyrus-sasl
-##########
-# Requries for MySQL build
-#BuildRequires: MySQL-devel
-#Requires: MySQL-devel
-#Requires: MySQL
-##########
-# Requries for ldap build
-#BuildRequires: openldap-devel
-#Requires: openldap >= 1.2.9
-##########
+# Requires for different packages - added automatically
+Requires: XX_POSTFIX_REQUIRES
+# BuildRequires for different packages - added automatically
+BuildRequires: XX_POSTFIX_BUILDREQUIRES
 
 
 %description
-Postfix, see http://www.postfix.org, aims to be an alternative to the
-widely-used sendmail program, which is responsible for 70 percent of
-all e-mail delivered on the Internet.
+Postfix aims to be an alternative to the widely-used sendmail program,
+which is responsible for 70 percent of all e-mail delivered on the
+Internet.
 
 Although IBM supported the Postfix development, it abstains from control
 over its evolution.  The goal is to have Postfix installed on as many
@@ -176,10 +160,11 @@ grep -q ^postfix: /etc/passwd || {
 
 %build
 
-
 umask 022
 make tidy
-make makefiles CCARGS="XX_POSTFIX_CCARGS" AUXLIBS="XX_POSTFIX_AUXLIBS"
+make -f Makefile.init makefiles \
+    'CCARGS=XX_POSTFIX_CCARGS' \
+    'AUXLIBS=XX_POSTFIX_AUXLIBS'
 make DEBUG="" OPT="$RPM_OPT_FLAGS"
 
 %pre
@@ -459,6 +444,15 @@ rm -rf ${RPM_BUILD_ROOT}
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Fri Dec 22 2000 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001217-3, support for rh7 building
+  - if built on a rh7 machine, the spec file will include a Requires:
+    for db3/db3-devel.
+  - include the Requires: and BuildRequires: support for use with
+    openldap, mysql, pcre, and cyrus-auth packages
+  ( current build also shows the version of redhat the spec file
+    was generated on, just to make things a bit clearer )
+
 * Fri Dec 22 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001217-2, major changes so that I
   can build any spec file to include mysql, ldap, pcre

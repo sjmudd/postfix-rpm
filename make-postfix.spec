@@ -1,10 +1,12 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.6 2000/12/22 16:19:59 root Exp $
+#  $Id: make-postfix.spec,v 1.7 2000/12/22 22:05:51 root Exp $
 
 POSTFIX_SUFFIX=
 POSTFIX_CCARGS=
 POSTFIX_AUXLIBS=
+POSTFIX_REQUIRES=
+REDHAT_RELEASE='Unknown linux version'
 
 # supposedly redhat now include LDAP libraries in the default install, so
 # include LDAP support by default
@@ -18,24 +20,44 @@ if [ "X$POSTFIX_LDAP" = "X1" ]; then
 #   POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+ldap"
     POSTFIX_CCARGS="${POSTFIX_CCARGS} -DHAS_LDAP"
     POSTFIX_AUXLIBS="${POSTFIX_AUXLIBS} -L/usr/lib -lldap -llber"
+    POSTFIX_REQUIRES="openldap >= 1.2.9"
+    POSTFIX_BUILDREQUIRES="openldap-devel >= 1.2.9"
 fi
 if [ "X$POSTFIX_PCRE" = "X1" ]; then
     echo "  adding PCRE support to spec file"
     POSTFIX_CCARGS="${POSTFIX_CCARGS} -DHAS_PCRE"
     POSTFIX_AUXLIBS="${POSTFIX_AUXLIBS} -lpcre"
     POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+pcre"
+    POSTFIX_REQUIRES="${POSTFIX_REQUIRES},pcre"
+    POSTFIX_BUILDREQUIRES="${POSTFIX_BUILDREQUIRES},pcre"
 fi
 if [ "X$POSTFIX_MYSQL" = "X1" ]; then
     echo "  adding MySQL support to spec file"
     POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+mysql"
-    POSTFIX_CCARGS="${POSTFIX_CCARGS} ...fix me..."
-    POSTFIX_AUXLIBS="${POSTFIX_AUXLIBS} ...fix me..."
+    POSTFIX_CCARGS="${POSTFIX_CCARGS} -DHAS_MYSQL -I/usr/include/mysql"
+    POSTFIX_AUXLIBS="${POSTFIX_AUXLIBS} -L/usr/lib/mysql -lmysqlclient -lm"
+    POSTFIX_REQUIRES="${POSTFIX_REQUIRES},MySQL,MySQL-client"
+    POSTFIX_BUILDREQUIRES="${POSTFIX_BUILDREQUIRES},MySQL,MySQL-client"
 fi
 if [ "X$POSTFIX_SASL" = "X1" ]; then
     echo "  adding SASL support to spec file"
     POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+sasl"
     POSTFIX_CCARGS="${POSTFIX_CCARGS} -DUSE_SASL_AUTH"
     POSTFIX_AUXLIBS="${POSTFIX_AUXLIBS} -lsasl"
+    POSTFIX_REQUIRES="${POSTFIX_REQUIRES},cyrus-sasl"
+    POSTFIX_BUILDREQUIRES="${POSTFIX_BUILDREQUIRES},cyrus-sasl"
+fi
+
+# rh7 db3 crap - this is rather ugly
+if [ `rpm -q redhat-release` ]; then
+    # We are running RedHat Linux
+    # check for RedHat 7 and change Requires for new db3 if necessary
+    A=`rpm -q redhat-release | grep -q 7 | echo $?`
+    if [ "X$A" = "X0" ]; then
+        POSTFIX_REQUIRES="${POSTFIX_REQUIRES},db3"
+        POSTFIX_BUILDREQUIRES="${POSTFIX_BUILDREQUIRES},db3,db3-devel"
+    fi
+    REDHAT_RELEASE=`rpm -q redhat-release` 
 fi
 
 cat > ../SPECS/postfix.spec <<EOF
@@ -55,7 +77,7 @@ cat > ../SPECS/postfix.spec <<EOF
 # after defining the relevent options you wish to use in
 # the spec file
 #
-# This spec file genreated with the following options:
+# This spec file generated with the following options:
 #
 # POSTFIX_SMTPD_MULTILINE_GREETING=$POSTFIX_SMTPD_MULTILINE_GREETING
 # POSTFIX_SAFE_MYNETWORKLS=$POSTFIX_SAFE_MYNETWORKS
@@ -65,11 +87,16 @@ cat > ../SPECS/postfix.spec <<EOF
 # POSTFIX_MYSQL=$POSTFIX_MYSQL
 # POSTFIX_SASL=$POSTFIX_SASL
 #
+# Built on $REDHAT_RELEASE
+#
 EOF
 sed "
 s!XX_POSTFIX_SUFFIX!$POSTFIX_SUFFIX!g
 s!XX_POSTFIX_CCARGS!$POSTFIX_CCARGS!g
 s!XX_POSTFIX_AUXLIBS!$POSTFIX_AUXLIBS!g
+s!XX_POSTFIX_REQUIRES!$POSTFIX_REQUIRES!g
+s!XX_POSTFIX_BUILDREQUIRES!$POSTFIX_BUILDREQUIRES!g
+s!XX_REDHAT_RELEASE!$REDHAT_RELEASE!g
 " postfix.spec.in >> ../SPECS/postfix.spec
 
 echo " "
