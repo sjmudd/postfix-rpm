@@ -15,7 +15,6 @@ postfix-etc-init.d-postfix
 postfix-fallback_relay.patch
 postfix-makedefs.patch
 postfix-new-RPMS
-postfix-smtp_addr.c.patch
 postfix-smtp_sasl_proto.c.patch
 postfix-smtpd.c.patch
 postfix-smtpd_multiline_greeting.patch
