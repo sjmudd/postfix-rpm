@@ -7,7 +7,8 @@
 #              that moves mail from one machine to another.
 # processname: master
 # pidfile: /var/spool/postfix/pid/master.pid
-# config: /etc/postfix/
+# config: /etc/postfix/main.cf
+# config: /etc/postfix/master.cf
 
 # Written by Package Author: Simon J Mudd <sjmudd@pobox.com>
 # 25/02/99: Mostly s/sendmail/postfix/g by John A. Martin <jam@jamux.com>
@@ -21,9 +22,7 @@
 . /etc/sysconfig/network
 
 # Check that networking is up.
-if [ ${NETWORKING} = "no" ]; then
-        exit 0
-fi
+[ ${NETWORKING} = "no" ] && exit 0
 
 [ -x /usr/sbin/postfix ] || exit 0
 [ -d /etc/postfix ] || exit 0
@@ -33,7 +32,7 @@ RETVAL=0
 
 start() {
 	echo -n "Starting postfix: "
-	/usr/sbin/postfix start 2>/dev/null 1>&2
+	/usr/sbin/postfix start 2>/dev/null 1>&2 && success || failure
 	RETVAL=$?
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/postfix
         echo
@@ -42,7 +41,7 @@ start() {
 
 stop() {
 	echo -n "Shutting down postfix: "
-	/usr/sbin/postfix stop 2>/dev/null 1>&2
+	/usr/sbin/postfix stop 2>/dev/null 1>&2 && success || failure
 	RETVAL=$?
 	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/postfix
 	echo
@@ -51,26 +50,26 @@ stop() {
 
 reload() {
 	echo -n "Reloading postfix: "
-	/usr/sbin/postfix reload 2>/dev/null 1>&2
+	/usr/sbin/postfix reload 2>/dev/null 1>&2 && success || failure
 	RETVAL=$?
 	echo
 	return $RETVAL
 }
 
 abort() {
-	/usr/sbin/postfix abort 2>/dev/null 1>&2
+	/usr/sbin/postfix abort 2>/dev/null 1>&2 && success || failure
 	RETVAL=$?
 	return $RETVAL
 }
 
 flush() {
-	/usr/sbin/postfix flush 2>/dev/null 1>&2
+	/usr/sbin/postfix flush 2>/dev/null 1>&2 && success || failure
 	RETVAL=$?
 	return $RETVAL
 }
 
 check() {
-	/usr/sbin/postfix check 2>/dev/null 1>&2
+	/usr/sbin/postfix check 2>/dev/null 1>&2 && success || failure
 	RETVAL=$?
 	return $RETVAL
 }
@@ -101,6 +100,7 @@ case "$1" in
 	;;
   status)
   	status master
+        RETVAL=$?
 	;;
   condrestart)
 	if [ -f /var/lock/subsys/postfix ]; then

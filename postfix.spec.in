@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.66 2001/02/20 19:56:07 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.67 2001/02/21 20:52:28 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -607,6 +607,9 @@ fi
   - fix spelling mistake in changelog, droesen's name
   - change -f check to -x in /etc/rc.d/init.d/postfix and
                              /etc/cron.daily/postfix
+  - change /etc/rc.d/init.d/postfix to correctly show the [OK]
+    and [FAILED] tags on startup.  I think this is correct, but the
+    RedHat documentation is lacking here.
 
 * Wed Feb 07 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20010204-3, avoid the /var/spool/postfix/maildrop - directory
