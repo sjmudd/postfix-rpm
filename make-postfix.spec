@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.12 2003/04/23 17:11:17 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.13 2003/04/29 18:43:53 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -20,7 +20,7 @@
 #			George Barbarosie <georgeb@intelinet.ro>
 # POSTFIX_SASL		include support for SASL (1, 2 or 0 to disable)
 # POSTFIX_TLS		include support for TLS
-# POSTFIX_IPV6		include support for IPv6
+# POSTFIX_IPV6		include support for IPv6 (don't use with TLS)
 # POSTFIX_VDA		include support for Virtual Delivery Agent
 # POSTFIX_SMTPD_MULTILINE_GREETING
 #			include support for multitline SMTP banner
@@ -55,7 +55,7 @@
 #
 # Red Hat Linux MAY require (according to configuration)
 # TLSFIX=1		enable a fix for TLS support on RH 6.2 (see spec file)
-# TLSFIX=2      	enable a fix for TLS support on RH 9 (see spec file)
+# TLSFIX=2		enable a fix for TLS support on RH 9 (see spec file)
 # POSTFIX_DB=3		add db3 package to requires list
 # POSTFIX_INCLUDE_DB=1	add /usr/include/db3 to the includes list
 #			and the db-3.1 library to the build instructions
@@ -184,7 +184,7 @@ if [ "$POSTFIX_SASL" = 1 -o "$POSTFIX_SASL" = 2 ]; then
 	;;
     *)
 	POSTFIX_SASL_LIBRARY=cyrus-sasl-devel
-        ;;
+	;;
     esac
 else
     POSTFIX_SASL=
@@ -192,7 +192,7 @@ fi
 
 [ -z "$POSTFIX_RPM_NO_WARN" -a \
 	"$POSTFIX_LDAP" -gt 0 -a \
-	"$POSTFIX_SASL" -ge 2 -a \
+	"$POSTFIX_SASL" = 2 -a \
 	$releasename = redhat -a \
 	$major -le 8 ] && {
 cat <<END
@@ -211,11 +211,28 @@ END
     exit 1
 }
 
+if [ "$POSTFIX_RBL_MAPS" = 1 ]; then
+    cat <<END
+WARNING: POSTFIX_RBL_MAPS no longer used.
+  Please unset POSTFIX_RBL_MAPS to continue.
+END
+    exit 1
+fi
+
 if [ "$POSTFIX_IPV6" = 1 ]; then
     echo "  adding IPv6 support to spec file"
     SUFFIX="${SUFFIX}.ipv6"
 fi
+
 if [ "$POSTFIX_TLS" = 1 ]; then
+    if [ "$POSTFIX_IPV6" = 1 ]; then
+        cat <<END
+ERROR: POSTFIX_IPV6 already includes the TLS patches.
+  Please unset POSTFIX_TLS to continue
+END
+        exit 1
+    fi
+
     echo "  adding TLS support to spec file"
     SUFFIX="${SUFFIX}.tls"
 
