@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.152 2001/10/19 09:37:04 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.153 2001/10/19 10:15:02 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -150,14 +150,14 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.152 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.153 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
 LDAP=%{LDAP}		SASL=%{SASL}
 PCRE=%{PCRE}		TLS=%{TLS}
 MYSQL=%{MYSQL}		REDHATMYSQL=%{REDHATMYSQL}
-REQUIRES_DB3 %{REQUIRES_DB3}	REQUIRES_INIT_D %{REQUIRES_INIT_D}
+REQUIRES_DB3=%{REQUIRES_DB3}	REQUIRES_INIT_D=%{REQUIRES_INIT_D}
 
 If you need to use postfix with alternative options you will need to
 download the source package and rebuild the required binary package.
