@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.37 2001/05/03 21:00:14 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.38 2001/05/07 19:49:49 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -47,7 +47,7 @@
 %define patchlevel pl02
 %define version1 %{vers}-%{patchlevel}
 %define version2 %{vers}_%{patchlevel}
-%define rel  3
+%define rel  4
 %define tlsno pfixtls-0.7.2-20010228-pl02-0.9.6a
 
 Name: postfix
@@ -78,6 +78,8 @@ Patch2:  postfix-chroot_chk.patch
 # required to install smtp-sink and smtp-source
 Patch3:  postfix-INSTALL.sh.patch
 Patch4:  postfix-INSTALL.sh.patch3
+# fix the smtpd_check.c, Wietse
+Patch5: postfix-smtpd_check.c.patch
 #
 # Optional patches - set the appropriate environment variables to include
 #                    them when building the package/spec file
@@ -138,7 +140,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.37 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.38 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -206,6 +208,7 @@ patch -p1 <%{tlsno}/pfixtls.diff
 %patch2 -p1 -b .chk
 %patch3 -p1 -b .install
 %patch4 -p1 -b .install3
+%patch5 -p1 -b .smtpd
 
 # APPLY OPTIONAL PATCHES
 
@@ -643,6 +646,10 @@ fi
 #
 
 %changelog
+
+* Mon May 07 2001 Simon Mudd <sjmudd@pobox.com>
+- postfix-20010228_pl02release-4, add smtpd_check.c.patch
+  provided by Wietse
 
 * Wed May 02 2001 Simon Mudd <sjmudd@pobox.com>
 - postfix-20010228_pl02release-3, update support for TLS patch

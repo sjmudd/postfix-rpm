@@ -19,3 +19,4 @@ postfix-smtpd_multiline_greeting.patch
 postfix.spec.in
 pfixtls-0.7.2-20010228-pl02-0.9.6a.tar.gz
 pflogsumm.pl
+postfix-smtpd_check.c.patch
