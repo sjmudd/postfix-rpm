@@ -1,22 +1,19 @@
-# $Id: postfix.spec.in,v 2.230.2.50 2003/05/12 21:13:02 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.51 2003/05/15 11:34:37 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
-# Please send bugfixes and comments to the packager.
-#
-# This spec file was built on distribution: __DISTRIBUTION__
-#
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
 # and regenerate the spec file.
 #
 # See make-postfix.spec and postfix-build in %{_sourcedir} for more information.
 #
-# Information imported from postfix.spec.in
+# This spec file was built on distribution: __DISTRIBUTION__
+#
+# Information imported from postfix.spec.in: DO NOT CHANGE IT BY HAND
 #
 # ldap                     - include LDAP support
 # mysql	                   - include support for www.mysql.com's MySQL rpms
 # mysql_redhat             - include support for RedHat's MySQL rpms
-# mysql_path               - include support for local copy of MySQL installed
-#                            in %mysql_path
+# mysql_paths              - path where locally installed MySQL resides (or 0)
 # mysql_query              - include support for writing full select statements
 #                            in mysql maps
 # mysql_dict_reg           - dict_register patch for proxy:mysql:mysql-xxx.cf
@@ -40,13 +37,18 @@
 # disable_chroot           - disable setup of chroot environment
 # mps			   - man page suffix, .gz except Mandrake 8 which uses .bz2
 #
+# Please send bugfixes and comments to the packager.
+#
 %define distribution __DISTRIBUTION__
 %define mps __MANPAGE_SUFFIX__
 %define cdb __CDB__
 %define ldap __LDAP__
 %define mysql __MYSQL__
 %define mysql_redhat __MYSQL_REDHAT__
-%define mysql_path __MYSQL_PATH__
+%define mysql_paths __MYSQL_PATHS__
+%define mysql_local %(test "%{mysql_paths}" != 0 && echo 1 || echo 0)
+%define mysql_include %(echo "%{mysql_paths}" | cut -d: -f1)
+%define mysql_lib %(echo "%{mysql_paths}" | cut -d: -f2)
 %define mysql_query __MYSQL_QUERY__
 %define mysql_dict_reg __MYSQL_DICT_REG__
 %define proxy_read_maps __PROXY_READ_MAPS__
@@ -188,10 +190,9 @@ Requires: mysql
 BuildRequires: mysql, mysql-devel
 %endif
 
-# Expect to find a locally installed MySQL in %{mysql_path}/(include|lib)
-%if %{mysql_path}
-Requires: %{mysql_path}/lib/mysqlclient.so
-BuildRequires: %{mysql_path}/include/mysql.h
+%if %{mysql_local}
+BuildRequires: %{mysql_include}/mysql.h
+Requires: %{mysql_lib}/mysqlclient.so
 %endif
 
 %if %{mysql}
@@ -200,8 +201,8 @@ BuildRequires: MySQL-shared, MySQL-devel, zlib-devel
 %endif
 
 %if %{pgsql}
-Requires: postgresql, libpq.so
-BuildRequires: postgresql, libpq.so, postgresql-devel
+Requires: postgresql-libs
+BuildRequires: postgresql-devel
 %endif
 
 %if %{sasl}
@@ -229,11 +230,11 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.50 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.51 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
-ldap=%{ldap}, sasl=%{sasl}, pcre=%{pcre}, tls=%{tls}, tlsfix=%{tlsfix}, mysql=%{mysql}, mysql_redhat=%{mysql_redhat}, mysql_path=%{mysql_path}, mysql_dict_reg=%{mysql_dict_reg}, proxy_read_maps=%{proxy_read_maps}
+ldap=%{ldap}, sasl=%{sasl}, pcre=%{pcre}, tls=%{tls}, tlsfix=%{tlsfix}, mysql=%{mysql}, mysql_redhat=%{mysql_redhat}, mysql_paths=%{mysql_paths}, mysql_dict_reg=%{mysql_dict_reg}, proxy_read_maps=%{proxy_read_maps}
 include_db=%{include_db}, requires_db=%{requires_db}, requires_init_d=%{requires_init_d}, cdb=%{cdb}, ipv6=%{ipv6}
 debug=%{?_with_debug:1}%{?!_with_debug:0}
 
@@ -305,7 +306,7 @@ sh dict_cdb.sh
 %endif
 
 %if %{vda}
-  test -e  %{_sourcedir}/postfix-%{vdaver}.patch.gz && \ 
+  test -e  %{_sourcedir}/postfix-%{vdaver}.patch.gz && \
   gzip -dc %{_sourcedir}/postfix-%{vdaver}.patch.gz | patch -p1 -b --suffix .vda -s || \
     die "%{_sourcedir}/postfix-%{vdaver}.patch.gz not found or patch failed"
 %endif
@@ -407,9 +408,9 @@ CCARGS="${CCARGS} -fsigned-char"
   AUXLIBS="${AUXLIBS} -L/usr/%{_lib}/mysql -lmysqlclient -lm"
 %endif
 
-%if %{mysql_path}
-  CCARGS="${CCARGS} -DHAS_MYSQL -I%{mysql_path}/include"
-  AUXLIBS="${AUXLIBS} -L%{mysql_path}/lib -lmysqlclient -lz -lm"
+%if %{mysql_local}
+  CCARGS="${CCARGS} -DHAS_MYSQL -I%{mysql_include}"
+  AUXLIBS="${AUXLIBS} -L%{mysql_lib} -lmysqlclient -lz -lm"
 %endif
 
 %if %{pgsql}
@@ -560,7 +561,7 @@ done
 
 # fix path to perl
 %if %{tls}
-perl -pi -e "s,/usr/local/bin/perl,/usr/bin/perl,g" html/TLS/loadCAcert.pl
+perl -pi -e "s,/usr/local/bin/perl,/usr/bin/perl,g" TLS/loadCAcert.pl
 %endif
 
 %post
@@ -905,7 +906,7 @@ fi
 
 %clean
 umask 022
-[ -n "${RPM_BUILD_ROOT}" && "${RPM_BUILD_ROOT}" != "/" ] && {
+[ -n "${RPM_BUILD_ROOT}" -a "${RPM_BUILD_ROOT}" != "/" ] && {
     rm -rf ${RPM_BUILD_ROOT}
 }
 
@@ -966,10 +967,6 @@ umask 022
 %doc INSTALL
 %doc PORTING
 %doc RELEASE_NOTES-1.1
-
-%if %{pgsql}
-%doc PGSQL_README
-%endif
 
 %doc postfix-RPM-new-packages
 %doc postfix-RPM-TODO
@@ -1057,7 +1054,8 @@ umask 022
     - add support for the following patches:
       - POSTFIX_PROXY_READ_MAPS	proxy_read_maps patch
       - POSTFIX_MYSQL_DICT_REG	mysql: dict_register patch
-    - add support for locally installed MySQL in POSTFIX_MYSQL_PATH
+    - add support for locally installed MySQL in POSTFIX_MYSQL_PATHS
+  - PGSQL_README now in README_FILES directory
 
 * Wed Apr 30 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.9-2
   - TLS patch failed due to typo in change between 2.0.8-1 and 2.0.9-1

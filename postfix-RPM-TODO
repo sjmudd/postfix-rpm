@@ -3,16 +3,11 @@ TODO List for Postfix Packages
 
 This is a list of mine, of things which perhaps I should do to improve the
 Postfix RPM I produce.  If you want to suggest other improvements let me
-know by email to Simon J Mudd <sjmudd@pobox.com>
+know by email to Simon J Mudd <sjmudd@pobox.com>.
 
 - When building with TLS or SASL support adapt Postfix configuration
-  accordingly. Perhaps setup the TLS/SASL environment so that the user
-  doesn't need to study the docs so much
-
-- Check whether there are problems with SASL 2 libraries. I haven't
-  modified the SASL build environment to distinguish between SASL v1 and
-  v2 libraries.  I have not received problem reports so I _guess_ that
-  all is working ok. If not let me know.
+  accordingly. Setup the TLS/SASL environment so that the user does not
+  need to study the docs as much.
 
 - Modify buildpackage (from my cvs repository) used to build the packages
   - download more of the patches if they don't exist in my cvs repository

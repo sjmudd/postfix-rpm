@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.14 2003/05/12 21:13:02 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.15 2003/05/15 11:34:37 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -11,8 +11,9 @@
 #
 # POSTFIX_MYSQL		include support for MySQL's MySQL packages
 # POSTFIX_MYSQL_REDHAT	include support for RedHat's mysql packages
-# POSTFIX_MYSQL_PATH	include support for locally installed mysql binary,
-#			providing the path e.g. /usr/local
+# POSTFIX_MYSQL_PATHS	include support for locally installed mysql binary,
+#			providing the colon seperated include and
+#			library paths ( /usr/include/mysql:/usr/lib/mysql )
 # POSTFIX_MYSQL_QUERY	include support for writing full select statements
 #			in mysql maps
 # POSTFIX_MYSQL_DICT_REG
@@ -75,10 +76,11 @@
 # cd `rpm --eval '%{_specdir}'`
 # rpm -ba postfix.spec
 
-# ensure that these variables are not set from outside
-SUFFIX=
-REQUIRES_INIT_D=
-TLSFIX=
+# ensure that these variables are NOT set from outside
+SUFFIX=			# RPM package suffix
+REQUIRES_INIT_D=	# do we require /etc/init.d? (rh 7 and later)
+TLSFIX=			# Apply "fixes" to TLS patches
+
 # This appears to be .gz, except for Mandrake 8 which uses .bz2
 MANPAGE_SUFFIX=".gz"
 
@@ -98,28 +100,6 @@ minor=`echo $distribution | sed -e 's;[a-z]*-;;' -e 's;[0-9]*\.;;'`
 
 echo "  Distribution is: ${distribution}"
 echo ""
-
-# Ensure that only one of the following is defined: 
-# POSTFIX_MYSQL, POSTFIX_MYSQL_REDHAT, POSTFIX_MYSQL_PATH
-[ -n "$POSTFIX_MYSQL" ] && \
-[ -n "$POSTFIX_MYSQL_REDHAT" ] && \
-[ -n "$POSTFIX_MYSQL_PATH" ] && {
-    cat <<EOF
-Postfix MySQL support
----------------------
-
-This package supports Postfix using MySQL, installed using packages
-from 2 different sources or, built locally on the install machine.
-
-Choose one of the following sources of MySQL and set _ONE_ of the
-following variables accordingly before running make-postfix.spec:
-
-POSTFIX_MYSQL=1			# MySQL packages named MySQL from www.mysql.com
-POSTFIX_MYSQL_REDHAT=1		# MySQL packages named mysql from RedHat
-POSTFIX_MYSQL_PATH=/path/to	# MySQL binary installed in /path/to
-EOF
-    exit 1
-}
 
 if [ "$POSTFIX_MYSQL_DICT_REG" = 1 ]; then
     echo "including patch for dict_register fix for proxy:mysql:mysql-xxx.cf"
@@ -177,7 +157,7 @@ if [ "$POSTFIX_PGSQL2" = 1 ]; then
 fi
 if [ "$POSTFIX_MYSQL" = 1 ]; then
     POSTFIX_MYSQL_REDHAT=0
-    POSTFIX_MYSQL_PATH=
+    POSTFIX_MYSQL_PATHS=
     echo "  adding MySQL support (www.mysql.com MySQL* packages) to spec file"
     SUFFIX="${SUFFIX}.MySQL"
 fi
@@ -190,14 +170,14 @@ END
 fi
 if [ "$POSTFIX_MYSQL_REDHAT" = 1 ]; then
     POSTFIX_MYSQL=0
-    POSTFIX_MYSQL_PATH=
+    POSTFIX_MYSQL_PATHS=
     echo "  adding MySQL support (RedHat mysql* packages) to spec file"
     SUFFIX="${SUFFIX}.mysql"
 fi
-if [ -n "$POSTFIX_MYSQL_PATH" ]; then
+if [ -n "$POSTFIX_MYSQL_PATHS" ]; then
     POSTFIX_MYSQL=0
     POSTFIX_MYSQL_REDHAT=0
-    echo "  adding MySQL support (locally installed in $POSTFIX_MYSQL_PATH) to spec file"
+    echo "  adding MySQL support (paths set to $POSTFIX_MYSQL_PATHS) to spec file"
     SUFFIX="${SUFFIX}.mysql_path"
 fi
 
@@ -238,7 +218,7 @@ fi
 cat <<END
 WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
 
-According to RedHat's Postfix spec file on RH versions earlier than 8.0.1 as
+According to the RedHat Postfix spec file on RH versions earlier than 8.0.1 as
 LDAP is compiled with SASL v1 Postfix will not work if compiled with SASL v2.
 
 You have selected both LDAP and SASL v2 with such a RH release.
@@ -388,7 +368,7 @@ esac
 [ -z "$POSTFIX_LDAP" ]			   && POSTFIX_LDAP=0
 [ -z "$POSTFIX_MYSQL" ]			   && POSTFIX_MYSQL=0
 [ -z "$POSTFIX_MYSQL_REDHAT" ]		   && POSTFIX_MYSQL_REDHAT=0
-[ -z "$POSTFIX_MYSQL_PATH" ]		   && POSTFIX_MYSQL_PATH=0
+[ -z "$POSTFIX_MYSQL_PATHS" ]		   && POSTFIX_MYSQL_PATHS=0
 [ -z "$POSTFIX_MYSQL_QUERY" ]		   && POSTFIX_MYSQL_QUERY=0
 [ -z "$POSTFIX_MYSQL_DICT_REG" ]	   && POSTFIX_MYSQL_DICT_REG=0
 [ -z "$POSTFIX_PROXY_READ_MAPS" ]	   && POSTFIX_PROXY_READ_MAPS=0
@@ -424,7 +404,7 @@ s!__SUFFIX__!$SUFFIX!g
 s!__LDAP__!$POSTFIX_LDAP!g
 s!__MYSQL__!$POSTFIX_MYSQL!g
 s!__MYSQL_REDHAT__!$POSTFIX_MYSQL_REDHAT!g
-s!__MYSQL_PATH__!$POSTFIX_MYSQL_PATH!g
+s!__MYSQL_PATHS__!$POSTFIX_MYSQL_PATHS!g
 s!__MYSQL_QUERY__!$POSTFIX_MYSQL_QUERY!g
 s!__MYSQL_DICT_REG__!$POSTFIX_MYSQL_DICT_REG!g
 s!__PROXY_READ_MAPS__!$POSTFIX_PROXY_READ_MAPS!g
