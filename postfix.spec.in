@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.51 2002/11/04 10:11:59 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.52 2002/11/22 11:40:15 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -15,7 +15,6 @@
 # ldap                     - include LDAP support
 # mysql	                   - include www.mysql.com's MySQL rpms
 # redhatmysql              - include RedHat's MySQL rpms
-# redhatdb3                - include RedHat's db3 rpms (when building on rh6.x)
 # pcre                     - include pcre support
 # pgsql                    - include Postgres database support
 # pgsql2                   - experimental postgres patches by George Barbarosie
@@ -26,8 +25,8 @@
 # tls                      - include TLS support
 # tlsfix                   - include TLS fix (apparently needed for rh6.2)
 # REQUIRES_INIT_D          - Required by RedHat 7.x
-# REQUIRES_DB3             - used on RH 7.x, Mandrake 8.1 and eventually RH6.2
-# REQUIRES_DB4             - adding support for db4 (can be used on 7.2?)
+# requires_db              - used to add dbX dependencies in the package
+# include_db               - include the dbX library when compiling (rh6.x with db3)
 # SMTPD_MULTILINE_GREETING - my patch to allow multiline banner
 # vda                      - add virtual delivery agent patch
 # DISABLE_CHROOT           - disable setup of chroot environment
@@ -39,15 +38,14 @@
 %define ldap __LDAP__
 %define mysql __MYSQL__
 %define redhatmysql __REDHAT_MYSQL__
-%define redhatdb3 __REDHAT_DB3__
 %define pcre __PCRE__
 %define pgsql __PGSQL__
 %define pgsql2 __PGSQL2__
 %define sasl __SASL__
 %define tls __TLS__
 %define tlsfix __TLSFIX__
-%define REQUIRES_DB3 __REQUIRES_DB3__
-%define REQUIRES_DB4 __REQUIRES_DB4__
+%define include_db __INCLUDE_DB__
+%define requires_db __REQUIRES_DB__
 %define REQUIRES_INIT_D __REQUIRES_INIT_D__
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
 %define vda __VDA__
@@ -68,7 +66,7 @@
 %define official 1 
 %define ver 1.1.11
 %define mail_release_date 20020115
-%define rel 12
+%define rel 13
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -158,14 +156,9 @@ BuildRoot: %{_tmppath}/postfix-%{package_version}-buildroot
 BuildRequires: gawk, perl, sed, ed, patch, rpm >= 4
 Requires: gawk, perl, sed, ed
 
-%if %{REQUIRES_DB3}
-Requires: db3
-BuildRequires: db3-devel
-%endif
-
-%if %{REQUIRES_DB4}
-Requires: db4
-BuildRequires: db4-devel
+%if %{requires_db}
+Requires: db%{requires_db}
+BuildRequires: db%{requires_db}-devel
 %endif
 
 %if %{ldap}
@@ -218,12 +211,12 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.51 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.52 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
 ldap=%{ldap}, sasl=%{sasl}, pcre=%{pcre}, tls=%{tls}, tlsfix=%{tlsfix}, mysql=%{mysql}, redhatmysql=%{redhatmysql}
-REQUIRES_DB3=%{REQUIRES_DB3}, REQUIRES_DB4=%{REQUIRES_DB4}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}, RBL_MAPS=%{RBL_MAPS}, cdb=%{cdb}
+include_db=%{include_db}, requires_db=%{requires_db}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}, RBL_MAPS=%{RBL_MAPS}, cdb=%{cdb}
 debug=%{?_with_debug:1}%{?!_with_debug:0}
 
 To use postfix with alternative options download the source package and
@@ -347,11 +340,9 @@ AUXLIBS=
 CCARGS="${CCARGS} -fsigned-char"
 %endif
 
-%if %{redhatdb3}
+%if %{include_db}
   # specify where there compiler should attempt to find db.h file
-  # maybe we should look at the db3-devel package to search
-  # where is db.h?
-  CCARGS="-I/usr/include/db3 ${CCARGS}"
+  CCARGS="-I/usr/include/db%{requires_db} ${CCARGS}"
 %endif
 
 %if %{cdb}
@@ -687,20 +678,10 @@ for i in /etc/localtime /usr/lib/zoneinfo/localtime \
 done
 %endif
 
-%if %{REQUIRES_DB3} && ! %{DISABLE_CHROOT}
-%triggerin -- db3
+%if %{requires_db} && ! %{DISABLE_CHROOT}
+%triggerin -- db%{requires_db}
 %{copy_cmd}
-for i in /lib/libdb-3.*so; do
-  rm -f %{queue_dir}${i}
-  copy ${i} %{queue_dir}/lib
-done
-ldconfig -n %{queue_dir}/lib
-%endif
-
-%if %{REQUIRES_DB4} && ! %{DISABLE_CHROOT}
-%triggerin -- db4
-%{copy_cmd}
-for i in /lib/libdb-4.*so; do
+for i in /lib/libdb-%{requires_db}.*so; do
   rm -f %{queue_dir}${i}
   copy ${i} %{queue_dir}/lib
 done
@@ -756,11 +737,8 @@ chroot_remove () {
     for i in etc/localtime usr/lib/zoneinfo/localtime \
             etc/host.conf etc/resolv.conf etc/nsswitch.conf \
 	    etc/hosts etc/passwd etc/services \
-%if %{REQUIRES_DB3}
-            lib/libdb-3.*so \
-%endif
-%if %{REQUIRES_DB4}
-            lib/libdb-4.*so \
+%if %{requires_db}
+            lib/libdb-%{requires_db}.*so \
 %endif
 	    lib/libnss_* lib/libresolv*; do
         test -f %{queue_dir}/${i} && /bin/rm -f %{queue_dir}/${i}
@@ -990,6 +968,14 @@ fi
 #
 
 %changelog
+
+* Thu Nov 21 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-13
+  - modify make-postfix.spec and postfix.spec.in to work correctly with RH 8
+    and the new db4 files.
+    - Thanks to  Josep M. <websurfer_email@yahoo.es> for lending me a rh8
+      machine to test this on.
+  - modify postfix-get-distribution to recognise Yellowdog Linux
+    - thanks to Emmanuel Seyman <seyman@acticiel.com> for testing
 
 * Mon Oct 28 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-12
   - The man page links when using /usr/sbin/alternatives didn't correctly

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.35.2.15 2002/11/04 10:56:55 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.35.2.16 2002/11/22 11:40:14 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -22,7 +22,12 @@
 # POSTFIX_VDA		include support for Virtual Delivery Agent
 # POSTFIX_SMTPD_MULTILINE_GREETING
 #			include support for multitline SMTP banner
-# POSTFIX_DB4		add support for db4, ignoring db3 (not tested)
+#
+# These two values will be setup according to your distribution, but
+# you may override them.
+# POSTFIX_DB		add support for dbX, (3, 4, or 0 to disable)
+# POSTFIX_INCLUDE_DB	include the dbX directory when compiling (0,1)
+#
 # POSTFIX_DISABLE_CHROOT	disable creation of chroot environment
 # POSTFIX_RBL_MAPS	LaMont Jones' RBL REPLY Maps patch
 # POSTFIX_CDB		support for Constant Database, CDB, by Michael Tokarev
@@ -32,12 +37,18 @@
 # uid/gid and postdrop gid if the standard values I'm assigning are
 # not correct on your system.
 #
-# Red Hat Linux 7.x (at the moment) specific requirements
-# (This is detected automatically when you rebuild the spec file)
-#
-# REQUIRES_DB3		add db3 package to requires list
+# Red Hat Linux 8.x requires
 # REQUIRES_INIT_D	add /etc/init.d/ to requires list
+# POSTFIX_REQUIRES_DB=4	add db4 package to requires list
+#
+# Red Hat Linux 7.x requires
+# REQUIRES_INIT_D	add /etc/init.d/ to requires list
+# POSTFIX_REQUIRES_DB=3	add db3 package to requires list
 # TLSFIX		enable a fix for TLS support on RH 6.2 (see spec file)
+#
+# Red Hat Linux 6.x MAY require (according to configuration)
+# POSTFIX_REQUIRES_DB=3	add db3 package to requires list
+# POSTFIX_INCLUDE_DB=1	add /usr/include/db3 to the includes list
 #
 # To rebuild the spec file, set the appropriate environment
 # variables and do the following:
@@ -50,8 +61,6 @@
 
 # ensure that these variables are not set from outside
 SUFFIX=
-REQUIRES_DB3=
-REQUIRES_DB4=
 REQUIRES_INIT_D=
 TLSFIX=
 # This appears to be .gz, except for Mandrake 8 which uses .bz2
@@ -180,46 +189,44 @@ if [ "$POSTFIX_RBL_MAPS" = 1 ]; then
     SUFFIX="${SUFFIX}.rbl"
 fi
 
-# Determine the correct db files to use. RedHat 7 requires db3
-# RH6.2 might require db3 if db3-devel is installed
-# (db3-devel create a link /lib/libdb.so pointing to /lib/libdb-3.1.so)
+DIST=
+DEFAULT_DB=
 
 case ${releasename} in
+yellowdog)
+    DEFAULT_DB=3
+    REQUIRES_INIT_D=1
+    ;;
+
 redhat)
     case ${major} in
-    6)
-       if [ "$POSTFIX_REDHAT_DB3" = 1 ]; then
-         # we don't test if db3 is installed,
-         # just adding db3 to the req and buildreq :
-         REQUIRES_DB3=1
-         SUFFIX=".db3${SUFFIX}"
-       else
-         # there will be a problem at link-time if db3-devel is installed
-         if  rpm -q db3-devel 2>&1 >/dev/null; then
-             echo "   You have the db3-devel package installed. This means that postfix"
-             echo "   will be linked againt db3. If you do not want that, uninstall"
-             echo "   db3-devel (you don't have to uninstall db3)."
-             echo "   If you don't want this message to appear, set"
-             echo "   POSTFIX_REDHAT_DB3 to 1 before running $0."
-             POSTFIX_REDHAT_DB3=1
-             REQUIRES_DB3=1
-             SUFFIX=".db3${SUFFIX}"
-         fi
-       fi
-       SUFFIX=".rh6x${SUFFIX}"
-       ;;
-    7)
+    8)
+	DEFAULT_DB=4
 	REQUIRES_INIT_D=1
-        test -z "$REQUIRES_DB4" && REQUIRES_DB3=1
+	;;
 
-        case ${minor} in
-        0) SUFFIX=".rh70.1${SUFFIX}" ;;
-        1) SUFFIX=".rh70.1${SUFFIX}" ;;
-        2) ;;
-        *) ;;
-        esac
-        ;;
-    *) ;;
+    7)
+	DEFAULT_DB=3
+	REQUIRES_INIT_D=1
+
+       case ${minor} in
+       0) DIST=".rh70.1" ;;
+       1) DIST=".rh70.1" ;;
+       2) DIST=".rh72" ;;
+       3) DIST=".rh73" ;;
+       *) ;;
+       esac
+       ;;
+
+    6)
+	# This may need checking
+	DEFAULT_DB=0
+	[ -z "$POSTFIX_REQUIRES_DB" ] && POSTFIX_REQUIRES_DB=${DEFAULT_DB}
+	[ "${POSTFIX_REQUIRES_DB}" != "${DEFAULT_DB}" ] && POSTFIX_INCLUDE_DB=1
+	DIST=".rh6x"
+	;;
+
+    *)	;;
     esac
     ;;
 
@@ -231,28 +238,42 @@ mandrake)
     # - the db3 .h files are in glibc-devel
     # Mandrake 8.1
     # - appears to use db3 in the same way as rh7
+    # Mandrake 9
+    # - assuming it uses db4
     case ${major} in
-    7) SUFFIX="${SUFFIX}.mdk7x" ;;
-    8) test -z "$REQUIRES_DB4" && REQUIRES_DB3=1
-       MANPAGE_SUFFIX=".bz2"
-       SUFFIX="${SUFFIX}.mdk"
-       ;;
-    *) SUFFIX="${SUFFIX}.mdk"
+    7)	DEFAULT_DB=0
+	DIST=".mdk7x"
+	;;
+    8)	DEFAULT_DB=3
+	MANPAGE_SUFFIX=".bz2"
+	DIST=".mdk8x"
+	;;
+    9)	DEFAULT=DB=4
+	MANPAGE_SUFFIX=".bz2"
+	DIST=".mdk9x"
+	;;
+    *)	DIST=".mdk"
     esac
     ;;
 
 *)  ;;
 esac
 
+[ -z "${POSTFIX_REQUIRES_DB}" ] && POSTFIX_REQUIRES_DB=${DEFAULT_DB}
+[ "${POSTFIX_REQUIRES_DB}" != "${DEFAULT_DB}" ] && {
+    SUFFIX=".db${POSTFIX_REQUIRES_DB}${SUFFIX}"
+    echo "  adding db${POSTFIX_REQUIRES_DB} support to spec file"
+}
+[ -n "${DIST}" ] && SUFFIX="${SUFFIX}${DIST}"
+
 # set default values if they are still undefined
 
-[ -z "$REQUIRES_DB3" ]			   && REQUIRES_DB3=0
-[ -z "$REQUIRES_DB4" ]			   && REQUIRES_DB4=0
 [ -z "$REQUIRES_INIT_D" ]		   && REQUIRES_INIT_D=0
+[ -z "$POSTFIX_INCLUDE_DB" ]		   && POSTFIX_INCLUDE_DB=0
+[ -z "$POSTFIX_REQUIRES_DB" ]		   && POSTFIX_REQUIRES_DB=0
 [ -z "$POSTFIX_LDAP" ]			   && POSTFIX_LDAP=0
 [ -z "$POSTFIX_MYSQL" ]			   && POSTFIX_MYSQL=0
 [ -z "$POSTFIX_REDHAT_MYSQL" ]		   && POSTFIX_REDHAT_MYSQL=0
-[ -z "$POSTFIX_REDHAT_DB3" ]               && POSTFIX_REDHAT_DB3=0
 [ -z "$POSTFIX_PCRE" ]			   && POSTFIX_PCRE=0
 [ -z "$POSTFIX_PGSQL" ]			   && POSTFIX_PGSQL=0
 [ -z "$POSTFIX_PGSQL2" ]		   && POSTFIX_PGSQL2=0
@@ -276,8 +297,8 @@ cat > `rpm --eval '%{_specdir}'`/postfix.spec <<EOF
 # --
 EOF
 sed "
-s!__REQUIRES_DB3__!$REQUIRES_DB3!g
-s!__REQUIRES_DB4__!$REQUIRES_DB4!g
+s!__INCLUDE_DB__!$POSTFIX_INCLUDE_DB!g
+s!__REQUIRES_DB__!$POSTFIX_REQUIRES_DB!g
 s!__REQUIRES_INIT_D__!$REQUIRES_INIT_D!g
 s!__DISTRIBUTION__!$distribution!g
 s!__SMTPD_MULTILINE_GREETING__!$POSTFIX_SMTPD_MULTILINE_GREETING!g
@@ -285,7 +306,6 @@ s!__SUFFIX__!$SUFFIX!g
 s!__LDAP__!$POSTFIX_LDAP!g
 s!__MYSQL__!$POSTFIX_MYSQL!g
 s!__REDHAT_MYSQL__!$POSTFIX_REDHAT_MYSQL!g
-s!__REDHAT_DB3__!$POSTFIX_REDHAT_DB3!g
 s!__PCRE__!$POSTFIX_PCRE!g
 s!__PGSQL__!$POSTFIX_PGSQL!g
 s!__PGSQL2__!$POSTFIX_PGSQL2!g

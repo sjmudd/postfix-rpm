@@ -73,7 +73,7 @@ testtls () {
     ( cd ${srcdir} && \
       POSTFIX_TLS=1 sh make-postfix.spec && \
       cd ${specdir} && \
-      rpm -bp postfix.spec ) || { echo "===> testing TLS patches: ** FAILED **"; exit 1; }
+      rpmbuild -bp postfix.spec ) || { echo "===> testing TLS patches: ** FAILED **"; exit 1; }
       echo "===> testing TLS patches: ** OK **"
       echo ""
     }
@@ -87,7 +87,7 @@ testvda () {
     ( cd ${srcdir} && \
       POSTFIX_VDA=1 sh make-postfix.spec && \
       cd ${specdir} && \
-      rpm -bp postfix.spec ) || { echo "===> testing VDA patches: ** FAILED **"; exit 1; }
+      rpmbuild -bp postfix.spec ) || { echo "===> testing VDA patches: ** FAILED **"; exit 1; }
       echo "===> testing VDA patches: ** OK **"
       echo ""
     }
@@ -104,7 +104,7 @@ build () {
   echo "===> building RPM package" && \
   echo "	output to ${build_output}..." && \
   if [ -z "$sign" ]; then echo "	NOT signing package"; fi && \
-  rpm -ba $sign postfix.spec ) 2>&1 | tee ${build_output}
+  rpmbuild -ba $sign postfix.spec ) 2>&1 | tee ${build_output}
 }
 
 # Check postfix tar ball has been download
