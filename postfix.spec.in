@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.61 2002/11/26 10:10:26 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.62 2002/12/02 14:16:38 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -58,7 +58,6 @@
 %define debug %{?_with_debug:1}%{?!_with_debug:0}
 
 # Version information
-%define pflogno -1.0.4
 %define vdaver 1.1.11
 %define pfixtls pfixtls-0.8.11a-1.1.11-0.9.6g
 %define pgver 1.1.4
@@ -91,7 +90,6 @@
 %define sendmail_path %{_sbindir}/sendmail.postfix
 
 %define init_directory /etc/rc.d/init.d
-%define cron_directory /etc/cron.daily
 
 %define whinge /usr/bin/logger -p mail.info -t postfix/rpm
 %define postfix_running %{daemon_dir}/master -t >/dev/null 2>&1; echo $?
@@ -124,13 +122,11 @@ Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_dir}/postfix-%{ta
 Source1: postfix-new-RPM-packages
 Source2: postfix-get-distribution
 Source3: postfix-etc-init.d-postfix
-Source4: postfix-etc-cron.daily-postfix
 Source5: postfix-aliases
 Source6: postfix-chroot-setup.awk
 Source7: postfix.spec.in
 Source8: make-postfix.spec
 Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{pfixtls}.tar.gz
-Source10: http://jimsun.linxnet.com/downloads/pflogsumm%{pflogno}.pl
 Source11: postfix-build
 Source12: http://www.corpit.ru/ftp/postfix/postfix-dict_cdb.tar.gz
 Source13: http://www.corpit.ru/ftp/postfix/README.CDB
@@ -152,9 +148,6 @@ Patch51: postfix-pg-raw.patch
 Patch99: ftp://ftp.wl0.org/SOURCES/postfix-1.1.11-multiline_greeting.patch
 
 BuildRoot: %{_tmppath}/postfix-%{package_version}-buildroot
-
-# Avoid Date::Calc dependencies on rh8
-AutoReq: no
 
 # Determine packaging requirements
 BuildRequires: gawk, perl, sed, ed, patch, rpm >= 4
@@ -215,7 +208,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.61 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.62 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -490,15 +483,6 @@ mkdir -p %{buildroot}%{queue_dir}/etc
 mkdir -p %{buildroot}%{queue_dir}/lib
 mkdir -p %{buildroot}%{queue_dir}/usr/lib/zoneinfo
 %endif
-
-# This is the /etc/cron.daily directory
-/bin/mkdir -p %{buildroot}%{cron_directory}
-
-# This file is named 1postfix to ensure it is run _before_ logrotate
-install %{_sourcedir}/postfix-etc-cron.daily-postfix %{buildroot}%{cron_directory}/1postfix
-
-# install pflogsumm.pl (used by daily cron) into %{_sbindir}
-install -m 755 %{_sourcedir}/pflogsumm%{pflogno}.pl %{buildroot}%{_sbindir}/pflogsumm.pl
 
 install auxiliary/rmail/rmail %{buildroot}%{rmail_path}
 
@@ -884,8 +868,6 @@ fi
 
 %dir %attr(0755, root, root)        %verify(not md5 size mtime) %{queue_dir}/pid
 
-%attr(0755, root, root) %verify(not md5 size mtime) %config(noreplace) %{cron_directory}/1postfix
-
 %doc 0README
 %doc COMPATIBILITY
 %doc HISTORY
@@ -956,8 +938,6 @@ fi
 %{_sbindir}/smtp-source
 %{_sbindir}/qmqp-source
 
-%attr(555,root,root) %{_sbindir}/pflogsumm.pl
-
 %{sendmail_path}
 %{mailq_path}
 %{newaliases_path}
@@ -975,7 +955,8 @@ fi
 %changelog
 
 * Tue Nov 26 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-2
-  - rename multiline-greeting patch, and add URL to it's location
+  - rename multiline-greeting patch, and add URL to its location
+  - remove pflogsumm script, will provide a separate rpm package
 
 * Tue Nov 26 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-1
   - update to 1.1.12
