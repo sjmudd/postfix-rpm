@@ -10,7 +10,7 @@ setup:
 	@sh setup-rpm-environment
 
 # Build the rpm
-default: rpm
+default: rpm 
 
 # commit changes to cvs
 commit:
@@ -20,9 +20,10 @@ commit:
 checkcvs:
 
 # to build the latest version of the rpm
-latest:
+update latest:
 	@echo updating CVS files
-	cvs update || : 
+	@cvs update || : 
+	@echo Making RPMs
 	$(MAKE) rpm
 
 # build the rpm
@@ -61,3 +62,7 @@ clean tidy:
 	dir=`rpm --eval '%{_tmppath}'`; rm -rf $$dir/*
 	dir=`rpm --eval '%{_builddir}'`; rm -rf $$dir/*
 	[ -e build-output ] && rm build-output || :
+
+# Give some help
+help:
+	@[ -f README ] && more README || echo "No help available sorry"
