@@ -1,3 +1,4 @@
+diff -r --context snapshot-20001217.orig/src/global/mail_params.h snapshot-20001217/src/global/mail_params.h
 *** snapshot-20001217.orig/src/global/mail_params.h	Sat Dec 16 17:22:27 2000
 --- snapshot-20001217/src/global/mail_params.h	Sun Jan 21 19:33:46 2001
 ***************
@@ -72,7 +73,3 @@ diff -r --context snapshot-20001217.orig/src/smtpd/smtpd.c snapshot-20001217/src
   	0,
       };
       static CONFIG_STR_TABLE str_table[] = {
-
---9jxsPFA5p3P2qPhR--
-
-------- End of forwarded message -------
