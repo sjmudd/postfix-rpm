@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.216 2002/12/10 07:35:53 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.217 2002/12/10 08:12:44 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -43,7 +43,9 @@
 %define pgsql2 __PGSQL2__
 %define sasl __SASL__
 %define sasl_library __SASL_LIBRARY__
+# TLS patches don't currently seem to work
 %define tls __TLS__
+%define tls 0
 %define tlsfix __TLSFIX__
 %define include_db __INCLUDE_DB__
 %define requires_db __REQUIRES_DB__
@@ -133,7 +135,7 @@ Source12: http://www.corpit.ru/ftp/postfix/postfix-dict_cdb.tar.gz
 Source13: http://www.corpit.ru/ftp/postfix/README.CDB
 
 # Obligatory Patches
-Patch1: postfix-config.patch
+Patch1: postfix-makedefs.patch
 Patch2: postfix-smtp_sasl_proto.c.patch
 Patch3: postfix-files.patch
 
@@ -206,7 +208,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.216 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.217 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -269,7 +271,7 @@ patch -p1 <%{pfixtls}/pfixtls.diff
 %endif
 
 # Apply obligatory patches
-%patch1 -p1 -b .config
+%patch1 -p1 -b .makedefs
 %patch2 -p1 -b .auth
 %patch3 -p1 -b .alternatives
 %patch7 -p1 -b .logrcpt
@@ -953,6 +955,9 @@ fi
 
 * Tue Dec 10 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021209-0.1
   - update to 1.1.12-20021209
+  - remove patch1: postfix-config.patch, not sure when it was added.
+  - patch makedefs to ensure that pcre support is NOT automatically
+    included unless explicitly requested
   
 * Mon Dec 09 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021202-1
   - update TLS patches

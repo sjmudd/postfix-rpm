@@ -1,11 +1,18 @@
---- snapshot-20001005/makedefs.orig	Thu Oct  5 14:09:30 2000
-+++ snapshot-20001005/makedefs	Fri Oct 13 09:51:07 2000
-@@ -159,7 +159,7 @@
- 		*)	echo "Unknown AIX version: `uname -v`." 1>&2; exit 1;;
- 		esac;;
-     Linux.2*)	SYSTYPE=LINUX2
--		if [ -f /usr/lib/lib/db-3.1.a -a -f /usr/include/db3/db_185.h ]
-+		if [ -f /usr/lib/libdb-3.1.a -a -f /usr/include/db3/db_185.h ]
- 		then
- 		    CCARGS="$CCARGS -DPATH_DB_H='<db3/db_185.h>'"
- 		    SYSLIBS="$SYSLIBS -ldb-3.1"
+--- postfix-1.1.12-20021209/makedefs.orig       Tue Dec 10 16:56:58 2002
++++ postfix-1.1.12-20021209/makedefs    Tue Dec 10 16:58:44 2002
+@@ -191,10 +191,11 @@
+                    echo "See the RELEASE_NOTES file for more information." 1>&2
+                    exit 1
+                fi
+-               if [ -f /usr/include/pcre/pcre.h ]
+-               then
+-                   CCARGS="$CCARGS -DHAS_PCRE -I/usr/include/pcre"
+-               fi
++# RPM Patch: don't automatically include PCRE support
++#              if [ -f /usr/include/pcre/pcre.h ]
++#              then
++#                  CCARGS="$CCARGS -DHAS_PCRE -I/usr/include/pcre"
++#              fi
+                # GDBM locks the DBM .pag file after open. This breaks postmap.
+                # if [ -f /usr/include/gdbm-ndbm.h ]
+                # then
