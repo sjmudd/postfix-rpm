@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.207 2002/12/02 16:00:23 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.208 2002/12/02 16:30:51 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -91,7 +91,6 @@
 %define sendmail_path %{_sbindir}/sendmail.postfix
 
 %define init_directory /etc/rc.d/init.d
-%define cron_directory /etc/cron.daily
 
 %define whinge /usr/bin/logger -p mail.info -t postfix/rpm
 %define postfix_running %{daemon_dir}/master -t >/dev/null 2>&1; echo $?
@@ -124,7 +123,6 @@ Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_dir}/postfix-%{ta
 Source1: postfix-new-RPM-packages
 Source2: postfix-get-distribution
 Source3: postfix-etc-init.d-postfix
-Source4: postfix-etc-cron.daily-postfix
 Source5: postfix-aliases
 Source6: postfix-chroot-setup.awk
 Source7: postfix.spec.in
@@ -211,7 +209,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.207 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.208 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
