@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.63 2001/02/07 18:49:57 root Exp $
+# $Id: postfix.spec.in,v 2.64 2001/02/07 19:44:25 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -444,10 +444,10 @@ queue_directory_remove () {
 if [ "$1" = 0 ]; then
     # stop postfix silently, but only if it's running
     if [ `%{postfix_running}` -eq 1 ]; then
-        echo "preun - RUNNING"
+#       echo "preun - RUNNING"
         stop_postfix
     else
-        echo "preun - NOT RUNNING"
+#       echo "preun - NOT RUNNING"
         true
     fi
 
@@ -488,10 +488,10 @@ restart_postfix () {
 if [ "$1" != 0 ]; then
     # restart postfix, but only if it was running
     if [ `%{postfix_running}` -eq 1 ]; then
-        echo "postun - RUNNING"
+#       echo "postun - RUNNING"
         restart_postfix
     else
-        echo "postun - NOT RUNNING"
+#       echo "postun - NOT RUNNING"
         true
     fi
 fi
@@ -599,10 +599,13 @@ fi
 #       Tim Powers <timp@redhat.com>
 
 %changelog
-* Tue Feb 06 2001 Simon Mudd <sjmudd@pobox.com>
+* Wed Feb 07 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20010204-2, various changes - suggestions from Ben Cross
   - uninstall is not quite right.
   - spec file had a few rpmlint problems
+  - one minor thing I can't find.  uninstalling gives a message
+	/var/spool/postfix/maildrop - directory not empty - why????
+	/etc/postfix not removed, but not too worried about this.
 
 * Mon Feb 05 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20010204-1, upgrade to latest snapshot
