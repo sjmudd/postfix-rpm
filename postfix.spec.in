@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.267 2004/04/06 07:52:43 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.268 2004/04/06 22:15:11 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -94,14 +94,13 @@
 %define ftp_dir experimental
 %endif
 # package_version fixes
-# - rpm thinks RCn-yyyymmdd is newer than yyyymmdd values so put the RC at the end
 # - rpm does not accept '-' in version strings so replace them with a '.'
 #   (only affects snapshots)
-%define package_version %(echo %{tarball_version} | sed 's/\(RC[0-9]*\)-\(.*\)/\2-\1/' | sed 's/-/./g')
+%define package_version %(echo %{tarball_version} | sed 's/-/./g')
 
 %define docdir %{_docdir}/%{name}-%{version}
 %define sample_dir %{docdir}/samples
-%define readme_dir %{docdir}/README_FILES
+%define readme_dir %{docdir}/readme
 
 %define newaliases_path %{_bindir}/newaliases.postfix
 %define mailq_path %{_bindir}/mailq.postfix
@@ -145,6 +144,10 @@ Source11: postfix-build
 Source12: http://www.corpit.ru/ftp/postfix/postfix-dict_cdb-%{cdb_version}.tar.gz
 Source14: ftp://ftp.stack.nl/pub/postfix/tls+ipv6/current/%{ipv6_version}.patch.gz
 Source16: http://postfix.wl0.org/ftp/postfinger/%{postfinger}
+# Sources >= 100 are config files
+Source100: postfix-sasl.conf
+Source101: postfix-pam.conf
+Source102: postfix-saslauthd.conf
 
 # Obligatory Patches
 Patch2: postfix-smtp_sasl_proto.c.patch
@@ -234,7 +237,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.267 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.268 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -394,14 +397,15 @@ CCARGS="${CCARGS} -fsigned-char"
 %endif
 
 %if %{sasl}
-  if [ "%{sasl}" = 1 ]; then
+  %if %{sasl} <= 1
+    %define sasl_lib_dir %{_libdir}/sasl
     CCARGS="${CCARGS} -DUSE_SASL_AUTH"
-    AUXLIBS="${AUXLIBS} -lsasl"
-  fi
-  if [ "%{sasl}" = 2 ]; then
+    AUXLIBS="${AUXLIBS} -L%{sasl_lib_dir} -lsasl"
+  %else
+    %define sasl_lib_dir %{_libdir}/sasl2
     CCARGS="${CCARGS} -I/usr/include/sasl -DUSE_SASL_AUTH"
-    AUXLIBS="${AUXLIBS} -lsasl2"
-  fi
+    AUXLIBS="${AUXLIBS} -L%{sasl_lib_dir} -lsasl2"
+  %endif
 %endif
 
 %if %{tls}
@@ -468,10 +472,6 @@ umask 022
 
 %{?!debug:strip -R .comment --strip-unneeded bin/* libexec/*}
 
-# create %{sample_dir} though I think this is no longer being used and
-# should therefore be removed. (2004-04-05)
-mkdir -p ${RPM_BUILD_ROOT}%{sample_dir}
-
 # Rename man pages so they we don't conflict with sendmail's
 # Binaries are handled in the defines in preamble of specfile
 mv man/man1/mailq.1      man/man1/mailq.postfix.1
@@ -495,9 +495,6 @@ sh postfix-install -non-interactive \
        sample_directory=%{sample_dir} \
        readme_directory=%{readme_dir} || exit 1
 
-ln -sf %{sample_dir} ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/samples
-ln -sf %{readme_dir} ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/README_FILES
-
 # RPM compresses man pages automatically.  Edit postfix-files to reflect this,
 # so post-install won't get confused.
 ed ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/postfix-files <<EOF || exit 1
@@ -513,7 +510,7 @@ bin/postconf -c ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix -e \
 	"alias_database = hash:%{_sysconfdir}/postfix/aliases" \
 || exit 1
 
-# This installs into the "init" directory
+# This installs into the /etc/rc.d/init.d directory
 mkdir -p ${RPM_BUILD_ROOT}%{init_directory}
 install -c %{_sourcedir}/postfix-etc-init.d-postfix \
                   ${RPM_BUILD_ROOT}%{init_directory}/postfix
@@ -526,10 +523,8 @@ chmod 644 ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/aliases
 
 touch ${RPM_BUILD_ROOT}/%{_sysconfdir}/postfix/aliases.db
 
-for i in active bounce corrupt defer deferred flush incoming private saved; do
-    mkdir -p ${RPM_BUILD_ROOT}%{_var}/spool/postfix/$i
-done
-for i in hold maildrop public pid; do
+for i in active bounce corrupt defer deferred flush incoming private saved \
+         hold maildrop public pid; do
     mkdir -p ${RPM_BUILD_ROOT}%{_var}/spool/postfix/$i
 done
 
@@ -543,8 +538,24 @@ done
 install -c -m 755 %{_sourcedir}/%{postfinger} ${RPM_BUILD_ROOT}%{_bindir}/postfinger
 install -c -m 755 %{_sourcedir}/postfix-chroot.sh ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/
 
-mkdir -p ${RPM_BUILD_ROOT}%{readme_dir}
+# I think %{sample_dir} is not longer used and should therefore be removed. (2004-04-05)
+[ -d "${RPM_BUILD_ROOT}%{sample_dir}" ] || mkdir -p ${RPM_BUILD_ROOT}%{sample_dir}
+[ -d "${RPM_BUILD_ROOT}%{readme_dir}" ] || mkdir -p ${RPM_BUILD_ROOT}%{readme_dir}
 install -c -m 644 %{_sourcedir}/README-Postfix-SASL-RedHat.txt ${RPM_BUILD_ROOT}%{readme_dir}/
+
+# added for convenience
+ln -sf %{sample_dir} ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/samples
+ln -sf %{readme_dir} ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/readme
+
+# Install the smtpd.conf file for SASL support.
+%if %{sasl}
+mkdir -p ${RPM_BUILD_ROOT}%{sasl_lib_dir}
+install -m 644 %SOURCE100 ${RPM_BUILD_ROOT}%{sasl_lib_dir}/smtpd.conf
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/pam.d
+install -m 644 %SOURCE101 ${RPM_BUILD_ROOT}%{_sysconfdir}/pam.d/smtp.postfix
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
+install -m 644 %SOURCE102 ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig/saslauthd
+%endif
 
 # fix path to perl and certs
 %if %{tls}
