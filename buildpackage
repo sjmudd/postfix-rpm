@@ -18,12 +18,12 @@ BACKUP_IFS="$IFS"
 build_output=build-output
 current_directory=`pwd`
 sign='--sign'
-test_tls=0
+test_tls=1
  
 USAGE="Usage: $0 [name=value] [option]
     --no_check              Do not check if the files have changed against the version stored in cvs.
     --no_sign               Do not sign the package.
-    --test_tls              Test the TLS patches apply cleanly before building the package
+    --no_test_tls           Do not test the TLS patches apply cleanly before building the package
     name=value              Specify an installation parameter".
  
 # Process command-line options and parameter settings. Work around
@@ -33,11 +33,11 @@ USAGE="Usage: $0 [name=value] [option]
 for arg
 do
     case $arg in
-         *=*) IFS= eval $arg; IFS="$BACKUP_IFS";;
-  --no_check) no_check=1;;
-   --no_sign) sign=;;
-  --test_tls) test_tls=1;;
-           *) echo $0: Error: $USAGE 1>&2; exit 1;;
+          *=*) IFS= eval $arg; IFS="$BACKUP_IFS";;
+   --no_check) no_check=1;;
+    --no_sign) sign=;;
+--no_test_tls) test_tls=0;;
+            *) echo $0: Error: $USAGE 1>&2; exit 1;;
     esac
     shift
 done
@@ -69,7 +69,7 @@ testtls () {
     ( cd ${srcdir} && \
       POSTFIX_TLS=1 sh make-postfix.spec && \
       cd ${specdir} && \
-      rpm -bp postfix.spec ) || ( echo "Testing TLS patches: ** FAILED **"; exit 1 )
+      rpm -bp postfix.spec ) || { echo "Testing TLS patches: ** FAILED **"; exit 1; }
       echo "Testing TLS patches: ** OK **"
     }
 }

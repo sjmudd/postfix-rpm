@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.21 2002/03/20 20:07:49 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.22 2002/03/20 20:36:25 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -51,6 +51,12 @@
 %define POSTDROP_GID __POSTDROP_GID__
 %define VDA __VDA__
 %define DISABLE_CHROOT __DISABLE_CHROOT__
+# Temporary solution to ensure that if TLS is used the helo_patch isn't
+%if %{TLS}
+%define INCLUDE_HELO_NAME_PATCH 0
+%else
+%define INCLUDE_HELO_NAME_PATCH 1
+%endif
 
 # Version information
 %define pflogno -1.0.4
@@ -204,7 +210,7 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.21 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.22 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING},VDA=%{VDA},PGSQL=%{PGSQL}, PGSQL2=%{PGSQL2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -275,7 +281,9 @@ patch -p1 <%{tlsno}/pfixtls.diff
 # Apply obligatory patches
 %patch1 -p1 -b .config
 %patch2 -p1 -b .auth
+%if %{INCLUDE_HELO_NAME_PATCH}
 %patch3 -p1 -b .helo
+%endif
 
 # Apply optional patches
 %if %{VDA}
