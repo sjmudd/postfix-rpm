@@ -1,6 +1,6 @@
 make-postfix.spec
 pfixtls-0.7.2-20010228-pl02-0.9.6a.tar.gz
-pflogsumm.pl
+pflogsumm-0.9.0.pl
 postfix-INSTALL.sh.patch
 postfix-INSTALL.sh.patch2
 postfix-INSTALL.sh.patch3
