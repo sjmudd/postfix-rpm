@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.177 2002/01/01 12:06:18 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.178 2002/01/07 09:33:51 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -29,6 +29,7 @@
 # MYSQL	      - include MySQL support using MySQL's (www.mysql.com) 'MySQL*.rpm' packages
 # REDHATMYSQL - include MySQL support use RedHat's 'mysql*.rpm' packages
 # TLS  - include TLS support
+# TLSFIX - include TLS FIX support (apparently needed for rh6.2)
 
 %define distribution __DISTRIBUTION__
 %define LDAP __LDAP__
@@ -37,12 +38,13 @@
 %define PCRE __PCRE__
 %define SASL __SASL__
 %define TLS __TLS__
+%define TLSFIX __TLSFIX__
 %define REQUIRES_DB3 __REQUIRES_DB3__
 %define REQUIRES_INIT_D __REQUIRES_INIT_D__
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
 
 %define branch snapshot
-%define vers 20011226
+%define vers 20020106
 %define patchlevel pl01
 %define version1 %{vers}
 %define version2 %{vers}
@@ -148,11 +150,11 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.177 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.178 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
-LDAP=%{LDAP}, SASL=%{SASL}, PCRE=%{PCRE}, TLS=%{TLS}, MYSQL=%{MYSQL}, REDHATMYSQL=%{REDHATMYSQL}
+LDAP=%{LDAP}, SASL=%{SASL}, PCRE=%{PCRE}, TLS=%{TLS}, TLSFIX=%{TLSFIX}, MYSQL=%{MYSQL}, REDHATMYSQL=%{REDHATMYSQL}
 REQUIRES_DB3=%{REQUIRES_DB3}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}
 
 If you need to use postfix with alternative options you will need to
@@ -309,6 +311,13 @@ CCARGS="${CCARGS} -fsigned-char"
   AUXLIBS="${AUXLIBS} -lsasl"
 %endif
 %if %{TLS}
+# See http://www.openldap.org/lists/openldap-devel/200105/msg00008.html
+# - it seems rh6.2 needs LIBS=-ldl to build correctly.
+# - reported by Jauder Ho <jauderho@carumba.com>
+  if [ "${TLSFIX}" = 1 ]; then
+    LIBS=-ldl
+  fi
+  LIBS=
   CCARGS="${CCARGS} -DHAS_SSL -I/usr/include/openssl"
   AUXLIBS="${AUXLIBS} -lssl -lcrypto"
 %endif
@@ -761,6 +770,10 @@ fi
 #
 
 %changelog
+
+* Wed Jan 01 2002 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20020106-1, update to latest snapshot
+  (candidate for next official postfix release)
 
 * Wed Jan 01 2002 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20011226-1, update to latest snapshot

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.32 2001/11/15 11:55:23 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.33 2002/01/07 09:33:51 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -23,6 +23,7 @@
 #
 # REQUIRES_DB3		add db3 package to requires list
 # REQUIRES_INIT_D	add /etc/init.d/ to requires list
+# TLSFIX		enable a fix for TLS support on RH 6.2 (see spec file)
 #
 # To rebuild the spec file, set the appropriate environment
 # variables and do the following:
@@ -36,6 +37,7 @@
 SUFFIX=
 REQUIRES_DB3=
 REQUIRES_INIT_D=
+TLSFIX=0
 
 # Determine the distribution
 DISTRIBUTION=`rpm -qa | grep -- -release | egrep '(redhat-|mandrake-)'`
@@ -102,6 +104,10 @@ fi
 if [ "$POSTFIX_TLS" = 1 ]; then
     echo "  adding TLS support to spec file"
     SUFFIX="${SUFFIX}.tls"
+
+    if [ ${releasename} = 'redhat' && ${major} = 6 ]; then
+        TLSFIX=1
+    fi
 fi
 
 # Determine the correct db files to use. RedHat 7 requires db3
@@ -181,6 +187,7 @@ s!__REDHAT_MYSQL__!$POSTFIX_REDHAT_MYSQL!g
 s!__PCRE__!$POSTFIX_PCRE!g
 s!__SASL__!$POSTFIX_SASL!g
 s!__TLS__!$POSTFIX_TLS!g
+s!__TLSFIX__!$TLSFIX!g
 " postfix.spec.in >> `rpm --eval '%{_specdir}'`/postfix.spec
 
 # end of make-postfix.spec
