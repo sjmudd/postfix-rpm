@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.198 2002/11/22 14:39:51 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.199 2002/11/22 15:00:08 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -211,7 +211,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.198 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.199 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -338,8 +338,9 @@ CCARGS="${CCARGS} -fsigned-char"
 %endif
 
 %if %{include_db}
-  # specify where there compiler should attempt to find db.h file
+  # Currently this is a rh6x hack (?), perhaps fix this more generally later
   CCARGS="-I/usr/include/db%{requires_db} ${CCARGS}"
+  AUXLIBS="${AUXLIBS} -ldb-3.1"
 %endif
 
 %if %{cdb}
