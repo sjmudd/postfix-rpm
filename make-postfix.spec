@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.35.2.13 2002/10/28 15:25:46 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.35.2.14 2002/11/04 10:48:53 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -96,9 +96,22 @@ if [ "$POSTFIX_CDB" = 1 ]; then
     echo "  adding CDB support to spec file"
 #   SUFFIX="${SUFFIX}.cdb"
 fi
+
+# LDAP support is provided by default on redhat >= 7.2, therefore if
+# adding LDAP support on these platforms don't bother to include the .ldap
+# suffix. (It is assumed.)
 if [ "$POSTFIX_LDAP" = 1 ]; then
     echo "  adding LDAP support to spec file"
-    # SUFFIX="${SUFFIX}.ldap"
+    addsuffix=1
+
+    case ${releasename} in
+    redhat)
+        [ "${major}" -eq 7 -a "${minor}" -ge 2 ] && addsuffix=0
+        [ "${major}" -ge 8 ] && addsuffix=0
+        ;;
+    esac
+
+    [ "$addsuffix" -eq 1 ] && SUFFIX="${SUFFIX}.ldap"
 fi
 if [ "$POSTFIX_PCRE" = 1 ]; then
     echo "  adding PCRE  support to spec file"
