@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.33 2000/12/22 15:55:15 root Exp $
+# $Id: postfix.spec.in,v 2.34 2000/12/22 16:18:17 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -41,6 +41,8 @@ Patch3:  postfix-INSTALL.sh.patch
 # Optional patches - set the appropriate environment variables to include
 #                    them when building the package
 #
+# applied if POSTFIX_BROKEN_AUTH=1
+Patch97: postfix-broken_auth.patch
 # applied if POSTFIX_SAFE_MYNETWORKS=1
 Patch98: postfix-safe_mynetworks.patch
 # applied if POSTFIX_SMTPD_MULTILINE_GREETING=1
@@ -132,6 +134,11 @@ awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > co
 %patch3 -p1 -b .install
 
 # APPLY OPTIONAL PATCHES
+
+# Optionally apply Daniel Roesen's support patch for 250-AUTH= ESMTP banner
+if [ "X$POSTFIX_BROKEN_AUTH" = "X1" ]; then
+%patch97 -p1 -b .brokenauth
+fi
 
 # Optionally apply Daniel Roesen's safe mynetworks patch
 if [ "X$POSTFIX_SAFE_MYNETWORKS" = "X1" ]; then
@@ -454,7 +461,8 @@ rm -rf ${RPM_BUILD_ROOT}
 - snapshot-20001217-2, major changes so that I
   can build any spec file to include mysql, ldap, pcre
   and AUTH support.  This is not finished but basically
-  just requires the Requires: lines to work properly
+  just requires the Requires: lines to work properly.
+- add Broken auth support Daniel Roesen <droesen@entire-systems.com>
 
 * Mon Dec 18 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001217-1, no changes, updating to latest snapshot
