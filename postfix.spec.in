@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.59 2003/06/16 17:38:41 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.60 2003/06/16 17:41:00 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -49,7 +49,9 @@
 %define mysql_include %(echo "%{mysql_paths}" | cut -d: -f1)
 %define mysql_lib %(echo "%{mysql_paths}" | cut -d: -f2)
 %define mysql_query __MYSQL_QUERY__
+# This currently doesn't work 16-06-2003, so disable
 %define mysql_dict_reg __MYSQL_DICT_REG__
+%define mysql_dict_reg 0
 %define pcre __PCRE__
 %define pgsql __PGSQL__
 %define pgsql2 __PGSQL2__
@@ -226,7 +228,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.59 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.60 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -1039,6 +1041,7 @@ umask 022
 
 * Mon Jun 16 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.12-1.1
   - remove POSTFIX_PROXY_READ_MAPS/proxy_read_maps as no longer necessary
+  - disable mysql_dict_reg in spec file as currently reported not to work
 
 * Wed Jun 11 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.12-1
   - update VDA patch
