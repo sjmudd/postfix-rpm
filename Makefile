@@ -57,3 +57,4 @@ clean tidy:
 	for i in `ls $$dir`; do [ -L $$i ] && rm $$i || :; done
 	dir=`rpm --eval '%{_tmppath}'`; rm -rf $$dir/*
 	dir=`rpm --eval '%{_builddir}'`; rm -rf $$dir/*
+	rm build-output || :

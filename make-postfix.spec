@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.17 2003/06/16 17:38:41 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.18 2003/07/13 15:27:39 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -42,9 +42,15 @@
 # POSTFIX_CDB		support for Constant Database, CDB, by Michael Tokarev
 #			<mjt@corpit.ru>, as originally devised by djb.
 #
-# The following external variables can be used to define the postfix
-# uid/gid and postdrop gid if the standard values I'm assigning are
-# not correct on your system.
+# Distribution Specific Configurations
+# ------------------------------------
+#
+# Please advise me if any of these assumptions are incorrect.
+#
+# Red Hat Linux Enterprise and Advanced Server 2.1 require
+# REQUIRES_INIT_D	add /etc/init.d/ to requires list
+# POSTFIX_DB=3		add db3 package to requires list
+# LDAP support is included
 #
 # Red Hat Linux 9 requires
 # REQUIRES_INIT_D	add /etc/init.d/ to requires list
@@ -110,7 +116,7 @@ fi
 
 # LDAP support is provided by default on:
 #	redhat >= 7.2
-#	rhes >= 2.1
+#	rhes, rhas >= 2.1
 #	yellowdog >= 2.3.
 # Therefore if adding LDAP support on these platforms don't include the .ldap
 # suffix:  It is assumed.  We also automatically include LDAP support on
@@ -124,7 +130,7 @@ mandrake)
     DEFAULT_LDAP=1
     ;;
 
-rhes)
+rhes|rhas)
     DEFAULT_LDAP=1
     ;;
 
@@ -281,10 +287,11 @@ yellowdog)
     REQUIRES_INIT_D=1
     ;;
 
-rhes)
+rhes|rhas)
     DEFAULT_DB=3
     REQUIRES_INIT_D=1
-    DIST=".rhes21"
+    [ ${releasename} = "rhes" ] && DIST=".rhes21"
+    [ ${releasename} = "rhas" ] && DIST=".rhas21"
     ;;
 
 redhat)
