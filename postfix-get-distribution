@@ -16,9 +16,10 @@
 # - Fedora
 # - YellowDog Linux
 # - Whitebox Linux (reports as RedHat Enterprise Linux for building)
+# - CentOS Linux (reports as RedHat Enterprise Linux for building)
 # - Mandrake Linux
 
-version=$(echo '$Revision: 1.10 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
+version=$(echo '$Revision: 1.11 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
 myname=$(basename $0)
 
 # Provide a usage message
