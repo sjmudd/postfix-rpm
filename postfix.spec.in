@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.28 2000/12/14 20:29:22 root Exp $
+# $Id: postfix.spec.in,v 2.29 2000/12/17 22:46:32 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -16,7 +16,7 @@ PreReq: /sbin/chkconfig
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
 Version: 20001212
-Release: 2
+Release: 3
 Packager: Simon J Mudd <sjmudd@pobox.com> but see description below
 Vendor: None -- see packager
 Distribution: Experimental
@@ -53,11 +53,13 @@ BuildRoot: /var/tmp/%{name}-%{version}-root
 #Requires: pcre - confirm this please someone?
 ##########
 # Requires for SASL
-#Requires: ? - please help me and confirm the package required
+#BuildReq: cyrus-sasl-devel
+#Requires: cyrus-sasl
 ##########
 # Requries for MySQL build
-#Requries: MySQL-3.22.32-1
+#BuildReq: MySQL-devel
 #Requires: MySQL-devel
+#Requires: MySQL
 
 
 %description
@@ -264,7 +266,7 @@ mkdir -p ${RPM_BUILD_ROOT}%{cron_directory}
 install -c ${RPM_SOURCE_DIR}/postfix-etc-cron.daily-postfix ${RPM_BUILD_ROOT}%{cron_directory}/postfix
 install -c auxiliary/rmail/rmail ${RPM_BUILD_ROOT}%{rmail_path}
 
-gzip -9f ${RPM_BUILD_ROOT}%{_mandir}/man{1,5,8}/* ||:
+#gzip -9f ${RPM_BUILD_ROOT}%{_mandir}/man{1,5,8}/* ||:
 
 #
 # copy new aliases files and generate a ghost aliases.db file
@@ -326,13 +328,25 @@ if [ "$1" = 0 ]; then
             test -d $i && rmdir $i
         done
         # selectively remove the rest of the queue directory structure
-        # first the ones which are easy
-        for dir in corrupt deferred incoming maildrop pid private public saved \
-                   active bounce defer flush; do
-            # dangerous I know
+        # first remove the "queues" (and assume the hash depth is still 2)
+	for dir in active bounce defer flush; do
+	    for a in 0 1 2 3 4 5 6 7 8 9 A B C D E F; do
+		test -d $dir/$a && {
+		    for b in 0 1 2 3 4 5 6 7 8 9 A B C D E F; do
+		        test -d $dir/$a/$b && (
+		            rm -f $dir/$a/$b/*
+		            rmdir $dir/$a/$b
+		        )
+		    done
+		    rmdir $dir/$a
+		}
+	    done
+	done
+	# now remove the other directories
+        for dir in corrupt deferred incoming maildrop pid private public saved; do
             test -d $dir && {
-                ( cd $dir && rm -rf * )
-                ( rmdir $dir || echo "unable to remove directory %{queue_directory}/$dir" )
+                rm -f $dir/*
+                rmdir $dir || echo "unable to remove directory %{queue_directory}/$dir"
             }
         done
     }
@@ -453,6 +467,12 @@ rm -rf ${RPM_BUILD_ROOT}
 #	Bennett Todd <bet@mordor.net>
 
 %changelog
+* Thu Dec 13 2000 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001212-3, minor fixes
+  %{queue_directory} removal while correct as probably a bit dangerous
+  so try and be a bit safer.
+  stop gzipping the man pages (I think this is done automatically now)
+
 * Thu Dec 13 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001212-2, minor fixes
   %{queue_directory} removal wasn't correct
