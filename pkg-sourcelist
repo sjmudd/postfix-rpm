@@ -1,7 +1,7 @@
 make-postfix.spec
 pfixtls-0.8.12-2.0.0.1-0.9.6h.tar.gz
-postfix-1.1.11-20020822_quota.patch.gz
 postfix-1.1.12-20021124-multiline-greeting.patch
+postfix-2.0.0.patch.gz
 postfix-aliases
 postfix-bounce_notify_util.c.patch
 postfix-build

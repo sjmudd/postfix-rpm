@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.6 2003/01/08 18:35:00 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.7 2003/01/13 07:28:40 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -52,7 +52,6 @@
 %define smtpd_multiline_greeting __SMTPD_MULTILINE_GREETING__
 # VDA doesn't appear to work on these snapshots
 %define vda __VDA__
-%define vda 0
 %define disable_chroot __DISABLE_CHROOT__
 %define ipv6 __IPV6__
 
@@ -61,16 +60,16 @@
 %define debug %{?_with_debug:1}%{?!_with_debug:0}
 
 # Version information
-%define vdaver 1.1.11-20020822
+%define vdaver 2.0.0.2
 %define pfixtls pfixtls-0.8.12-2.0.0.1-0.9.6h
 %define pgver 1.1.4
 %define pfixipv6 tls+ipv6-1.10-pf-2.0.0.2
 
 # If set to 1 if official version, 0 if snapshot
 %define official 1
-%define ver 2.0.0.2
+%define ver 2.0.1
 %define mail_release_date 20021219
-%define rel 3
+%define rel 1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -137,12 +136,11 @@ Source13: http://www.corpit.ru/ftp/postfix/README.CDB
 Source14: ftp://ftp.stack.nl/pub/postfix/tls+ipv6/1.10/%{pfixipv6}.patch.gz
 
 # Obligatory Patches
-Patch1: postfix-makedefs.patch
 Patch2: postfix-smtp_sasl_proto.c.patch
 Patch3: postfix-files.patch
 
 # Optional patches
-Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}_quota.patch.gz
+Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}.patch.gz
 # Adapted from http://www.stahl.bau.tu-bs.de/~hildeb/postfix/duchovni/log_recipient.gz
 Patch7: postfix-log_recipient
 Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pgver}.patch
@@ -210,7 +208,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.6 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.7 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -277,7 +275,6 @@ fi
 %endif
 
 # Apply obligatory patches
-%patch1 -p1 -b .makedefs
 %patch2 -p1 -b .auth
 %patch3 -p1 -b .alternatives
 %patch7 -p1 -b .logrcpt
@@ -881,6 +878,7 @@ fi
 %doc HISTORY
 %doc INSTALL
 %doc PORTING
+%doc RELEASE_NOTES-1.1
 
 %if %{cdb}
 %doc README.CDB
@@ -919,6 +917,7 @@ fi
 %{daemon_dir}/nqmgr
 %{daemon_dir}/pickup
 %{daemon_dir}/pipe
+%{daemon_dir}/proxymap
 %{daemon_dir}/qmgr
 %{daemon_dir}/qmqpd
 %{daemon_dir}/showq
@@ -963,6 +962,10 @@ fi
 #
 
 %changelog
+
+* Mon Jan 13 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.1-1
+  - update to 2.0.1
+  - update vda patch to 2.0.0.2
 
 * Wed Jan 08 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.0.2-3
   - cosmestic: lowercase some macro names
