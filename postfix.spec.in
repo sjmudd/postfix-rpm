@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.35 2001/05/01 16:10:37 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.36 2001/05/02 10:47:28 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -47,7 +47,7 @@
 %define patchlevel pl02
 %define version1 %{vers}-%{patchlevel}
 %define version2 %{vers}_%{patchlevel}
-%define rel  1.1
+%define rel  2
 %define tlsno pfixtls-0.7.1-20010228-pl01-0.9.6a
 
 Name: postfix
@@ -72,6 +72,7 @@ Source6: postfix-chroot-setup.awk
 Source7: postfix.spec.in
 Source8: make-postfix.spec
 Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{tlsno}.tar.gz
+Source10: http://jimsun.linxnet.com/downloads/pflogsumm.pl
 Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
 # required to install smtp-sink and smtp-source
@@ -137,7 +138,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.35 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.36 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -642,6 +643,13 @@ fi
 #
 
 %changelog
+
+* Wed May 02 2001 Simon Mudd <sjmudd@pobox.com>
+- postfix-20010228_pl02release-2, pflogsumm.pl was not included as a 
+  Source file so building from source failed.  Fixed.
+  Thanks to Emmanuel Seyman <seyman@moe.acticiel.com> for pointing this
+  out.
+
 * Tue May 01 2001 Simon Mudd <sjmudd@pobox.com>
 - postfix-20010228_pl02release-1, update for postfix-20010228-pl02
   - rename %{cron_directory}/postfix to 1postfix to ensure that it is 
