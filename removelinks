@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Revision: 2.1 $
+# $Revision: 2.2 $
 # File to make links from this directory to the SOURCES directory for all files
 
 HERE=`pwd`
@@ -7,7 +7,6 @@ BASE=/usr/src/redhat/SOURCES
 
 echo Removing links from $BASE
 for i in *; do
-  if [ -f $i && -L $BASE/$i ]; then
-    rm $BASE/$i && echo $i
-  fi
+  test -L $BASE/$i && test -f $i && \
+    rm $BASE/$i && echo "  $i"
 done

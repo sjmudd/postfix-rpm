@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Revision: 2.2 $
+# $Revision: 2.3 $
 # File to make links from this directory to the SOURCES directory for all files
 
 HERE=`pwd`
@@ -7,7 +7,6 @@ BASE=/usr/src/redhat/SOURCES
 
 echo Linking files to directory $BASE
 for i in *; do
-  if [ -f $i ]; then
-    ln -s $HERE/$i $BASE/$i && echo $i
-  fi
+  test -f $i && test ! -x $i && \
+    ln -s $HERE/$i $BASE/$i && echo "  $i"
 done
