@@ -29,24 +29,30 @@ msg_debug "$myname: started"
 # I use postfix-current, postfix-2.1, postfix-2.0, postfix-1.1 by renaming
 # postfix-rpm after checking out the appropriate tree.
 
+msg_info "checking for directory ~/cvs"
 [ ! -d ~/cvs ] && {
-    mkdir ~/cvs && msg_info "Creating directory ~/cvs" || \
-	msg_warn "Could not create directory ~/cvs"
-} || msg_info "Directory ~/cvs exists"
+    mkdir ~/cvs && msg_info "- Creating directory ~/cvs" || \
+	msg_warn "- could not create directory ~/cvs"
+} || msg_info "- directory exists: OK"
 
 # check if ~/.rpmmacros exists, DON'T overwrite it.
+msg_info "checking for file ~/.rpmmacros"
 [ ! -e ~/.rpmmacros ] && {
     cp rpmmacros ~/.rpmmacros && \
-	msg_info "Installing default RPM Macros file..." || \
-	msg_warn "Could not copy rpmmacros to ~/.rpmmacros"
-} || msg_info "RPM macros already installed in ~/.rpmmacros (not overwriting, but consider using file rpmmacros)"
+	msg_info "- Installing default RPM Macros file..." || \
+	msg_warn "- Could not copy rpmmacros to ~/.rpmmacros"
+} || {
+    msg_info "- RPM macros already installed in ~/.rpmmacros (not overwriting)"
+    msg_info "- consider using file rpmmacros or comparing the 2 files"
+}
 
 for param in _topdir _sourcedir _specdir _tmppath _builddir \
 	 _srcrpmdir _rpmdir; do
-    dir=$(rpm --eval '%{$param}' | sed -e 's;%{name};postfix;')
+    dir=$(rpm --eval "%{$param}" | sed -e 's;%{name};postfix;')
+    msg_info "checking for directory $dir"
     [ ! -d "$dir" ] && {
-        mkdir -p $dir && msg_info "Creating directory $dir" || \
-		msg_warn "Could not create directory $dir"
-    } || msg_info "Directory $dir required by macro %{$param} already exists"
+        mkdir -p $dir && msg_info "- Creating directory $dir" || \
+		msg_warn "- Could not create directory $dir"
+    } || msg_info "- Directory exists: OK"
 done
 

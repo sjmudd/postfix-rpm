@@ -1,13 +1,18 @@
 #!/bin/sh
 #
+# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/buildpackage,v 2.24.2.2 2004/07/18 21:59:42 sjmudd Exp $
+#
 # Shell script used to build my packages
 # - checks if the needed files exist and retrieve them
 # - checks if the files have been changed against those stored in the CVS
 #   repository
 #
+[ -n "$DEBUG" ] && set -x
+#set -x
+myname=$(basename $0)
 
-# only add the file if $add is blank
-function add_to_pkg_sourcelist {
+# add the file if $add is blank
+add_to_pkg_sourcelist () {
     local file=$1
     local filelist=$2
     local add=$3
@@ -20,6 +25,50 @@ function add_to_pkg_sourcelist {
                 exit 1
         }
     fi
+}
+
+# download_if_necessary to srcdir base/file if not already there
+#
+# add_file:
+# leave blank unless you want to disable updating the filelist
+# for example with the postfix source tar ball
+
+download_if_necessary () {
+    local srcdir=$1
+    local base=$2
+    local file=$3
+    local add_file=$4
+
+    echo -n "	--> checking ${file} ..."
+    if [ ! -f "${srcdir}/${file}" ]; then
+        echo " not found"
+	echo "	downloading from ${base} to ${srcdir}..."
+        (
+            cd ${srcdir} && \
+            wget ${base}/${file} && \
+	    add_to_pkg_sourcelist ${file} ${pkgdir}/pkg-sourcelist ${add_file}
+        )
+    else
+        echo " OK"
+    fi
+}
+
+# Test prep stage for different patches - do they apply cleanly?
+test_patches () {
+    [ "${test_patches}" = 1 ] && sh test-patches
+}
+
+# Perform the package build
+build () {
+( cd ${srcdir} && \
+  sh make-postfix.spec && \
+  chmod u+w ${specdir}/postfix.spec && \
+  cd ${specdir} && \
+  sleep 2 && \
+  echo "" && \
+  echo "===> building RPM package (output to ${build_output})..." && \
+  if [ -z "$sign" ]; then echo "	NOT signing package"; fi && \
+  $RPM -ba $sign postfix.spec ) 2>&1 | tee ${build_output}
 }
 
 # Initialize.
@@ -36,7 +85,7 @@ pkgdir=`pwd`
 sign='--sign'
 test_patches=0
  
-USAGE="Usage: $0 [name=value] [option]
+USAGE="Usage: $myname [name=value] [option]
     --no-check              Do not check if the files have changed against the version stored in cvs.
     --no-sign               Do not sign the package.
     --test-patches          test the patches
@@ -54,7 +103,7 @@ do
     --no-check) no_check=1;;
      --no-sign) sign=;;
 --test-patches) test_patches=1;;
-             *) echo $0: Error: $USAGE 1>&2; exit 1;;
+             *) echo $myname: Error: $USAGE 1>&2; exit 1;;
     esac
     shift
 done
@@ -67,127 +116,100 @@ RPM=/usr/bin/rpmbuild
     exit 1
 }
 
-# download_if_necessary to srcdir base/file if not already there
+##############################################################################
 #
-# add_file:
-# leave blank unless you want to disable updating the filelist
-# for example with the postfix source tar ball
+# Check the build environment
+#
 
-function download_if_necessary {
-    local srcdir=$1
-    local base=$2
-    local file=$3
-    local add_file=$4
+srcdir=$(rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;')
+specdir=$(rpm --eval '%{_specdir}' | sed 's;%{name};postfix;')
+cat <<EOF
 
-    echo -n "===> checking ${file} ..."
-    if [ ! -f "${srcdir}/${file}" ]; then
-        echo " not found"
-	echo "	downloading from ${base} to ${srcdir}..."
-        (
-            cd ${srcdir} && \
-            wget ${base}/${file} && \
-	    add_to_pkg_sourcelist ${file} ${pkgdir}/pkg-sourcelist ${add_file}
-        )
-    else
-        echo " found"
-    fi
-}
+$myname (C) 2004 Simon J Mudd <sjmudd@pobox.com>
 
-# Test prep stage for different patches - do they apply cleanly?
-test_patches() {
-    [ "${test_patches}" = 1 ] && sh test-patches
-}
+===> checking environment information:
+	specdir=$specdir
+	srcdir=$srcdir
 
-# Perform the package build
-build () {
-( cd ${srcdir} && \
-  sh make-postfix.spec && \
-  chmod u+w ${specdir}/postfix.spec && \
-  cd ${specdir} && \
-  sleep 2 && \
-  echo "" && \
-  echo "===> building RPM package (output to ${build_output})..." && \
-  if [ -z "$sign" ]; then echo "	NOT signing package"; fi && \
-  $RPM -ba $sign postfix.spec ) 2>&1 | tee ${build_output}
-}
+EOF
 
+##############################################################################
+#
 # Check postfix tar ball has been download
+#
+# convert 
+#	Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_dir}/postfix-%{version1}.tar.gz
+# into one of the following
+#	ftp://ftp.porcupine.org/mirrors/postfix-release/official/postfix-1.1.0.tar.gz
+#	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/postfix-1.1.0-20020115.tar.gz
 
-version=`grep '^%define ver ' postfix.spec.in | awk '{ print $3 } '`
-mail_release_date=`grep '^%define mail_release_date' postfix.spec.in | awk '{ print $3 } '`
+V_postfix=`grep '^%define V_postfix ' postfix.spec.in | awk '{ print $3 } '`
+V_release_date=`grep '^%define V_release_date' postfix.spec.in | awk '{ print $3 } '`
 rpm_release=`grep '^%define rel ' postfix.spec.in | awk '{ print $3 } '`
 
 if grep -q '%define official 1' postfix.spec.in
 then
     ftpdir=official
 else
-    version="${version}-${mail_release_date}"
+    V_postfix="${V_postfix}-${V_release_date}"
     ftpdir=experimental
 fi
 
-# convert 
-#	Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_dir}/postfix-%{version1}.tar.gz
-# into one of
-#	ftp://ftp.porcupine.org/mirrors/postfix-release/official/postfix-1.1.0.tar.gz
-#	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/postfix-1.1.0-20020115.tar.gz
+source0=`grep "^Source0:" postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{ftp_dir};${ftpdir};" -e "s;%{V_postfix};${V_postfix};"`
 
-source0=`grep "^Source0:" postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{ftp_dir};${ftpdir};" -e "s;%{version1};${version};"`
-
-file="postfix-${version}.tar.gz"
+file="postfix-${V_postfix}.tar.gz"
 base=`dirname ${source0}`
-srcdir=$(rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;')
-specdir=$(rpm --eval '%{_specdir}' | sed 's;%{name};postfix;')
 
 cat <<EOF
-===> checking postfix.spec.in:
-	postfix version:	${version}
-	Release Date:		${mail_release_date}
+===> checking Postfix:
+	V_postfix:		${V_postfix}
+	Release Date:		${V_release_date}
 	Postfix tarball name:	${file}
 	URL location:		${base}
 	RPM Release:		${rpm_release}
-===> checking environment information:
-	specdir=$specdir
-	srcdir=$srcdir
 EOF
-
-echo "===> checking for Postfix tar ball"
 
 download_if_necessary ${srcdir} ${base} ${file} NO_UPDATE_PKG_SOURCELIST
 
 # Look for the TLS patches
-#	Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{tls_version}.tar.gz  
+#	Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/pfixtls-%{V_tls}.tar.gz  
 
-tls_version=`grep '^%define tls_version' postfix.spec.in | awk '{ print $3 } '`
-source0=`grep '^Source9: ftp://ftp.aet.tu-cottbus.de' postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{tls_version};${tls_version};"`
+V_tls=`grep '^%define V_tls' postfix.spec.in | awk '{ print $3 } '`
+source0=`grep '^Source9: ftp://ftp.aet.tu-cottbus.de' postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{V_tls};${V_tls};"`
 
 base=`dirname ${source0}`
 file=`echo ${source0} | sed -e 's;.*/;;'`
 
 cat <<EOF
+
 ===> checking TLS patches...
-	tls_version:		${tls_version}
+	V_tls:			${V_tls}
 	TLS patch tarball name:	${file}
 	URL location:		${base}
 EOF
 download_if_necessary . ${base} ${file}
 
 # Look for VDA Patch
-# Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vda_version}_quota.patch.gz
-vda_version=`grep '^%define vda_version' postfix.spec.in | awk '{ print $3 } '`
-patch4=`grep '^Patch4: http://.*/postfix/VDA/postfix' postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{vda_version};${vda_version};"`
+# Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{V_vda}_quota.patch.gz
+V_vda=`grep '^%define V_vda' postfix.spec.in | awk '{ print $3 }'`
+patch4=`grep '^Patch4: .*/postfix/VDA/postfix' postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{V_vda};${V_vda};"`
 
 base=`dirname ${patch4}`
 file=`echo ${patch4} | sed -e 's;.*/;;'`
 
 cat <<EOF
+
 ===> checking VDA patches...
-	vda_version:		${vda_version}
+	V_vda:			${V_vda}
 	VDA patch tarball name:	${file}
 	URL location:		${base}
 EOF
 download_if_necessary . ${base} ${file}
 
-echo "===> checking CVS Status"
+cat <<EOF
+
+===> checking CVS Status
+EOF
 if [ $no_check ]; then
     echo "	NOT checking repository."
 else
