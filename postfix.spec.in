@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.271 2004/04/14 17:11:25 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.272 2004/04/15 05:42:22 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -84,8 +84,8 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 0
 %define ver 2.1
-%define mail_release_date RC1-20040331
-%define rel 0.1
+%define mail_release_date RC2-20040413
+%define rel 0.2
 %if %{official}
 %define tarball_version %{ver}
 %define ftp_dir official
@@ -100,7 +100,9 @@
 
 %define docdir %{_docdir}/%{name}-%{version}
 %define sample_dir %{docdir}/samples
-%define readme_dir %{docdir}/readme
+# post-install complains if I replace README_FILES with readme (my bug?)
+%define readme_dir %{docdir}/README_FILES
+%define html_dir %{docdir}/html
 
 %define newaliases_path %{_bindir}/newaliases.postfix
 %define mailq_path %{_bindir}/mailq.postfix
@@ -236,7 +238,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.271 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.272 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -490,9 +492,10 @@ sh postfix-install -non-interactive \
        mailq_path=%{mailq_path} \
        mail_owner=postfix \
        setgid_group=postdrop \
+       html_directory=%{html_dir} \
        manpage_directory=%{_mandir} \
        sample_directory=%{sample_dir} \
-       readme_directory=%{readme_dir} || exit 1
+       readme_directory=%{readme_dir} || exit 1 
 
 # RPM compresses man pages automatically.  Edit postfix-files to reflect this,
 # so post-install won't get confused.
@@ -538,12 +541,13 @@ install -c -m 755 %{_sourcedir}/%{postfinger} ${RPM_BUILD_ROOT}%{_bindir}/postfi
 install -c -m 755 %{_sourcedir}/postfix-chroot.sh ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/
 
 # I think %{sample_dir} is not longer used and should therefore be removed. (2004-04-05)
+[ -d "${RPM_BUILD_ROOT}%{html_dir}" ]   || mkdir -p ${RPM_BUILD_ROOT}%{html_dir}
 [ -d "${RPM_BUILD_ROOT}%{sample_dir}" ] || mkdir -p ${RPM_BUILD_ROOT}%{sample_dir}
 [ -d "${RPM_BUILD_ROOT}%{readme_dir}" ] || mkdir -p ${RPM_BUILD_ROOT}%{readme_dir}
 install -c -m 644 %{_sourcedir}/README-Postfix-SASL-RedHat.txt ${RPM_BUILD_ROOT}%{readme_dir}/
 
 # added for convenience
-ln -sf %{sample_dir} ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/samples
+ln -sf %{html_dir}   ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/html
 ln -sf %{readme_dir} ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/readme
 
 # Install the smtpd.conf file for SASL support.
@@ -575,9 +579,8 @@ Documentation
 -------------
 
 Postfix documentation should be available in the standard directory
-%{docdir}/.  I have also added a symbolic link to the
-readme_files and sample_files directories from the
-%{_sysconfdir}/postfix directory.
+%{docdir}/.  I have also added a symbolic link to the readme_files and html
+directories from the %{_sysconfdir}/postfix directory.
 
 The main Postfix web site is http://www.postfix.org.
 
@@ -678,6 +681,7 @@ sh %{_sysconfdir}/postfix/post-install upgrade-package \
 	command_directory=%{_sbindir} \
 	mail_owner=postfix \
 	setgid_group=postdrop \
+	html_directory=%{html_dir} \
 	manpage_directory=%{_mandir} \
 	sample_directory=%{sample_dir} \
 	readme_directory=%{readme_dir} \
@@ -959,10 +963,182 @@ umask 022
 
 %attr(0755, root, root) %{_sysconfdir}/postfix/postfix-chroot.sh
 
-%dir %attr(-, root, root) %{sample_dir}
-#%attr(0644,   root, root) %{sample_dir}/*
+# sample directory (no longer used?)
 %dir %attr(-, root, root) %{readme_dir}
-%attr(0644,   root, root) %{readme_dir}/*
+
+# html directory
+%dir %attr(-, root, root) %{html_dir}
+%attr(0644,   root, root) %{html_dir}/ADDRESS_CLASS_README.html
+%attr(0644,   root, root) %{html_dir}/ADDRESS_REWRITING_README.html
+%attr(0644,   root, root) %{html_dir}/ADDRESS_VERIFICATION_README.html
+%attr(0644,   root, root) %{html_dir}/BACKSCATTER_README.html
+%attr(0644,   root, root) %{html_dir}/BASIC_CONFIGURATION_README.html
+%attr(0644,   root, root) %{html_dir}/BUILTIN_FILTER_README.html
+%attr(0644,   root, root) %{html_dir}/CONTENT_INSPECTION_README.html
+%attr(0644,   root, root) %{html_dir}/DATABASE_README.html
+%attr(0644,   root, root) %{html_dir}/DB_README.html
+%attr(0644,   root, root) %{html_dir}/DEBUG_README.html
+%attr(0644,   root, root) %{html_dir}/ETRN_README.html
+%attr(0644,   root, root) %{html_dir}/FILTER_README.html
+%attr(0644,   root, root) %{html_dir}/INSTALL.html
+%attr(0644,   root, root) %{html_dir}/LDAP_README.html
+%attr(0644,   root, root) %{html_dir}/LINUX_README.html
+%attr(0644,   root, root) %{html_dir}/LMTP_README.html
+%attr(0644,   root, root) %{html_dir}/LOCAL_RECIPIENT_README.html
+%attr(0644,   root, root) %{html_dir}/MAILDROP_README.html
+%attr(0644,   root, root) %{html_dir}/MYSQL_README.html
+%attr(0644,   root, root) %{html_dir}/NFS_README.html
+%attr(0644,   root, root) %{html_dir}/OVERVIEW.html
+%attr(0644,   root, root) %{html_dir}/PACKAGE_README.html
+%attr(0644,   root, root) %{html_dir}/PCRE_README.html
+%attr(0644,   root, root) %{html_dir}/PGSQL_README.html
+%attr(0644,   root, root) %{html_dir}/QMQP_README.html
+%attr(0644,   root, root) %{html_dir}/QSHAPE_README.html
+%attr(0644,   root, root) %{html_dir}/RESTRICTION_CLASS_README.html
+%attr(0644,   root, root) %{html_dir}/SASL_README.html
+%attr(0644,   root, root) %{html_dir}/SCHEDULER_README.html
+%attr(0644,   root, root) %{html_dir}/SMTPD_ACCESS_README.html
+%attr(0644,   root, root) %{html_dir}/SMTPD_POLICY_README.html
+%attr(0644,   root, root) %{html_dir}/SMTPD_PROXY_README.html
+%attr(0644,   root, root) %{html_dir}/STANDARD_CONFIGURATION_README.html
+%attr(0644,   root, root) %{html_dir}/TUNING_README.html
+%attr(0644,   root, root) %{html_dir}/ULTRIX_README.html
+%attr(0644,   root, root) %{html_dir}/UUCP_README.html
+%attr(0644,   root, root) %{html_dir}/VERP_README.html
+%attr(0644,   root, root) %{html_dir}/VIRTUAL_README.html
+%attr(0644,   root, root) %{html_dir}/XCLIENT_README.html
+%attr(0644,   root, root) %{html_dir}/XFORWARD_README.html
+%attr(0644,   root, root) %{html_dir}/access.5.html
+%attr(0644,   root, root) %{html_dir}/aliases.5.html
+%attr(0644,   root, root) %{html_dir}/anvil.8.html
+%attr(0644,   root, root) %{html_dir}/bounce.8.html
+%attr(0644,   root, root) %{html_dir}/canonical.5.html
+%attr(0644,   root, root) %{html_dir}/cidr_table.5.html
+%attr(0644,   root, root) %{html_dir}/cleanup.8.html
+%attr(0644,   root, root) %{html_dir}/defer.8.html
+%attr(0644,   root, root) %{html_dir}/error.8.html
+%attr(0644,   root, root) %{html_dir}/flush.8.html
+%attr(0644,   root, root) %{html_dir}/header_checks.5.html
+%attr(0644,   root, root) %{html_dir}/index.html
+%attr(0644,   root, root) %{html_dir}/ldap_table.5.html
+%attr(0644,   root, root) %{html_dir}/lmtp.8.html
+%attr(0644,   root, root) %{html_dir}/local.8.html
+%attr(0644,   root, root) %{html_dir}/mailq.1.html
+%attr(0644,   root, root) %{html_dir}/master.8.html
+%attr(0644,   root, root) %{html_dir}/mysql_table.5.html
+%attr(0644,   root, root) %{html_dir}/newaliases.1.html
+%attr(0644,   root, root) %{html_dir}/oqmgr.8.html
+%attr(0644,   root, root) %{html_dir}/pcre_table.5.html
+%attr(0644,   root, root) %{html_dir}/pgsql_table.5.html
+%attr(0644,   root, root) %{html_dir}/pickup.8.html
+%attr(0644,   root, root) %{html_dir}/pipe.8.html
+%attr(0644,   root, root) %{html_dir}/postalias.1.html
+%attr(0644,   root, root) %{html_dir}/postcat.1.html
+%attr(0644,   root, root) %{html_dir}/postconf.1.html
+%attr(0644,   root, root) %{html_dir}/postconf.5.html
+%attr(0644,   root, root) %{html_dir}/postdrop.1.html
+%attr(0644,   root, root) %{html_dir}/postfix-logo.jpg
+%attr(0644,   root, root) %{html_dir}/postfix.1.html
+%attr(0644,   root, root) %{html_dir}/postkick.1.html
+%attr(0644,   root, root) %{html_dir}/postlock.1.html
+%attr(0644,   root, root) %{html_dir}/postlog.1.html
+%attr(0644,   root, root) %{html_dir}/postmap.1.html
+%attr(0644,   root, root) %{html_dir}/postqueue.1.html
+%attr(0644,   root, root) %{html_dir}/postsuper.1.html
+%attr(0644,   root, root) %{html_dir}/proxymap.8.html
+%attr(0644,   root, root) %{html_dir}/qmgr.8.html
+%attr(0644,   root, root) %{html_dir}/qmqpd.8.html
+%attr(0644,   root, root) %{html_dir}/regexp_table.5.html
+%attr(0644,   root, root) %{html_dir}/relocated.5.html
+%attr(0644,   root, root) %{html_dir}/sendmail.1.html
+%attr(0644,   root, root) %{html_dir}/showq.8.html
+%attr(0644,   root, root) %{html_dir}/smtp.8.html
+%attr(0644,   root, root) %{html_dir}/lmtp.8.html
+%attr(0644,   root, root) %{html_dir}/local.8.html
+%attr(0644,   root, root) %{html_dir}/mailq.1.html
+%attr(0644,   root, root) %{html_dir}/master.8.html
+%attr(0644,   root, root) %{html_dir}/mysql_table.5.html
+%attr(0644,   root, root) %{html_dir}/newaliases.1.html
+%attr(0644,   root, root) %{html_dir}/oqmgr.8.html
+%attr(0644,   root, root) %{html_dir}/pcre_table.5.html
+%attr(0644,   root, root) %{html_dir}/pgsql_table.5.html
+%attr(0644,   root, root) %{html_dir}/pickup.8.html
+%attr(0644,   root, root) %{html_dir}/pipe.8.html
+%attr(0644,   root, root) %{html_dir}/postalias.1.html
+%attr(0644,   root, root) %{html_dir}/postcat.1.html
+%attr(0644,   root, root) %{html_dir}/postconf.1.html
+%attr(0644,   root, root) %{html_dir}/postconf.5.html
+%attr(0644,   root, root) %{html_dir}/postdrop.1.html
+%attr(0644,   root, root) %{html_dir}/postfix-logo.jpg
+%attr(0644,   root, root) %{html_dir}/postfix.1.html
+%attr(0644,   root, root) %{html_dir}/postkick.1.html
+%attr(0644,   root, root) %{html_dir}/postlock.1.html
+%attr(0644,   root, root) %{html_dir}/postlog.1.html
+%attr(0644,   root, root) %{html_dir}/postmap.1.html
+%attr(0644,   root, root) %{html_dir}/postqueue.1.html
+%attr(0644,   root, root) %{html_dir}/postsuper.1.html
+%attr(0644,   root, root) %{html_dir}/proxymap.8.html
+%attr(0644,   root, root) %{html_dir}/qmgr.8.html
+%attr(0644,   root, root) %{html_dir}/qmqpd.8.html
+%attr(0644,   root, root) %{html_dir}/regexp_table.5.html
+%attr(0644,   root, root) %{html_dir}/relocated.5.html
+%attr(0644,   root, root) %{html_dir}/sendmail.1.html
+%attr(0644,   root, root) %{html_dir}/showq.8.html
+%attr(0644,   root, root) %{html_dir}/smtp.8.html
+%attr(0644,   root, root) %{html_dir}/smtpd.8.html
+%attr(0644,   root, root) %{html_dir}/spawn.8.html
+%attr(0644,   root, root) %{html_dir}/tcp_table.5.html
+%attr(0644,   root, root) %{html_dir}/trace.8.html
+%attr(0644,   root, root) %{html_dir}/transport.5.html
+%attr(0644,   root, root) %{html_dir}/trivial-rewrite.8.html
+%attr(0644,   root, root) %{html_dir}/verify.8.html
+%attr(0644,   root, root) %{html_dir}/virtual.5.html
+%attr(0644,   root, root) %{html_dir}/virtual.8.html
+
+# README_FILES directory
+%dir %attr(-, root, root) %{readme_dir}
+%attr(0644,   root, root) %{readme_dir}/AAAREADME
+%attr(0644,   root, root) %{readme_dir}/ADDRESS_CLASS_README
+%attr(0644,   root, root) %{readme_dir}/ADDRESS_REWRITING_README
+%attr(0644,   root, root) %{readme_dir}/ADDRESS_VERIFICATION_README
+%attr(0644,   root, root) %{readme_dir}/BACKSCATTER_README
+%attr(0644,   root, root) %{readme_dir}/BASIC_CONFIGURATION_README
+%attr(0644,   root, root) %{readme_dir}/BUILTIN_FILTER_README
+%attr(0644,   root, root) %{readme_dir}/CONTENT_INSPECTION_README
+%attr(0644,   root, root) %{readme_dir}/DATABASE_README
+%attr(0644,   root, root) %{readme_dir}/DB_README
+%attr(0644,   root, root) %{readme_dir}/DEBUG_README
+%attr(0644,   root, root) %{readme_dir}/ETRN_README
+%attr(0644,   root, root) %{readme_dir}/FILTER_README
+%attr(0644,   root, root) %{readme_dir}/INSTALL
+%attr(0644,   root, root) %{readme_dir}/LDAP_README
+%attr(0644,   root, root) %{readme_dir}/LINUX_README
+%attr(0644,   root, root) %{readme_dir}/LMTP_README
+%attr(0644,   root, root) %{readme_dir}/LOCAL_RECIPIENT_README
+%attr(0644,   root, root) %{readme_dir}/MAILDROP_README
+%attr(0644,   root, root) %{readme_dir}/MYSQL_README
+%attr(0644,   root, root) %{readme_dir}/NFS_README
+%attr(0644,   root, root) %{readme_dir}/OVERVIEW
+%attr(0644,   root, root) %{readme_dir}/PACKAGE_README
+%attr(0644,   root, root) %{readme_dir}/PCRE_README
+%attr(0644,   root, root) %{readme_dir}/PGSQL_README
+%attr(0644,   root, root) %{readme_dir}/QMQP_README
+%attr(0644,   root, root) %{readme_dir}/QSHAPE_README
+%attr(0644,   root, root) %{readme_dir}/RELEASE_NOTES
+%attr(0644,   root, root) %{readme_dir}/RESTRICTION_CLASS_README
+%attr(0644,   root, root) %{readme_dir}/SASL_README
+%attr(0644,   root, root) %{readme_dir}/SCHEDULER_README
+%attr(0644,   root, root) %{readme_dir}/SMTPD_ACCESS_README
+%attr(0644,   root, root) %{readme_dir}/SMTPD_POLICY_README
+%attr(0644,   root, root) %{readme_dir}/SMTPD_PROXY_README
+%attr(0644,   root, root) %{readme_dir}/STANDARD_CONFIGURATION_README
+%attr(0644,   root, root) %{readme_dir}/TUNING_README
+%attr(0644,   root, root) %{readme_dir}/ULTRIX_README
+%attr(0644,   root, root) %{readme_dir}/UUCP_README
+%attr(0644,   root, root) %{readme_dir}/VERP_README
+%attr(0644,   root, root) %{readme_dir}/VIRTUAL_README
+%attr(0644,   root, root) %{readme_dir}/XCLIENT_README
+%attr(0644,   root, root) %{readme_dir}/XFORWARD_README
 
 %attr(0755, root, root) %config %{init_directory}/postfix
 
@@ -985,7 +1161,6 @@ umask 022
 
 %dir %attr(0755, root, root)        %verify(not md5 size mtime) %{_var}/spool/postfix/pid
 
-%doc AAAREADME
 %doc COPYRIGHT
 %doc COMPATIBILITY
 %doc HISTORY
@@ -1075,6 +1250,10 @@ umask 022
 #
 
 %changelog
+
+* Wed Apr 14 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC2.20040413-0.1
+- update to RC2
+  - remove sample_dir and add html_dir
 
 * Thu Apr 01 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC1.20040331-0.1
 - prepare for release candidate 1 of 2.1
