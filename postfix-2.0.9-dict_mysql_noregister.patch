@@ -1,0 +1,42 @@
+diff -ur postfix-2.0.9.orig/src/proxymap/proxymap.c postfix-2.0.9.patched/src/proxymap/proxymap.c
+--- postfix-2.0.9.orig/src/proxymap/proxymap.c	Sat Mar  8 17:44:17 2003
++++ postfix-2.0.9.patched/src/proxymap/proxymap.c	Thu May  8 00:18:07 2003
+@@ -216,7 +216,14 @@
+     vstring_sprintf(map_type_name_flags, "%s:%o",
+ 		    map_type_name, request_flags);
+     if ((dict = dict_handle(STR(map_type_name_flags))) == 0)
+-	dict = dict_open(map_type_name, READ_OPEN_FLAGS, request_flags);
++	/*
++	 * note: mysql dictinaries try to register themselves upon
++	 * dict_mysql_open() by default, using a diffrent dict_name
++	 * (we're appending request_flags here). This behavior can be 
++	 * fatal if the table has already been registered (upon daemon
++	 * startup, for example; see master::multi_server.c).
++	 */
++	dict = dict_open(map_type_name, READ_OPEN_FLAGS, request_flags|DICT_FLAG_NO_REGISTER);
+     if (dict == 0)
+ 	msg_panic("proxy_map_find: dict_open null result");
+     dict_register(STR(map_type_name_flags), dict);
+diff -ur postfix-2.0.9.orig/src/util/dict.h postfix-2.0.9.patched/src/util/dict.h
+--- postfix-2.0.9.orig/src/util/dict.h	Sat Jan  4 22:03:28 2003
++++ postfix-2.0.9.patched/src/util/dict.h	Wed May  7 23:53:45 2003
+@@ -60,6 +60,7 @@
+ #define DICT_FLAG_FOLD_KEY	(1<<10)	/* lowercase the lookup key */
+ #define DICT_FLAG_NO_REGSUB	(1<<11)	/* no lhs->rhs regexp substitution */
+ #define DICT_FLAG_NO_PROXY	(1<<12)	/* no proxy mapping */
++#define DICT_FLAG_NO_REGISTER	(1<<13)
+ 
+ #define DICT_FLAG_PARANOID	(DICT_FLAG_NO_REGSUB | DICT_FLAG_NO_PROXY)
+ 
+diff -ur postfix-2.0.9.orig/src/util/dict_mysql.c postfix-2.0.9.patched/src/util/dict_mysql.c
+--- postfix-2.0.9.orig/src/util/dict_mysql.c	Mon Jul  2 15:15:45 2001
++++ postfix-2.0.9.patched/src/util/dict_mysql.c	Wed May  7 23:57:54 2003
+@@ -366,7 +366,8 @@
+ 				    dict_mysql->name->len_hosts);
+     if (dict_mysql->pldb == NULL)
+ 	msg_fatal("couldn't intialize pldb!\n");
+-    dict_register(name, (DICT *) dict_mysql);
++    if (!(dict_flags & DICT_FLAG_NO_REGISTER)) 
++	dict_register(name, (DICT *) dict_mysql);
+     return (DICT_DEBUG (&dict_mysql->dict));
+ }

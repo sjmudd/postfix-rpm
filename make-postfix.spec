@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.13 2003/04/29 18:43:53 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.14 2003/05/12 21:13:02 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -9,10 +9,16 @@
 # 
 # The following external variables if set to 1 affect the behaviour
 #
-# POSTFIX_REDHAT_MYSQL	include support for RedHat's mysql packages
 # POSTFIX_MYSQL		include support for MySQL's MySQL packages
-# POSTFIX_MYSQLQUERY	include support for writing full select statements
+# POSTFIX_MYSQL_REDHAT	include support for RedHat's mysql packages
+# POSTFIX_MYSQL_PATH	include support for locally installed mysql binary,
+#			providing the path e.g. /usr/local
+# POSTFIX_MYSQL_QUERY	include support for writing full select statements
 #			in mysql maps
+# POSTFIX_MYSQL_DICT_REG
+#			include support for mysql: dict_register patch
+# POSTFIX_PROXY_READ_MAPS
+#			include support for proxy_read_maps patch
 # POSTFIX_LDAP		include support for openldap packages
 # POSTFIX_PCRE		include support for pcre maps
 # POSTFIX_PGSQL		include support for PostGres database
@@ -93,24 +99,35 @@ minor=`echo $distribution | sed -e 's;[a-z]*-;;' -e 's;[0-9]*\.;;'`
 echo "  Distribution is: ${distribution}"
 echo ""
 
-# Ensure only one of POSTFIX_MYSQL and POSTFIX_REDHAT_MYSQL are defined
+# Ensure that only one of the following is defined: 
+# POSTFIX_MYSQL, POSTFIX_MYSQL_REDHAT, POSTFIX_MYSQL_PATH
 [ -n "$POSTFIX_MYSQL" ] && \
-[ -n "$POSTFIX_REDHAT_MYSQL" ] && {
+[ -n "$POSTFIX_MYSQL_REDHAT" ] && \
+[ -n "$POSTFIX_MYSQL_PATH" ] && {
     cat <<EOF
 Postfix MySQL support
 ---------------------
 
-There are MySQL packages available from two different sources built with
-different package names.  According to the MySQL package you are using
-choose to set _ONE_ of the following environment variables accordingly:
+This package supports Postfix using MySQL, installed using packages
+from 2 different sources or, built locally on the install machine.
 
-POSTFIX_MYSQL = 1	# MySQL packages named MySQL... from www.mysql.com
-POSTFIX_REDHAT_MYSQL = 1# MySQL packages named mysql... from RedHat (7+)
+Choose one of the following sources of MySQL and set _ONE_ of the
+following variables accordingly before running make-postfix.spec:
 
-Please set the appropriate value and rerun make-postfix.spec again
+POSTFIX_MYSQL=1			# MySQL packages named MySQL from www.mysql.com
+POSTFIX_MYSQL_REDHAT=1		# MySQL packages named mysql from RedHat
+POSTFIX_MYSQL_PATH=/path/to	# MySQL binary installed in /path/to
 EOF
     exit 1
 }
+
+if [ "$POSTFIX_MYSQL_DICT_REG" = 1 ]; then
+    echo "including patch for dict_register fix for proxy:mysql:mysql-xxx.cf"
+fi
+
+if [ "$POSTFIX_PROXY_READ_MAPS" = 1 ]; then
+    echo "including patch for proxy read maps random error"
+fi
 
 if [ "$POSTFIX_CDB" = 1 ]; then
     echo "  adding CDB support to spec file"
@@ -159,18 +176,41 @@ if [ "$POSTFIX_PGSQL2" = 1 ]; then
     echo "  including additional experimental PostGres patches"
 fi
 if [ "$POSTFIX_MYSQL" = 1 ]; then
-    POSTFIX_REDHAT_MYSQL=0
+    POSTFIX_MYSQL_REDHAT=0
+    POSTFIX_MYSQL_PATH=
     echo "  adding MySQL support (www.mysql.com MySQL* packages) to spec file"
     SUFFIX="${SUFFIX}.MySQL"
 fi
-if [ "$POSTFIX_REDHAT_MYSQL" = 1 ]; then
+if [ -n "$POSTFIX_REDHAT_MYSQL" ]; then
+    cat <<END
+WARNING: POSTFIX_REDHAT_MYSQL has been replaced by POSTFIX_MYSQL_REDHAT.
+  Please unset POSTFIX_REDHAT_MYSQL and set POSTFIX_MYSQL_REDHAT to continue.
+END
+    exit 1
+fi
+if [ "$POSTFIX_MYSQL_REDHAT" = 1 ]; then
     POSTFIX_MYSQL=0
+    POSTFIX_MYSQL_PATH=
     echo "  adding MySQL support (RedHat mysql* packages) to spec file"
     SUFFIX="${SUFFIX}.mysql"
 fi
-if [ "$POSTFIX_MYSQLQUERY" = 1 ]; then
+if [ -n "$POSTFIX_MYSQL_PATH" ]; then
+    POSTFIX_MYSQL=0
+    POSTFIX_MYSQL_REDHAT=0
+    echo "  adding MySQL support (locally installed in $POSTFIX_MYSQL_PATH) to spec file"
+    SUFFIX="${SUFFIX}.mysql_path"
+fi
+
+if [ -n "$POSTFIX_MYSQLQUERY" ]; then
+    cat <<END
+WARNING: POSTFIX_MYSQLQUERY has been replaced by POSTFIX_MYSQL_QUERY.
+  Please unset POSTFIX_MYSQLQUERY and set POSTFIX_MYSQL_QUERY to continue.
+END
+    exit 1
+fi
+if [ "$POSTFIX_MYSQL_QUERY" = 1 ]; then
     echo "  adding support for full mysql select statements to spec file"
-    SUFFIX="${SUFFIX}.mysqlquery"
+    SUFFIX="${SUFFIX}.mysql_query"
 fi
 POSTFIX_SASL_LIBRARY=notused
 if [ "$POSTFIX_SASL" = 1 -o "$POSTFIX_SASL" = 2 ]; then
@@ -347,8 +387,11 @@ esac
 [ -z "$POSTFIX_DB" ]			   && POSTFIX_DB=0
 [ -z "$POSTFIX_LDAP" ]			   && POSTFIX_LDAP=0
 [ -z "$POSTFIX_MYSQL" ]			   && POSTFIX_MYSQL=0
-[ -z "$POSTFIX_REDHAT_MYSQL" ]		   && POSTFIX_REDHAT_MYSQL=0
-[ -z "$POSTFIX_MYSQLQUERY" ]		   && POSTFIX_MYSQLQUERY=0
+[ -z "$POSTFIX_MYSQL_REDHAT" ]		   && POSTFIX_MYSQL_REDHAT=0
+[ -z "$POSTFIX_MYSQL_PATH" ]		   && POSTFIX_MYSQL_PATH=0
+[ -z "$POSTFIX_MYSQL_QUERY" ]		   && POSTFIX_MYSQL_QUERY=0
+[ -z "$POSTFIX_MYSQL_DICT_REG" ]	   && POSTFIX_MYSQL_DICT_REG=0
+[ -z "$POSTFIX_PROXY_READ_MAPS" ]	   && POSTFIX_PROXY_READ_MAPS=0
 [ -z "$POSTFIX_PCRE" ]			   && POSTFIX_PCRE=0
 [ -z "$POSTFIX_PGSQL" ]			   && POSTFIX_PGSQL=0
 [ -z "$POSTFIX_PGSQL2" ]		   && POSTFIX_PGSQL2=0
@@ -380,8 +423,11 @@ s!__SMTPD_MULTILINE_GREETING__!$POSTFIX_SMTPD_MULTILINE_GREETING!g
 s!__SUFFIX__!$SUFFIX!g
 s!__LDAP__!$POSTFIX_LDAP!g
 s!__MYSQL__!$POSTFIX_MYSQL!g
-s!__REDHAT_MYSQL__!$POSTFIX_REDHAT_MYSQL!g
-s!__MYSQL_QUERY__!$POSTFIX_MYSQLQUERY!g
+s!__MYSQL_REDHAT__!$POSTFIX_MYSQL_REDHAT!g
+s!__MYSQL_PATH__!$POSTFIX_MYSQL_PATH!g
+s!__MYSQL_QUERY__!$POSTFIX_MYSQL_QUERY!g
+s!__MYSQL_DICT_REG__!$POSTFIX_MYSQL_DICT_REG!g
+s!__PROXY_READ_MAPS__!$POSTFIX_PROXY_READ_MAPS!g
 s!__PCRE__!$POSTFIX_PCRE!g
 s!__PGSQL__!$POSTFIX_PGSQL!g
 s!__PGSQL2__!$POSTFIX_PGSQL2!g

@@ -1,0 +1,12 @@
+diff -ur postfix-2.0.9.orig/src/proxymap/proxymap.c postfix-2.0.9.patched/src/proxymap/proxymap.c
+--- postfix-2.0.9.orig/src/proxymap/proxymap.c	Sat Mar  8 17:44:17 2003
++++ postfix-2.0.9.patched/src/proxymap/proxymap.c	Thu May  8 00:24:52 2003
+@@ -350,7 +350,7 @@
+ 
+ static void post_jail_init(char *unused_name, char **unused_argv)
+ {
+-    const char *sep = " \t\r\n";
++    const char *sep = " \t\r\n,";
+     char   *saved_filter;
+     char   *bp;
+     char   *type_name;
