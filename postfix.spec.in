@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.261 2004/02/01 14:43:04 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.262 2004/02/01 14:47:37 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -146,7 +146,6 @@ Source16: http://postfix.wl0.org/ftp/postfinger/%{postfinger}
 # Obligatory Patches
 Patch2: postfix-smtp_sasl_proto.c.patch
 Patch3: postfix-files.patch
-Patch6: postfix-verisign.patch
 
 # Optional patches
 Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vda_version}.patch.gz
@@ -234,7 +233,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.261 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.262 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -301,7 +300,6 @@ fi
 %patch2 -p1 -b .auth
 %patch3 -p1 -b .alternatives
 %patch7 -p1 -b .logrcpt
-%patch6 -p1 -b .verisign
 
 # Apply optional patches
 %if %{cdb}
