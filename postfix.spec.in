@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.276 2004/04/17 20:04:26 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.277 2004/04/17 20:32:57 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -86,7 +86,7 @@
 %define official 0
 %define ver 2.1
 %define mail_release_date RC3-20040414
-%define rel 0.2%{suffix}
+%define rel 0.3%{suffix}
 %if %{official}
 %define tarball_version %{ver}
 %define ftp_dir official
@@ -98,8 +98,16 @@
 # - (only affects snapshots)
 %define package_version %(echo %{tarball_version} | sed 's/-/./g')
 
-# common directories
-%define docdir %{_docdir}/%{name}-%{version}
+# rpm-workaround:
+#
+# We can NOT use %{_dordir}/%{name}-%{version} for installing the docs
+# from the %install section as RPM kindly removes this directory after
+# we have installed files to it. (standard part of %doc processing!)
+#
+#define docdir %{_docdir}/%{name}-%{version}
+%define docdir %{_docdir}/%{name}-docs
+%define readme_dir %{docdir}/readme
+%define html_dir   %{docdir}/html
 
 %define newaliases_path %{_bindir}/newaliases.postfix
 %define mailq_path %{_bindir}/mailq.postfix
@@ -234,7 +242,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.276 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.277 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -487,9 +495,9 @@ sh postfix-install -non-interactive \
        mailq_path=%{mailq_path} \
        mail_owner=postfix \
        setgid_group=postdrop \
-       html_directory=%{docdir}/html \
+       html_directory=%{html_dir} \
        manpage_directory=%{_mandir} \
-       readme_directory=%{docdir}/README_FILES || exit 1 
+       readme_directory=%{readme_dir} || exit 1 
 
 # RPM compresses man pages automatically.  Edit postfix-files to avoid
 # confusing post-install.
@@ -672,9 +680,9 @@ sh %{_sysconfdir}/postfix/post-install upgrade-package \
 	command_directory=%{_sbindir} \
 	mail_owner=postfix \
 	setgid_group=postdrop \
-	html_directory=%{docdir}/html \
+	html_directory=%{html_dir} \
 	manpage_directory=%{_mandir} \
-	readme_directory=%{docdir}/README_FILES \
+	readme_directory=%{readme_dir} \
 	sendmail_path=%{sendmail_path} \
 	newaliases_path=%{newaliases_path} \
 	mailq_path=%{mailq_path} \
@@ -957,9 +965,10 @@ umask 022
 %dir %attr(0710, postfix, postdrop) %verify(not md5 size mtime) %{_var}/spool/postfix/public
 %dir %attr(0755, root, root)        %verify(not md5 size mtime) %{_var}/spool/postfix/pid
 
-# these MUST correspond with %{readme_dir} and %{html_dir}
-%doc %dir html
-%doc %dir README_FILES
+%doc %dir %{readme_dir}
+%doc %{readme_dir}/*
+%doc %dir %{html_dir}
+%doc %{html_dir}/*
 
 %doc COPYRIGHT
 %doc COMPATIBILITY
@@ -1046,7 +1055,7 @@ umask 022
 
 %changelog
 
-* Sat Apr 17 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC3.20040414-0.2
+* Sat Apr 17 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC3.20040414-0.3
 - update to RC3
 - tidy up some more with documentation
 
