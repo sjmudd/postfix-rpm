@@ -16,3 +16,4 @@ postfix-makedefs.patch
 postfix-smtpd_multiline_greeting.patch
 postfix.spec.in
 pfixtls-0.7.1-20010228-pl01-0.9.6a.tar.gz
+pflogsumm.pl

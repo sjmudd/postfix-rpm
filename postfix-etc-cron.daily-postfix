@@ -7,12 +7,8 @@
 #
 # This file is flagged by rpm as a configuration file.
 #
-# Further postfix upgrades will not overwrite the file if you change it
-# ensuring you don't need to do this manually each time 
-# you upgrade the package.
-#
-# You might want to do this if installing a more sophisticated postfix
-# logger such as pflogsumm.pl
+# If you modify this file, further upgrades to postfix will not overwrite
+# the file.
 #
 # uncomment this line to disable the daily cronjob
 # exit 0
@@ -21,4 +17,11 @@
 /usr/sbin/postfix check
 
 # Add the check suggested by /usr/share/doc/postfix-<version>/INSTALL
-/bin/egrep '(reject|warning|error|fatal|panic):' /var/log/maillog
+#/bin/egrep '(reject|warning|error|fatal|panic):' /var/log/maillog
+
+# Invoke pflogsumm.pl to gather statistics
+# see http://jimsun.linxnet.com/postfix_contrib.html for further info.
+#
+[ -x /usr/sbin/pflogsumm.pl ] || exit 0
+
+/usr/sbin/pflogsumm.pl < /var/log/maillog
