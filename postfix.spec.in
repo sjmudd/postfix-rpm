@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.194 2002/01/17 17:49:18 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.1 2002/01/18 19:19:38 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -47,17 +47,22 @@
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
 %define POSTDROP_GID __POSTDROP_GID__
 
-%define branch snapshot
-%define vers 20020115
-%define patchlevel pl01
-%define version1 %{vers}
-%define version2 %{vers}
-#Used when we have patchlevels, as can't include '-' in the package name
-#define version1 %{vers}-%{patchlevel}
-#define version2 %{vers}_%{patchlevel}
-%define rel 1
+# If set to 1 if official version, 0 if snapshot
+%define official 1 
+%define major 1
+%define minor 1
+%define patchlevel 0
+%define releasedate 20020115
+%if %{official}
+%define version1 %{major}.%{minor}.%{patchlevel}
+%define ftp_directory official
+%else
+%define version1 %{major}.%{minor}.%{patchlevel}-%{releasedate}
+%define ftp_directory experimental
+%endif
+%define rel 0.1
 
-%define tlsno pfixtls-0.7.14-snap20020107-0.9.6c
+%define tlsno pfixtls-0.7.15-1.1.0-0.9.6c
 %define pflogno -1.0.3
 
 # Postfix requires one exlusive uid/gid and a 2nd exclusive gid for its own
@@ -95,12 +100,12 @@ PreReq: /etc/init.d, /sbin/service
 %endif
 Provides: MTA smtpd smtpdaemon
 Obsoletes: sendmail, exim, qmail, smail
-Version: %{version2}%{branch}
+Version: %{version1}
 Release: %{rel}__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Summary: Postfix Mail Transport Agent
 Vendor: Built on %{distribution}
-Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/%{branch}-%{version1}.tar.gz
+Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_directory}/%{name}-%{version1}.tar.gz
 Source1: postfix-new-RPM-packages
 Source3: postfix-etc-init.d-postfix
 Source4: postfix-etc-cron.daily-postfix
@@ -174,7 +179,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.1 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -237,7 +242,7 @@ else
 	echo "postfix.spec seems ok"
 fi
 
-%setup -q -n %{branch}-%{version1} -a 9
+%setup -q -n %{name}-%{version1} -a 9
 
 # Apply the TLS patch, must be at first, because the changes of master.cf
 %if %{TLS}
@@ -734,8 +739,6 @@ fi
 %doc LICENSE
 %doc PORTING
 %doc RELEASE_NOTES
-%doc RESTRICTION_CLASS
-%doc TODO
 
 %doc postfix-new-RPM-packages
 

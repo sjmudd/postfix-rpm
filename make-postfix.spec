@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.35 2002/01/15 13:57:38 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.35.2.1 2002/01/18 19:19:37 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -45,7 +45,13 @@ REQUIRES_DB3=
 REQUIRES_INIT_D=
 TLSFIX=
 
-# Determine the distribution
+echo ""
+echo "Creating Postfix spec file: `rpm --eval '%{_specdir}'`/postfix.spec"
+echo "  Checking rpm database for distribution information..."
+echo "  - if the script get stuck here:"
+echo "    check and remove /var/lib/rpm/__db.00? files"
+
+# Determine the distribution (is there a better way of doing this)
 DISTRIBUTION=`rpm -qa | grep -- -release | egrep '(redhat-|mandrake-)'`
 [ -z "$DISTRIBUTION" ] && DISTRIBUTION='Unknown Distribution'
 
@@ -82,8 +88,8 @@ fi
 major=`echo $release | sed -e 's;\.[0-9]*$;;'`
 minor=`echo $release | sed -e 's;^[0-9]*\.;;'`
 
+echo "  Distribution is: ${releasename} ${major}.${minor}"
 echo ""
-echo "Creating Postfix spec file: `rpm --eval '%{_specdir}'`/postfix.spec"
 
 if [ "$POSTFIX_LDAP" = 1 ]; then
     echo "  adding LDAP  support to spec file"

@@ -1,5 +1,5 @@
 make-postfix.spec
-pfixtls-0.7.14-snap20020107-0.9.6c.tar.gz
+pfixtls-0.7.15-1.1.0-0.9.6c.tar.gz 
 pflogsumm-1.0.3.pl
 postfix-aliases
 postfix-bounce_notify_util.c.patch

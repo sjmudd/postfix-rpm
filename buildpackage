@@ -1,44 +1,157 @@
 #!/bin/sh
+#
+# Shell script used to build my packages
+# - checks if the needed files exist and retrieve them
+# - checks if the files have been changed against those stored in the CVS
+#   repository
+#
 
-echo Building postfix...
+# Initialize.
+# By now, shells must have functions. Ultrix users must use sh5 or lose.
+
+umask 022
+PATH=/bin:/usr/bin:/usr/sbin:/usr/etc:/sbin:/etc:/usr/contrib/bin:/usr/gnu/bin:/usr/ucb:/usr/bsd
+SHELL=/bin/sh
+IFS="
+"
+BACKUP_IFS="$IFS"
+build_output=build-output
+current_directory=`pwd`
+sign='--sign'
+ 
+USAGE="Usage: $0 [name=value] [option]
+    --no_check              Do not check if the files have changed against the version stored in cvs.
+    --no_sign               Do not sign the package.
+    name=value              Specify an installation parameter".
+ 
+# Process command-line options and parameter settings. Work around
+# brain damaged shells. "IFS=value command" should not make the
+# IFS=value setting permanent. But some broken standard allows it.
+ 
+for arg
+do
+    case $arg in
+        *=*) IFS= eval $arg; IFS="$BACKUP_IFS";;
+--no_check*) no_check=1;;
+ --no_sign*) sign=;;
+          *) echo $0: Error: $USAGE 1>&2; exit 1;;
+    esac
+    shift
+done
 
 
-echo "Checking for Source file..."
+# download_if_necessary to srcdir base/file if not already there
 
-# Long-winded way of finding the source file from the postfix.spec file
-# so we can automatically download it if necessary.
-XVERS=`grep "^%define vers " postfix.spec.in | awk '{ print $3 }'`
-XVERSION1=`sed -e "s;%{vers};${XVERS};" < postfix.spec.in | grep "^%define version1" | awk '{ print $3 }'`
-XBRANCH=`sed -e "s;%{version1};${XVERS};" < postfix.spec.in | grep "^%define branch" | awk '{ print $3 }'`
-SOURCE0=`sed -e "s;%{branch};${XBRANCH};" -e "s;%{version1};${XVERSION1};" < postfix.spec.in | grep "^Source0:" | awk '{ print $2 } '`
-XFILE=`echo ${SOURCE0} | sed -e 's;.*/;;'`
-XBASE=`dirname ${SOURCE0}`
-XSRCDIR=`rpm --eval '%{_sourcedir}'`
-XSPECDIR=`rpm --eval '%{_specdir}'`
+download_if_necessary() {
+    srcdir=$1
+    base=$2
+    file=$3
+    if [ ! -f "${srcdir}/${file}" ]; then
+        echo "	${file} not found, download_if_necessarying to ${srcdir}"
+        echo "	from ${base}..."
+        ( cd ${srcdir} && wget ${base}/${file} || {
+            echo 'Failed!'
+            exit 1
+        }
+        )
+    fi
+    echo "	${srcdir}/${file} exists"
+    echo ""
+}
 
-if [ ! -f "${XSRCDIR}/${XFILE}" ]; then
-    echo "  ${XFILE} not found, downloading to ${XSRCDIR}"
-    echo "  from ${XBASE}..."
-    ( cd ${XSRCDIR} && wget ${SOURCE0} || ( echo Failed!; exit 1 ) )
+# Check postfix tar ball has been download
+
+major_version=`grep '^%define major' postfix.spec.in | awk '{ print $3 } '`
+minor_version=`grep '^%define minor' postfix.spec.in | awk '{ print $3 } '`
+patch_level=`grep '^%define patchlevel' postfix.spec.in | awk '{ print $3 } '`
+release_date=`grep '^%define releasedate' postfix.spec.in | awk '{ print $3 } '`
+rpm_release=`grep '^%define rel ' postfix.spec.in | awk '{ print $3 } '`
+
+RC=`grep -q '%define official 1' postfix.spec.in; echo $?`
+if [ ${RC} = "0" ]; then
+    name=postfix
+    version="${major_version}.${minor_version}.${patch_level}"
+    ftpdir=official
 else
-    echo "  ${XFILE} found"
+    name=snapshot
+    version="${major_version}.${minor_version}.${patch_level}-${release_date}"
+    ftpdir=experimental
+fi
+
+# convert 
+#	Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_directory}/%{name}-%{version1}.tar.gz
+# into one of
+#	ftp://ftp.porcupine.org/mirrors/postfix-release/official/postfix-1.1.0.tar.gz
+#	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-1.1.0-20020115.tar.gz
+
+source0=`grep "^Source0:" postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{name};${name};" -e "s;%{ftp_directory};${ftpdir};" -e "s;%{version1};${version};"`
+
+file=`echo ${source0} | sed -e 's;.*/;;'`
+base=`dirname ${source0}`
+srcdir=`rpm --eval '%{_sourcedir}'`
+specdir=`rpm --eval '%{_specdir}'`
+
+cat <<EOF
+Information extracted from postfix.spec.in:
+	postfix version: ${major_version}.${minor_version}.${patch_level}
+	Release Date:		${release_date}
+	Postfix tarball name:	${file}
+	URL location:		${base}
+	RPM Release:		${rpm_release}
+
+Environment Information:
+	specdir=$specdir
+	srcdir=$srcdir
+
+EOF
+
+echo "Checking for postfix tar ball..."
+
+download_if_necessary ${srcdir} ${base} ${file}
+
+# Look for the TLS patches
+#	Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{tlsno}.tar.gz  
+
+tlsno=`grep '^%define tlsno' postfix.spec.in | awk '{ print $3 } '`
+source0=`grep '^Source9: ftp://ftp.aet.tu-cottbus.de' postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{tlsno};${tlsno};"`
+
+base=`dirname ${source0}`
+file=`echo ${source0} | sed -e 's;.*/;;'`
+
+cat <<EOF
+Checking TLS patches...
+	tlsno:			${tlsno}
+	TLS patch tarball name:	${file}
+	URL location:		${base}
+
+EOF
+download_if_necessary . ${base} ${file}
+
+echo "CVS Status:"
+
+if [ $no_check ]; then
+    echo "	not checking cvs repository."
+else
+    echo "	checking files with cvs repository..."
+    cvs diff 2>&1 >/dev/null || {
+	echo ""
+	echo "WARNING please commit changes before building";
+	exit 1;
+    }
 fi
 echo ""
 
-HERE=`pwd`
-
-cvs diff 2>&1 >/dev/null || { echo "WARNING please commit changes before building"; exit 1; }
-
 ./makelinks
-( cd ${XSRCDIR} && \
+( cd ${srcdir} && \
   sh make-postfix.spec && \
-  cd ${XSPECDIR} && \
-  (( grep "^%define branch"	postfix.spec | awk '{ print $3 }' ) || true ) && \
-  (( grep "^%define vers"	postfix.spec | awk '{ print $3 }' ) || true ) && \
-  (( grep "^%define patchlevel"	postfix.spec | awk '{ print $3 }' ) || true ) && \
-  (( grep "^%define rel"	postfix.spec | awk '{ print $3 }' ) || true ) && \
+  cd ${specdir} && \
   sleep 2 && \
-  rpm -ba --sign postfix.spec ) 2>&1 | tee build-output
+  echo ""
+  echo "Invoking rpm to build the package (output goes to ${build_output})..." && \
+  if [ -z "$sign" ]; then echo "	NOT SIGNING PACKAGE"; fi && \
+  rpm -ba $sign postfix.spec ) 2>&1 | tee ${build_output}
+echo ""
+
 ./removelinks
 
 # this line should go after sleep 2, with the real buildroot in place
