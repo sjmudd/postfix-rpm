@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.274 2004/04/17 15:22:03 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.275 2004/04/17 17:01:02 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -114,31 +114,6 @@
 %define postfinger postfinger-1.29
 %define whinge /usr/bin/logger -p mail.info -t postfix/rpm
 %define die_cmd die(){ %whinge "$*"; exit 1; }
-
-# we need to use alternatives to install postfix in various places.
-# - define macros to avoid repitition.
-
-%define alternatives_install \
-    %{_sbindir}/alternatives --install \
-	        %{_sbindir}/sendmail               mta               %{sendmail_path} 30 \
-        --slave %{_bindir}/mailq                   mta-mailq         %{mailq_path} \
-        --slave %{_bindir}/newaliases              mta-newaliases    %{newaliases_path} \
-        --slave %{_bindir}/rmail                   mta-rmail         %{rmail_path} \
-        --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
-        --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
-        --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
-        --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
-        --initscript postfix
-
-%define simulate_alternatives_install \
-        ln -sf %{sendmail_path}                           %{_sbindir}/sendmail; \
-        ln -sf %{mailq_path}                              %{_bindir}/mailq; \
-        ln -sf %{newaliases_path}                         %{_bindir}/newaliases; \
-        ln -sf %{rmail_path}                              %{_bindir}/rmail; \
-        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps}; \
-        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps}; \
-        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps}; \
-        ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
 
 Name: postfix
 Group: System Environment/Daemons
@@ -262,7 +237,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.274 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.275 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -740,11 +715,26 @@ fi
 
 if [ -x %{_sbindir}/alternatives ]; then
     %whinge "Fresh Postfix Install: using RH alternatives"
-    %{alternatives_install}
+    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{_sbindir}/sendmail.postfix 30 \
+        --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
+        --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
+        --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
+        --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
+        --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
+        --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
+        --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
+        --initscript postfix
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
         %whinge "Fresh Postfix Install, no %{_sbindir}/sendmail present: simulating RH alternatives"
-	%{simulate_alternatives_install}
+        ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
+        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq
+        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases
+        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail
+        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps}
+        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps}
+        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps}
+        ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
     fi
 fi
 
@@ -765,11 +755,26 @@ test -f /usr/lib/sendmail && {
 
 if [ -x %{_sbindir}/alternatives ]; then
     %whinge "Uninstalling sendmail, so setup Postfix: using RH alternatives"
-    %{alternatives_install}
+    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{_sbindir}/sendmail.postfix 30 \
+        --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
+        --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
+        --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
+        --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
+        --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
+        --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
+        --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
+        --initscript postfix
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
         %whinge "Uninstalling sendmail, no %{_sbindir}/sendmail present: simulating RH alternatives"
-	%{simulate_alternatives_install}
+        ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
+        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq
+        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases
+        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail
+        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps}
+        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps}
+        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps}
+        ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
     else
         :
     fi
@@ -785,11 +790,26 @@ fi
 
 if [ -x %{_sbindir}/alternatives ]; then
     %whinge "Upgrading Postfix: using RH alternatives"
-    %{alternatives_install}
+    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{_sbindir}/sendmail.postfix 30 \
+        --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
+        --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
+        --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
+        --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
+        --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
+        --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
+        --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
+        --initscript postfix
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
         %whinge "Upgrading Postfix, no %{_sbindir}/sendmail present: simulating RH alternatives"
-	%{simulate_alternatives_install}
+        ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
+        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq
+        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases
+        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail
+        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps}
+        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps}
+        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps}
+        ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
     else
         :
     fi
@@ -1033,7 +1053,7 @@ umask 022
 
 * Sat Apr 17 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC3.20040414-0.2
 - update to RC3
-- tidy up some more with documentation and also the alternatives scripts
+- tidy up some more with documentation
 
 * Wed Apr 14 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC2.20040413-0.1
 - update to RC2
