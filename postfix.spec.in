@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.16 2001/03/30 16:26:51 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.17 2001/03/30 16:28:50 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -42,7 +42,7 @@
 
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
 
-%define vers 20010228_pl01
+%define vers 20010228
 %define patchlevel pl01
 %define version %{vers}-%{patchlevel}
 %define versioX %{vers}_%{patchlevel}
@@ -137,7 +137,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.16 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.17 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -190,7 +190,7 @@ ENDTEXT
     exit 1
 fi
 
-%setup -q -n release-%{version} -a 9
+%setup -q -n %{name}-%{version} -a 9
 
 # setup master.cf to be chrooted
 mv conf/master.cf conf/master.cf-nochroot
