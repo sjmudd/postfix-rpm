@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.2 2000/07/05 18:56:09 root Exp $
+# $Id: postfix.spec.in,v 2.3 2000/07/26 21:46:39 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Modifications which make this work on other rpm(1) platforms are welcome.
@@ -53,7 +53,7 @@ Name: postfix
 Version: %{version}
 
 # Package release number.  Update every time you change the spec file
-Release: 1
+Release: 2
 
 # BuildRoot is as a temporary area used in the %install section to install
 # the binaries, avoiding overwriting the real files on the build machine.
@@ -131,7 +131,7 @@ but this location is likely to change as it is hosted by my former
 employer.
 
 You can contact the authors of the binary rpms built as follows:
-   i386: Simon J Mudd <sjmudd@pobox.com> (built on RH 5.1 & rpm 2.5.3)
+   i386: Simon J Mudd <sjmudd@pobox.com>
    s390: Klaus Jaehne <klaus.jaehne@to.com> (for S/390-Linux)
   alpha: Klaus Jaehne <klaus.jaehne@to.com>
 
