@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.105 2001/05/07 20:16:10 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.106 2001/05/08 19:03:23 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -54,8 +54,6 @@
 #define version2 %{vers}_%{patchlevel}
 %define rel  2
 %define tlsno pfixtls-0.7.2-snap20010502-0.9.6a
-
-%define distribution __DISTRIBUTION__
 
 Name: postfix
 Summary: Postfix Mail Transport Agent
@@ -145,7 +143,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.105 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.106 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -188,27 +186,6 @@ umask 022
 
 # stop build if something is wrong
 die(){ %whinge "$*"; exit 1; }
-
-# warn before we start if we are building with a spec file from a different
-# distribution
-
-if [ `rpm -q redhat-release` != %{distribution} ]; then
-    cat <<-ENDTEXT
-	ERROR: Your are attempting to build postfix with a spec file intended for
-	ERROR: distribution __DISTRIBUTION__, when you appear to be running on
-	ERROR: %{distribution}.
-	ERROR: Please rebuild the spec file and the package by following these steps:
-	ERROR: cd /usr/src/redhat/SOURCES/
-	ERROR: sh make-postfix.spec
-	ERROR: cd /usr/src/redhat/SPECS/
-	ERROR: rpm -ba postfix.spec
-	ERROR:
-
-	If this doesn't work, please contact me, with details.
-ENDTEXT
-    exit 1
-fi
-
 
 # warn before we start if we aren't root
 if [ `id -u` != "0" ]; then
