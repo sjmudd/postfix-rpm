@@ -1,7 +1,7 @@
 make-postfix.spec
 pfixtls-0.8.7-1.1.7-0.9.6c.tar.gz
 pflogsumm-1.0.4.pl
-postfix-1.1.3_quota.patch
+postfix-1.1.6_quota.patch
 postfix-aliases
 postfix-bounce_notify_util.c.patch
 postfix-build
