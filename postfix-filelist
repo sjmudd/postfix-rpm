@@ -1,5 +1,5 @@
 make-postfix.spec
-pfixtls-0.7.16-1.1.0-0.9.6c.tar.gz
+pfixtls-0.8.0-1.1.0-0.9.6c.tar.gz
 pflogsumm-1.0.3.pl
 postfix-aliases
 postfix-bounce_notify_util.c.patch
@@ -11,7 +11,6 @@ postfix-etc-cron.daily-postfix
 postfix-etc-init.d-postfix
 postfix-makedefs.patch
 postfix-new-RPM-packages
-postfix-postqueue.patch
 postfix-smtp_sasl_proto.c.patch
 postfix-smtpd_multiline_greeting.patch
 postfix.spec.in
