@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.295 2004/06/01 15:13:59 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.296 2004/06/05 12:33:41 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -50,7 +50,10 @@
 %define mysql_local %(test "%{mysql_paths}" != 0 && echo 1 || echo 0)
 %define mysql_include %(echo "%{mysql_paths}" | cut -d: -f1)
 %define mysql_lib %(echo "%{mysql_paths}" | cut -d: -f2)
+# This patch does not work on 2.1. I need to find an alternative or remove
+# the patch altogether. SJM 05/06/2004
 %define mysql_query __MYSQL_QUERY__
+%define mysql_query 0
 %define pcre __PCRE__
 # determine PCRE library based on distribution name
 %define pcre_requires %(test %{build_dist} = mandrake && echo libpcre0 || echo pcre)
@@ -81,7 +84,7 @@
 %define official 1
 %define ver 2.1.1
 %define mail_release_date RC4-20040418
-%define rel 4__SUFFIX__
+%define rel 5__SUFFIX__
 %if %{official}
 %define tarball_version %{ver}
 %define ftp_dir official
@@ -101,8 +104,14 @@
 #
 #define docdir %{_docdir}/%{name}-%{version}
 %define docdir %{_docdir}/%{name}-%{ver}-documentation
-%define readme_dir %{docdir}/readme
-%define html_dir   %{docdir}/html
+%define readme_dir   %{docdir}/readme
+%define html_dir     %{docdir}/html
+
+# the examples dir includes some scripts but makes rpm find dependencies
+# which are not really applicable perl(DB_File), so do not enable
+# normally.  Set to 1 to enable [05 June 2004]
+%define include_examples 0
+%define examples_dir %{docdir}/examples
 
 %define newaliases_path %{_bindir}/newaliases.postfix
 %define mailq_path %{_bindir}/mailq.postfix
@@ -236,7 +245,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.295 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.296 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -528,9 +537,14 @@ done
 install -c -m 755 %{_sourcedir}/%{postfinger} ${RPM_BUILD_ROOT}%{_bindir}/postfinger
 install -c -m 755 %{_sourcedir}/postfix-chroot.sh ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/
 
-[ -d "${RPM_BUILD_ROOT}%{html_dir}" ]   || mkdir -p ${RPM_BUILD_ROOT}%{html_dir}
-[ -d "${RPM_BUILD_ROOT}%{readme_dir}" ] || mkdir -p ${RPM_BUILD_ROOT}%{readme_dir}
+[ -d "${RPM_BUILD_ROOT}%{html_dir}" ]     || mkdir -p ${RPM_BUILD_ROOT}%{html_dir}
+[ -d "${RPM_BUILD_ROOT}%{readme_dir}" ]   || mkdir -p ${RPM_BUILD_ROOT}%{readme_dir}
 install -c -m 644 %{_sourcedir}/README-Postfix-SASL-RedHat.txt ${RPM_BUILD_ROOT}%{readme_dir}/
+
+%if %{include_examples}
+[ -d "${RPM_BUILD_ROOT}%{examples_dir}" ] || mkdir -p ${RPM_BUILD_ROOT}%{examples_dir}
+cp -pr examples/* ${RPM_BUILD_ROOT}%{examples_dir}/
+%endif
 
 # Install odd documentation files
 for file in AAAREADME COMPATIBILITY COPYRIGHT HISTORY PORTING \
@@ -544,8 +558,12 @@ cat <<EOF >${RPM_BUILD_ROOT}%{docdir}/SEE-ALSO
 EOF
 
 # added for convenience
-ln -sf %{html_dir}   ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/html
-ln -sf %{readme_dir} ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/readme
+ln -sf %{html_dir}     ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/html
+ln -sf %{readme_dir}   ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/readme
+
+%if %{include_examples}
+ln -sf %{examples_dir} ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/examples
+%endif
 
 # Install the smtpd.conf file for SASL support.
 %if %{sasl}
@@ -943,6 +961,10 @@ umask 022
 %{_sysconfdir}/postfix/html
 %{_sysconfdir}/postfix/readme
 
+%if %{include_examples}
+%{_sysconfdir}/postfix/examples
+%endif
+
 %attr(0755, root, root) %{_sysconfdir}/postfix/postfix-chroot.sh
 
 %attr(0755, root, root) %config %{init_directory}/postfix
@@ -979,6 +1001,12 @@ umask 022
 %doc %{readme_dir}/*
 %doc %dir %{html_dir}
 %doc %{html_dir}/*
+
+%if %{include_examples}
+%doc %dir %{examples_dir}
+%doc %{examples_dir}/*
+%doc %{examples_dir}/*/*
+%endif
 
 %if %{tls}
 %doc ACKNOWLEDGEMENTS.TLS
@@ -1052,6 +1080,12 @@ umask 022
 #
 
 %changelog
+
+* Thu Jun 03 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.1-5
+- added missing examples directory and a symbolic link to it from /etc/postfix
+  - problem noted by Xavier Le Vourch <xavier@brittanysoftware.com>
+  - however do not enable this by default as rpm generates unwanted perl
+    dependencies (need to fix this).
 
 * Mon May 31 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.1-4
 - fix make-postfix.spec to recognise both Fedoras: fc1 and fc2
