@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.298 2004/06/14 18:52:49 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.299 2004/06/17 17:38:45 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -240,7 +240,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.298 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.299 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -662,6 +662,13 @@ POSTFIX_SMTPD_MULTILINE_GREETING=%{smtpd_multiline_greeting}
 POSTFIX_DB=%{requires_db}
 POSTFIX_INCLUDE_DB=%{include_db}
 POSTFIX_CDB=%{cdb}
+
+# export values to child processes (make-postfix.spec)
+export POSTFIX_MYSQL POSTFIX_MYSQL_PATHS POSTFIX_MYSQL_REDHAT \
+ POSTFIX_MYSQL_QUERY POSTFIX_LDAP POSTFIX_PCRE POSTFIX_PGSQL \
+ POSTFIX_SASL POSTFIX_TLS POSTFIX_IPV6 POSTFIX_VDA \
+ POSTFIX_SMTPD_MULTILINE_GREETING POSTFIX_DB POSTFIX_INCLUDE_DB \
+ POSTFIX_CDB
 
 # other options used in the build (but not explicitly changeable by the user) are:
 # - debug=%{?_with_debug:1}%{?!_with_debug:0}
