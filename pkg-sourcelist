@@ -20,4 +20,4 @@ postfix-sasl.conf
 postfix-smtp_sasl_proto.c.patch
 postfix.spec.in
 README-Postfix-SASL-RedHat.txt
-tls+ipv6-1.22-pf-2.0.19-20040312.patch.gz
+tls+ipv6-1.23-pf-2.1.0.patch.gz
