@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.17 2003/02/13 13:56:38 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.18 2003/02/13 14:32:20 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -133,7 +133,7 @@ Source8: make-postfix.spec
 Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{pfixtls}.tar.gz
 Source11: postfix-build
 Source12: http://www.corpit.ru/ftp/postfix/postfix-dict_cdb-%{cdbver}.tar.gz
-Source14: ftp://ftp.stack.nl/pub/postfix/tls+ipv6/1.10/%{pfixipv6}.patch.gz
+Source14: ftp://ftp.stack.nl/pub/postfix/tls+ipv6/1.12/%{pfixipv6}.patch.gz
 
 # Obligatory Patches
 Patch2: postfix-smtp_sasl_proto.c.patch
@@ -213,7 +213,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.17 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.18 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -963,10 +963,13 @@ fi
 
 %changelog
 
-*Thu Feb 13 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.3-2
+* Thu Feb 13 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.3-3
+  - correct URL shown in spec file.
+
+* Thu Feb 13 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.3-2
   - update IPv6 patches
 
-*Mon Jan 27 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.3-1
+* Mon Jan 27 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.3-1
   - update Postfix
   - update TLS patches
 
