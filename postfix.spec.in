@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.227 2002/12/18 18:47:38 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.228 2002/12/19 09:43:15 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -43,7 +43,9 @@
 %define pgsql2 __PGSQL2__
 %define sasl __SASL__
 %define sasl_library __SASL_LIBRARY__
+# Currently the latest TLS patches do not work against this snapshot
 %define tls __TLS__
+%define tls 0
 %define tlsfix __TLSFIX__
 %define include_db __INCLUDE_DB__
 %define requires_db __REQUIRES_DB__
@@ -66,7 +68,7 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 0
 %define ver 1.1.12
-%define mail_release_date 20021217
+%define mail_release_date 20021218
 %define rel 1
 %if %{official}
 %define tarball_version %{ver}
@@ -206,7 +208,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.227 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.228 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -952,7 +954,8 @@ fi
 
 %changelog
 
-* Wed Dec 18 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021217-1
+* Thu Dec 19 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021218-1
+  - update to latest snapshot
 
 * Sun Dec 15 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021214-1
   - rename macro: DISABLE_CHROOT -> disable_chroot
