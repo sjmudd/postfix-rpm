@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.12 2003/07/13 21:10:38 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.13 2003/08/26 16:23:35 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -38,7 +38,6 @@
 #			work on rh6x. Maybe I should generalise this
 #			later.
 #
-# POSTFIX_DISABLE_CHROOT	disable creation of chroot environment
 # POSTFIX_CDB		support for Constant Database, CDB, by Michael Tokarev
 #			<mjt@corpit.ru>, as originally devised by djb.
 #
@@ -80,7 +79,19 @@
 # cd `rpm --eval '%{_specdir}'`
 # rpm -ba postfix.spec
 
-# ensure that these variables are NOT set from outside
+myname=`basename $0`
+
+error() {
+    echo "$myname: Error;$1" >&2; exit 1
+}
+
+# ensure that these variables are NOT set from outside and complain if they
+# are.
+
+[ `set | grep ^SUFFIX= | wc -l`          = 0 ] || error "Please do not set SUFFIX"
+[ `set | grep ^REQUIRES_INIT_D= | wc -l` = 0 ] || error "Please do not set REQUIRES_INIT_D"
+[ `set | grep ^TLSFIX= | wc -l`          = 0 ] || error "Please do not set TLSFIX"
+
 SUFFIX=			# RPM package suffix
 REQUIRES_INIT_D=	# do we require /etc/init.d? (rh 7 and later)
 TLSFIX=			# Apply "fixes" to TLS patches
@@ -254,14 +265,6 @@ if [ "$POSTFIX_IPV6" = 1 ]; then
 fi
 
 if [ "$POSTFIX_TLS" = 1 ]; then
-    if [ "$POSTFIX_IPV6" = 1 ]; then
-        cat <<END
-ERROR: POSTFIX_IPV6 already includes the TLS patches.
-  Please unset POSTFIX_TLS to continue
-END
-        exit 1
-    fi
-
     echo "  adding TLS support to spec file"
     SUFFIX="${SUFFIX}.tls"
 
@@ -272,10 +275,6 @@ fi
 if [ "$POSTFIX_VDA" = 1 ]; then
     echo "  adding VDA support to spec file"
     SUFFIX="${SUFFIX}.vda"
-fi
-if [ "$POSTFIX_DISABLE_CHROOT" = 1 ]; then
-    echo "  disabling chroot environment in spec file"
-    SUFFIX="${SUFFIX}.nochroot"
 fi
 
 DIST=
@@ -395,7 +394,6 @@ esac
 [ -z "$POSTFIX_VDA" ]			   && POSTFIX_VDA=0
 [ -z "$TLSFIX" ]			   && TLSFIX=0
 [ -z "$POSTFIX_SMTPD_MULTILINE_GREETING" ] && POSTFIX_SMTPD_MULTILINE_GREETING=0
-[ -z "$POSTFIX_DISABLE_CHROOT" ]	   && POSTFIX_DISABLE_CHROOT=0
 [ -z "$POSTFIX_CDB" ]	                   && POSTFIX_CDB=0
 [ -z "$POSTFIX_IPV6" ]			   && POSTFIX_IPV6=0
 
@@ -430,7 +428,6 @@ s!__SASL_LIBRARY__!$POSTFIX_SASL_LIBRARY!g
 s!__TLS__!$POSTFIX_TLS!g
 s!__TLSFIX__!$TLSFIX!g
 s!__VDA__!$POSTFIX_VDA!g
-s!__DISABLE_CHROOT__!$POSTFIX_DISABLE_CHROOT!g
 s!__CDB__!$POSTFIX_CDB!g
 s!__MANPAGE_SUFFIX__!$MANPAGE_SUFFIX!g
 s!__IPV6__!$POSTFIX_IPV6!g
