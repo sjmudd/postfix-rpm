@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.34 2002/05/19 18:40:03 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.35 2002/05/19 18:44:14 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -53,7 +53,7 @@
 # Version information
 %define pflogno -1.0.4
 %define vdaver 1.1.6
-%define pfixtls pfixtls-0.8.7-1.1.7-0.9.6c
+%define pfixtls pfixtls-0.8.10-1.1.10-0.9.6d
 %define pgver 1.1.4
 
 # If set to 1 if official version, 0 if snapshot
@@ -200,7 +200,7 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.34 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.35 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, VDA=%{VDA}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -870,6 +870,7 @@ fi
 * Sun May 19 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.10-1
   - fix debug macro bug, reported by  Christopher Audley <Christopher.D.Audley@jhu.edu>  
   - upgrade to 1.1.10
+  - upgrade TLS patch
 
 * Tue Apr 30 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-6
   - /lib/lidbdb.so is not needed within the chroot (it's used only by the 
