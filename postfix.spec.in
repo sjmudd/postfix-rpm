@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.194.2.4 2002/01/19 16:34:33 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.5 2002/01/21 09:00:26 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -60,7 +60,7 @@
 %define version1 %{major}.%{minor}.%{patchlevel}-%{releasedate}
 %define ftp_directory experimental
 %endif
-%define rel 2
+%define rel 3
 
 %define tlsno pfixtls-0.7.15-1.1.0-0.9.6c
 %define pflogno -1.0.3
@@ -183,7 +183,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.4 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.5 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -658,6 +658,33 @@ for i in samples README_FILES; do
   test -L %{config_directory}/$i && rm %{config_directory}/$i || true
 done
 
+# ---
+# Request by Wietse: if there is a /usr/lib/sendmail file (ie not symbolic link), not owned by
+# a package then replace it with a symbolic link to /usr/sbin/sendmail.
+# ---
+# Date: Sun, 20 Jan 2002 16:47:34 -0500 (EST)
+# From: Wietse Venema <wietse@porcupine.org>
+# To: Simon J Mudd <sjmudd@pobox.com>
+# Cc: Wietse Venema <wietse@porcupine.org>
+# Subject: Re: Gotcha when installing Postfix from RPM
+#  
+# Simon J Mudd:
+# > I've just checked that RedHat's sendmail still includes the symlink,
+# > but this symlink is to /usr/sbin/sendmail.  So there should never be
+# > conflicts.
+#  
+# However, old Postfix versions (from me, not RPMS) installed as
+# /usr/lib/sendmail, not knowing that it was supposed to be a symlink.
+# Those folks will be surprised when they install the RPM. In that
+# case, replacing the /usr/lib/sendmail *file* by a symlink avoids
+# surprises, if nothing else "owns" it.
+# ---
+
+SENDMAIL=/usr/lib/sendmail
+test -f ${SENDMAIL} && {
+    rpm -qf ${SENDMAIL} >/dev/null 2>&1 || ln -sf %{sendmail_path} ${SENDMAIL}
+} || true
+
 %postun
 umask 022
 
@@ -814,6 +841,11 @@ fi
 #
 
 %changelog
+
+* Mon Jan 21 2002 Simon J Mudd <sjmudd@pobox.com>
+- postfix-1.1.0-3, check for /usr/lib/sendmail and if it is a file NOT
+    owned by another package: replace it with a symbolic link to
+    /usr/sbin/sendmail [requested by Wietse to avoid upgrade problems]
 
 * Sat Jan 19 2002 Simon J Mudd <sjmudd@pobox.com>
 - postfix-1.1.0-2, add serial tag, so that this version appears newer
