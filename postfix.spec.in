@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.23 2002/04/01 18:49:09 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.24 2002/04/01 20:32:16 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -60,7 +60,7 @@
 
 # If set to 1 if official version, 0 if snapshot
 %define official 1 
-%define ver 1.1.6
+%define ver 1.1.7
 %define releasedate 20020115
 %if %{official}
 %define version1 %{ver}
@@ -203,7 +203,7 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.23 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.24 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING},VDA=%{VDA},PGSQL=%{PGSQL}, PGSQL2=%{PGSQL2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -811,7 +811,10 @@ fi
 
 %changelog
 
-* Wed Mar 20 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.6-1
+* Mon Apr 01 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-1
+  - update to 1.1.7
+
+* Mon Apr 01 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.6-1
   - upgrade to 1.1.6
   - minor changes to 1postfix
   - remove smtp-helo-name patch
