@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.85 2001/03/29 22:25:32 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.86 2001/03/31 12:37:34 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -31,17 +31,26 @@
 # Choose at most ONE of the following:
 # MYSQL	      - include MySQL support - use www.mysql.com - MySQL* packages
 # REDHATMYSQL - include MySQL support - use RedHat - mysql* packages
+# TLS  - include TLS support
 
 %define LDAP __LDAP__
 %define MYSQL __MYSQL__
 %define REDHATMYSQL __REDHAT_MYSQL__
 %define PCRE __PCRE__
 %define SASL __SASL__
+%define TLS __TLS__
 
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
 
 %define vers 20010228
+%define patchlevel pl01
+%define version1 %{vers}
+%define version2 %{vers}
+#Used when we have patchlevels, as can't include '-' in the package name
+#define version1 %{vers}-%{patchlevel}
+#define version2 %{vers}_%{patchlevel}
 %define rel  5
+%define tlsno pfixtls-0.7.0-20010228-0.9.6
 
 Name: postfix
 Summary: Postfix Mail Transport Agent
@@ -51,11 +60,11 @@ Copyright: IBM Public License
 PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail, exim, qmail, smail
-Version: %{vers}
+Version: %{version2}
 Release: %{rel}__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Vendor: Built on __DISTRIBUTION__
-Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{version}.tar.gz
+Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{version1}.tar.gz
 Source1: postfix-README_rpm.txt
 Source2: postfix-README_maildrop_security.txt
 Source3: postfix-etc-init.d-postfix
@@ -64,6 +73,7 @@ Source5: postfix-aliases
 Source6: postfix-chroot-setup.awk
 Source7: postfix.spec.in
 Source8: make-postfix.spec
+Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{tlsno}.tar.gz
 Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
 # required to install smtp-sink and smtp-source
@@ -77,7 +87,7 @@ Patch5:  postfix-flush.patch
 # applied if %SMTPD_MULTILINE_GREETING=1
 Patch99: postfix-smtpd_multiline_greeting.patch
 
-BuildRoot: %{_tmppath}/%{name}-%{version}-root
+BuildRoot: %{_tmppath}/%{name}-%{version1}-root
 
 # Determine the different packages required for building postfix
 BuildRequires: gawk, perl, sed
@@ -111,6 +121,11 @@ Requires: cyrus-sasl
 BuildRequires: cyrus-sasl
 %endif
 
+%if %{TLS}
+Requires: openssl
+BuildRequires: openssl-devel
+%endif
+
 %description
 Postfix is a Mail Transport Agent (MTA), intended to be an alternative
 to the widely-used sendmail.  This is a reasonably sophisticated package
@@ -127,7 +142,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.85 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.86 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -136,6 +151,7 @@ PCRE=__PCRE__
 MYSQL=__MYSQL__
 REDHATMYSQL=__REDHAT_MYSQL__
 SASL=__SASL__
+TLS=__TLS__
 
 The source package contains information about rebuilding with alternative
 options.
@@ -179,7 +195,7 @@ ENDTEXT
     exit 1
 fi
 
-%setup -q -n snapshot-%{version}
+%setup -q -n snapshot-%{version} -a 9
 
 # setup master.cf to be chrooted
 mv conf/master.cf conf/master.cf-nochroot
@@ -197,6 +213,17 @@ awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > co
 # Apply my SMTPD Multiline greeting patch
 %if %{SMTPD_MULTILINE_GREETING}
 %patch99 -p1 -b .multiline
+%endif
+
+%if %{TLS}
+patch -p1 <%{tlsno}/pfixtls.diff
+
+# Move around the TLS docs
+mkdir html/TLS
+mv %{tlsno}/doc/* html/TLS
+for i in ACKNOWLEDGEMENTS CHANGES INSTALL README TODO; do
+  mv %{tlsno}/$i $i.TLS
+done
 %endif
 
 # Copy README files allowing us to just go %doc below, and have rpm(1)
@@ -253,6 +280,10 @@ AUXLIBS=
 %if %{SASL}
   CCARGS="${CCARGS} -DUSE_SASL_AUTH"
   AUXLIBS="${AUXLIBS} -lsasl"
+%endif
+%if %{TLS}
+  CCARGS="${CCARGS} -DHAS_SSL -I/usr/include/openssl"
+  AUXLIBS="${AUXLIBS} -lssl -lcrypto"
 %endif
 
 export CCARGS AUXLIBS
@@ -542,6 +573,14 @@ fi
 
 %doc README_rpm.txt README_maildrop_security.txt
 
+%if %{TLS}
+%doc ACKNOWLEDGEMENTS.TLS
+%doc CHANGES.TLS
+%doc README.TLS
+%doc TODO.TLS
+%doc html/TLS/*
+%endif
+
 %doc conf
 %doc html
 
@@ -564,6 +603,10 @@ fi
 %{daemon_directory}/spawn
 %{daemon_directory}/trivial-rewrite
 %{daemon_directory}/virtual
+
+%if %{TLS}
+%{daemon_directory}/tlsmgr
+%endif
 
 %{command_directory}/postalias
 %{command_directory}/postcat
@@ -606,6 +649,8 @@ fi
 - snapshot-20010228-5, add patches
 	- flush.c
 	- cleanup.c
+- added support for TLS, information and patches to spec file
+  provided by Peter Tuschy <peter@tuschy.com>.
 
 * Sat Mar 24 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20010228-4, add %{daemon_directory}/virtual, virtual transport
