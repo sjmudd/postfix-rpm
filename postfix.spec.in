@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.117 2001/05/25 17:59:21 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.118 2001/05/26 08:14:38 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -45,14 +45,14 @@
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
 
 %define branch snapshot
-%define vers 20010502
+%define vers 20010525
 %define patchlevel pl01
 %define version1 %{vers}
 %define version2 %{vers}
 #Used when we have patchlevels, as can't include '-' in the package name
 #define version1 %{vers}-%{patchlevel}
 #define version2 %{vers}_%{patchlevel}
-%define rel  7
+%define rel  1
 %define tlsno pfixtls-0.7.2-snap20010502-0.9.6a
 %define pflogno -1.0.3
 
@@ -152,7 +152,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.117 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.118 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -261,7 +261,7 @@ patch -p1 <%{tlsno}/pfixtls.diff
 %patch2 -p1 -b .chk
 %patch3 -p1 -b .install
 %patch5 -p1 -b .smtpd
-%patch6 -p1 -b .auth
+###%patch6 -p1 -b .auth
 
 # APPLY OPTIONAL PATCHES
 
@@ -702,8 +702,10 @@ fi
 #
 
 %changelog
-* Mon May 25 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010502-7, incorporate Wietse's postfix-smtp_sasl_proto.c.patch
+* Mon May 26 2001 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20010525-1, incorporate Wietse's sasl auth patch, but don't
+  enable as it doesn't seem to work
+- update to snapshot 20010525
 
 * Mon May 25 2001 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20010502-6, update pflogsumm.pl to 1.0.3
