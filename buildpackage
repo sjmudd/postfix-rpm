@@ -16,3 +16,6 @@ cvs diff 2>&1 >/dev/null || { echo "WARNING please commit changes before buildin
   sleep 2 && \
   rpm -ba --sign postfix.spec ) 2>&1 | tee build-output
 ./removelinks
+
+# this line should go after sleep 2, with the real buildroot in place
+#  LD_LIBRARY_PATH=/var/tmp/hpoj-root/usr/lib:$LD_LIBRARY_PATH 
