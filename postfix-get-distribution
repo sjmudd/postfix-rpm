@@ -20,7 +20,7 @@
 
 # Provide a usage message
 function usage () {
-id='$Revision: 1.2.2.12 $'
+id='$Revision: 1.2.2.13 $'
 id=$(echo $id | sed -e 's/^.*: //g' -e 's/ .*$//g')
 cat <<EOF
 `basename $0` $id
@@ -59,7 +59,7 @@ if [ `rpm -q redhat-release >/dev/null 2>&1; echo $?` = 0 ]; then
     # redhat-release-6.2-1
     if [ -n "`rpm -q redhat-release | egrep '(ES|ES|AS)'`" ];
     then
-        releasename=rhes
+        releasename=rhel
     else
         releasename=redhat
     fi
@@ -71,11 +71,11 @@ elif [ `rpm -q fedora-release >/dev/null 2>&1; echo $?` = 0 ]; then
     release=`rpm -q fedora-release | sed -e 's;^fedora-release-;;' \
                                          -e 's;-[0-9]*$;;'`
 elif [ `rpm -q redhat-release-es >/dev/null 2>&1; echo $?` = 0 ]; then
-    releasename=rhes
+    releasename=rhel
     release=`rpm -q redhat-release-es | sed -e 's;^redhat-release-es-;;' \
                                             -e 's;[A-Z]*-[0-9]*$;;'`
 elif [ `rpm -q redhat-release-as >/dev/null 2>&1; echo $?` = 0 ]; then
-    releasename=rhas
+    releasename=rhel
     release=`rpm -q redhat-release-as | sed -e 's;^redhat-release-as-;;' \
                                             -e 's;[A-Z]*-[0-9]*$;;'`
 elif [ `rpm -q mandrake-release >/dev/null 2>&1; echo $?` = 0 ]; then

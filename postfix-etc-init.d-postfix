@@ -10,7 +10,7 @@
 # config: /etc/postfix/main.cf
 # config: /etc/postfix/master.cf
 #
-# $Revision: 2.1 $
+# $Revision: 2.1.2.1 $
 #
 # Written by Package Author: Simon J Mudd <sjmudd@pobox.com>
 # 25/02/99: Mostly s/sendmail/postfix/g by John A. Martin <jam@jamux.com>
@@ -108,7 +108,9 @@ case "$1" in
   	status master
 	;;
   condrestart)
-	[ -f /var/lock/subsys/postfix ] && restart || :
+	# don't use /var/lock/subsys/postfix, check for postfix running directly
+	daemon_directory=$(postconf -h daemon_directory)
+	$daemon_directory/master -t 2>/dev/null && : || restart
 	;;
   *)
 	echo "Usage: postfix {start|stop|restart|reload|abort|flush|check|status|condrestart}"

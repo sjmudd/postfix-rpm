@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.100 2003/11/15 12:27:17 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.101 2003/11/15 14:33:35 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -87,7 +87,7 @@
 %define official 1
 %define ver 2.0.16
 %define mail_release_date 20021219
-%define rel 6.1
+%define rel 6.2
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -233,7 +233,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.100 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.101 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -947,8 +947,13 @@ umask 022
 
 %changelog
 
-* Sat Nov 15 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.16-6.1
+* Sat Nov 15 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.16-6.2
   - include /usr/bin/cc in BuildRequires:
+  - modify postfix-get-distribution to treat all RedHat Enterprise Linux
+    versions of the same level as identical and tag them rhelAB
+    (A=major,B=minor)
+  - modify /etc/init.d/postfix to start/stop postfix by checking directly
+    and not relying on /var/lock/subsys/postfix being correct.
 
 * Fri Nov 14 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.16-6
   - (fixed) remove perl dependencies (ed script needed modifying)
