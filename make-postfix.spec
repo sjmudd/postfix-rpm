@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.4 2003/03/03 12:53:11 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.5 2003/03/03 12:58:04 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -160,7 +160,7 @@ if [ "$POSTFIX_REDHAT_MYSQL" = 1 ]; then
     echo "  adding MySQL support (RedHat mysql* packages) to spec file"
     SUFFIX="${SUFFIX}.mysql"
 fi
-POSTFIX_SASL_LIBRARY=
+POSTFIX_SASL_LIBRARY=notused
 if [ "$POSTFIX_SASL" = 1 -o "$POSTFIX_SASL" = 2 ]; then
     echo "  adding SASL v${POSTFIX_SASL} support to spec file"
     SUFFIX="${SUFFIX}.sasl${POSTFIX_SASL}"
