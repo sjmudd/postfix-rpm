@@ -1,6 +1,6 @@
-diff -ruN postfix-1.1.4-vanilla/PGSQL_README postfix-1.1.4/PGSQL_README
---- postfix-1.1.4-vanilla/PGSQL_README	Thu Jan  1 01:00:00 1970
-+++ postfix-1.1.4/PGSQL_README	Wed Mar  6 17:00:54 2002
+diff -ruN postfix-2.0.0.2-vanilla/README_FILES/PGSQL_README postfix-2.0.0.2/README_FILES/PGSQL_README
+--- postfix-2.0.0.2-vanilla/README_FILES/PGSQL_README	Thu Jan  1 01:00:00 1970
++++ postfix-2.0.0.2/README_FILES/PGSQL_README	Thu Jan  9 16:48:42 2003
 @@ -0,0 +1,88 @@
 +[Code contributed by Mathieu Arnold]
 +
@@ -90,9 +90,9 @@ diff -ruN postfix-1.1.4-vanilla/PGSQL_README postfix-1.1.4/PGSQL_README
 +maps will generate lots of concurrent pgsql clients, so the pgsql
 +server(s) should be run with this fact in mind.  Any further
 +performance information, in addition to any feedback is most welcome.
-diff -ruN postfix-1.1.4-vanilla/src/util/Makefile.in postfix-1.1.4/src/util/Makefile.in
---- postfix-1.1.4-vanilla/src/util/Makefile.in	Sun Feb 24 00:45:59 2002
-+++ postfix-1.1.4/src/util/Makefile.in	Wed Mar  6 17:00:54 2002
+diff -ruN postfix-2.0.0.2-vanilla/src/util/Makefile.in postfix-2.0.0.2/src/util/Makefile.in
+--- postfix-2.0.0.2-vanilla/src/util/Makefile.in	Sun Dec 22 02:46:56 2002
++++ postfix-2.0.0.2/src/util/Makefile.in	Thu Jan  9 16:48:42 2003
 @@ -4,7 +4,7 @@
  	chroot_uid.c clean_env.c close_on_exec.c concatenate.c ctable.c \
  	dict.c dict_alloc.c dict_db.c dict_dbm.c dict_debug.c dict_env.c \
@@ -120,7 +120,7 @@ diff -ruN postfix-1.1.4-vanilla/src/util/Makefile.in postfix-1.1.4/src/util/Make
  	dict_unix.h dir_forest.h events.h exec_command.h find_inet.h \
  	fsspace.h fullname.h get_domainname.h get_hostname.h hex_quote.h \
  	htable.h inet_addr_host.h inet_addr_list.h inet_addr_local.h \
-@@ -556,6 +556,8 @@
+@@ -575,6 +575,8 @@
  dict_ldap.o: sys_defs.h
  dict_mysql.o: dict_mysql.c
  dict_mysql.o: sys_defs.h
@@ -129,7 +129,7 @@ diff -ruN postfix-1.1.4-vanilla/src/util/Makefile.in postfix-1.1.4/src/util/Make
  dict_ni.o: dict_ni.c
  dict_ni.o: sys_defs.h
  dict_nis.o: dict_nis.c
-@@ -596,6 +598,7 @@
+@@ -615,6 +617,7 @@
  dict_open.o: dict_ni.h
  dict_open.o: dict_ldap.h
  dict_open.o: dict_mysql.h
@@ -137,10 +137,10 @@ diff -ruN postfix-1.1.4-vanilla/src/util/Makefile.in postfix-1.1.4/src/util/Make
  dict_open.o: dict_pcre.h
  dict_open.o: dict_regexp.h
  dict_open.o: dict_static.h
-diff -ruN postfix-1.1.4-vanilla/src/util/dict_open.c postfix-1.1.4/src/util/dict_open.c
---- postfix-1.1.4-vanilla/src/util/dict_open.c	Fri Dec 21 23:18:07 2001
-+++ postfix-1.1.4/src/util/dict_open.c	Wed Mar  6 17:00:54 2002
-@@ -166,6 +166,7 @@
+diff -ruN postfix-2.0.0.2-vanilla/src/util/dict_open.c postfix-2.0.0.2/src/util/dict_open.c
+--- postfix-2.0.0.2-vanilla/src/util/dict_open.c	Sat Dec  7 17:28:52 2002
++++ postfix-2.0.0.2/src/util/dict_open.c	Thu Jan  9 16:48:42 2003
+@@ -169,6 +169,7 @@
  #include <dict_ni.h>
  #include <dict_ldap.h>
  #include <dict_mysql.h>
@@ -148,7 +148,7 @@ diff -ruN postfix-1.1.4-vanilla/src/util/dict_open.c postfix-1.1.4/src/util/dict
  #include <dict_pcre.h>
  #include <dict_regexp.h>
  #include <dict_static.h>
-@@ -208,6 +209,9 @@
+@@ -211,6 +212,9 @@
  #endif
  #ifdef HAS_MYSQL
      DICT_TYPE_MYSQL, dict_mysql_open,
@@ -158,9 +158,9 @@ diff -ruN postfix-1.1.4-vanilla/src/util/dict_open.c postfix-1.1.4/src/util/dict
  #endif
  #ifdef HAS_PCRE
      DICT_TYPE_PCRE, dict_pcre_open,
-diff -ruN postfix-1.1.4-vanilla/src/util/dict_pgsql.c postfix-1.1.4/src/util/dict_pgsql.c
---- postfix-1.1.4-vanilla/src/util/dict_pgsql.c	Thu Jan  1 01:00:00 1970
-+++ postfix-1.1.4/src/util/dict_pgsql.c	Wed Mar  6 17:00:54 2002
+diff -ruN postfix-2.0.0.2-vanilla/src/util/dict_pgsql.c postfix-2.0.0.2/src/util/dict_pgsql.c
+--- postfix-2.0.0.2-vanilla/src/util/dict_pgsql.c	Thu Jan  1 01:00:00 1970
++++ postfix-2.0.0.2/src/util/dict_pgsql.c	Thu Jan  9 16:48:42 2003
 @@ -0,0 +1,675 @@
 +
 +/*++
@@ -506,7 +506,7 @@ diff -ruN postfix-1.1.4-vanilla/src/util/dict_pgsql.c postfix-1.1.4/src/util/dic
 +     */
 +    if (strncmp (destination, "unix:", 5) == 0)
 +      {
-+	  vstring_sprintf_append (conninfo, "host=%s ", destination + 5);
++	  vstring_sprintf_append (conninfo, "host=%s ", destination);
 +      }
 +    else
 +      {
@@ -837,9 +837,9 @@ diff -ruN postfix-1.1.4-vanilla/src/util/dict_pgsql.c postfix-1.1.4/src/util/dic
 +
 +#endif
 +
-diff -ruN postfix-1.1.4-vanilla/src/util/dict_pgsql.h postfix-1.1.4/src/util/dict_pgsql.h
---- postfix-1.1.4-vanilla/src/util/dict_pgsql.h	Thu Jan  1 01:00:00 1970
-+++ postfix-1.1.4/src/util/dict_pgsql.h	Wed Mar  6 17:00:54 2002
+diff -ruN postfix-2.0.0.2-vanilla/src/util/dict_pgsql.h postfix-2.0.0.2/src/util/dict_pgsql.h
+--- postfix-2.0.0.2-vanilla/src/util/dict_pgsql.h	Thu Jan  1 01:00:00 1970
++++ postfix-2.0.0.2/src/util/dict_pgsql.h	Thu Jan  9 16:48:42 2003
 @@ -0,0 +1,41 @@
 +#ifndef _DICT_PGSQL_H_INCLUDED_
 +#define _DICT_PGSQL_H_INCLUDED_

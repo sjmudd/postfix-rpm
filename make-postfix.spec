@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.10 2003/01/22 12:05:28 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.11 2003/05/06 08:41:55 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -10,15 +10,17 @@
 # The following external variables if set to 1 affect the behaviour
 #
 # POSTFIX_REDHAT_MYSQL	include support for RedHat's mysql packages
-# POSTFIX_MYSQL		include support for MySQL's  MySQL packages
+# POSTFIX_MYSQL		include support for MySQL's MySQL packages
+# POSTFIX_MYSQLQUERY	include support for writing full select statements
+#			in mysql maps
 # POSTFIX_LDAP		include support for openldap packages
 # POSTFIX_PCRE		include support for pcre maps
 # POSTFIX_PGSQL		include support for PostGres database
 # POSTFIX_PGSQL2	additional experimental patches provided by
 #			George Barbarosie <georgeb@intelinet.ro>
-# POSTFIX_SASL		include support for SASL
+# POSTFIX_SASL		include support for SASL (1, 2 or 0 to disable)
 # POSTFIX_TLS		include support for TLS
-# POSTFIX_IPV6		include support for IPv6
+# POSTFIX_IPV6		include support for IPv6 (don't use with TLS)
 # POSTFIX_VDA		include support for Virtual Delivery Agent
 # POSTFIX_SMTPD_MULTILINE_GREETING
 #			include support for multitline SMTP banner
@@ -39,7 +41,11 @@
 # uid/gid and postdrop gid if the standard values I'm assigning are
 # not correct on your system.
 #
-# Red Hat Linux 8.x requires
+# Red Hat Linux 9 requires
+# REQUIRES_INIT_D	add /etc/init.d/ to requires list
+# POSTFIX_DB=4		add db4 package to requires list
+#
+# Red Hat Linux 8 requires
 # REQUIRES_INIT_D	add /etc/init.d/ to requires list
 # POSTFIX_DB=4		add db4 package to requires list
 #
@@ -47,8 +53,9 @@
 # REQUIRES_INIT_D	add /etc/init.d/ to requires list
 # POSTFIX_DB=3		add db3 package to requires list
 #
-# Red Hat Linux 6.x MAY require (according to configuration)
-# TLSFIX		enable a fix for TLS support on RH 6.2 (see spec file)
+# Red Hat Linux MAY require (according to configuration)
+# TLSFIX=1		enable a fix for TLS support on RH 6.2 (see spec file)
+# TLSFIX=2		enable a fix for TLS support on RH 9 (see spec file)
 # POSTFIX_DB=3		add db3 package to requires list
 # POSTFIX_INCLUDE_DB=1	add /usr/include/db3 to the includes list
 #			and the db-3.1 library to the build instructions
@@ -82,6 +89,7 @@ distribution=`sh ${tmpdir}/postfix-get-distribution`
 releasename=`echo $distribution | sed -e 's;-.*$;;'`
 major=`echo $distribution | sed -e 's;[a-z]*-;;' -e 's;\.[0-9]*$;;'`
 minor=`echo $distribution | sed -e 's;[a-z]*-;;' -e 's;[0-9]*\.;;'`
+
 echo "  Distribution is: ${distribution}"
 echo ""
 
@@ -160,35 +168,81 @@ if [ "$POSTFIX_REDHAT_MYSQL" = 1 ]; then
     echo "  adding MySQL support (RedHat mysql* packages) to spec file"
     SUFFIX="${SUFFIX}.mysql"
 fi
-
-# which is the "-devel" library used for SASL?
-case ${releasename} in
-mandrake)
-    POSTFIX_SASL_LIBRARY=libsasl-devel
-    ;;
-*)
-    POSTFIX_SASL_LIBRARY=cyrus-sasl-devel
-    ;;
-esac
-if [ "$POSTFIX_SASL" = 1 ]; then
-    echo "  adding SASL support to spec file"
-    SUFFIX="${SUFFIX}.sasl"
+if [ "$POSTFIX_MYSQLQUERY" = 1 ]; then
+    echo "  adding support for full mysql select statements to spec file"
+    SUFFIX="${SUFFIX}.mysqlquery"
 fi
+POSTFIX_SASL_LIBRARY=notused
+if [ "$POSTFIX_SASL" = 1 -o "$POSTFIX_SASL" = 2 ]; then
+    echo "  adding SASL v${POSTFIX_SASL} support to spec file"
+    SUFFIX="${SUFFIX}.sasl${POSTFIX_SASL}"
+
+    # which is the "-devel" library used for SASL?
+    case ${distribution} in
+    mandrake-*)
+        POSTFIX_SASL_LIBRARY=libsasl-devel
+	;;
+    *)
+	POSTFIX_SASL_LIBRARY=cyrus-sasl-devel
+	;;
+    esac
+else
+    POSTFIX_SASL=
+fi
+
+[ -z "$POSTFIX_RPM_NO_WARN" -a \
+	"$POSTFIX_LDAP" -gt 0 -a \
+	"$POSTFIX_SASL" = 2 -a \
+	$releasename = redhat -a \
+	$major -le 8 ] && {
+cat <<END
+WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
+
+According to RedHat's Postfix spec file on RH versions earlier than 8.0.1 as
+LDAP is compiled with SASL v1 Postfix will not work if compiled with SASL v2.
+
+You have selected both LDAP and SASL v2 with such a RH release.
+
+To build with this configuration set POSTFIX_RPM_NO_WARN=1 and rerun this
+script.  If the resulting package works please let me know.
+
+WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
+END
+    exit 1
+}
+
+if [ "$POSTFIX_RBL_MAPS" = 1 ]; then
+    cat <<END
+WARNING: POSTFIX_RBL_MAPS no longer used.
+  Please unset POSTFIX_RBL_MAPS to continue.
+END
+    exit 1
+fi
+
 if [ "$POSTFIX_IPV6" = 1 ]; then
     echo "  adding IPv6 support to spec file"
     SUFFIX="${SUFFIX}.ipv6"
 fi
+
 if [ "$POSTFIX_TLS" = 1 ]; then
+    if [ "$POSTFIX_IPV6" = 1 ]; then
+        cat <<END
+ERROR: POSTFIX_IPV6 already includes the TLS patches.
+  Please unset POSTFIX_TLS to continue
+END
+        exit 1
+    fi
+
     echo "  adding TLS support to spec file"
     SUFFIX="${SUFFIX}.tls"
 
-    if [ ${releasename} = 'redhat' -a ${major} = 6 ]; then
-        TLSFIX=1
-    fi
+    # Different fixes (see spec file)
+    [ ${releasename} = 'redhat' -a ${major} = 6 ] && TLSFIX=1
+    [ ${releasename} = 'redhat' -a ${major} = 9 ] && TLSFIX=2
 fi
 if [ "$POSTFIX_VDA" = 1 ]; then
-    # don't bother changing the suffix
     echo "  adding VDA support to spec file"
+    SUFFIX="${SUFFIX}.vda"
 fi
 if [ "$POSTFIX_DISABLE_CHROOT" = 1 ]; then
     echo "  disabling chroot environment in spec file"
@@ -206,9 +260,16 @@ yellowdog)
 
 redhat)
     case ${major} in
+    9)
+	DEFAULT_DB=4
+	REQUIRES_INIT_D=1
+	DIST=".rh9"
+	;;
+
     8)
 	DEFAULT_DB=4
 	REQUIRES_INIT_D=1
+	DIST=".rh8"
 	;;
 
     7)
@@ -287,6 +348,7 @@ esac
 [ -z "$POSTFIX_LDAP" ]			   && POSTFIX_LDAP=0
 [ -z "$POSTFIX_MYSQL" ]			   && POSTFIX_MYSQL=0
 [ -z "$POSTFIX_REDHAT_MYSQL" ]		   && POSTFIX_REDHAT_MYSQL=0
+[ -z "$POSTFIX_MYSQLQUERY" ]		   && POSTFIX_MYSQLQUERY=0
 [ -z "$POSTFIX_PCRE" ]			   && POSTFIX_PCRE=0
 [ -z "$POSTFIX_PGSQL" ]			   && POSTFIX_PGSQL=0
 [ -z "$POSTFIX_PGSQL2" ]		   && POSTFIX_PGSQL2=0
@@ -319,6 +381,7 @@ s!__SUFFIX__!$SUFFIX!g
 s!__LDAP__!$POSTFIX_LDAP!g
 s!__MYSQL__!$POSTFIX_MYSQL!g
 s!__REDHAT_MYSQL__!$POSTFIX_REDHAT_MYSQL!g
+s!__MYSQL_QUERY__!$POSTFIX_MYSQLQUERY!g
 s!__PCRE__!$POSTFIX_PCRE!g
 s!__PGSQL__!$POSTFIX_PGSQL!g
 s!__PGSQL2__!$POSTFIX_PGSQL2!g

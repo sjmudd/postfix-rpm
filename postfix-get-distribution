@@ -1,23 +1,46 @@
 #!/bin/sh
 #
-# simple script to determine the correct distribution
-# - there appears to be no clear way of doing this which is cross platform compatible
+# Simple script to determine the correct distribution, in the form
+# <vendor>-<major>.<minor>
+#
+# - there appears to be no clear way of doing this which is cross platform
+#   compatible between different rpm vendors
+#
+# With rh9 the return value of rpm -q redhat-release does not include a
+# minor version.  This is used in several places in make-postfix.spec so we
+# generate a minor version of 0 if necessary.
 #
 # Get release information (if possible)
 if [ `rpm -q redhat-release >/dev/null 2>&1; echo $?` = 0 ]; then
     releasename=redhat
-    release=`rpm -q redhat-release | sed -e 's;^redhat-release-;;' -e 's;-[0-9]*$;;'`
+    release=`rpm -q redhat-release | sed -e 's;^redhat-release-;;' \
+                                         -e 's;-[0-9]*$;;'`
 elif [ `rpm -q mandrake-release >/dev/null 2>&1; echo $?` = 0 ]; then
     releasename=mandrake
-    release=`rpm -q mandrake-release | sed -e 's;^mandrake-release-;;' -e 's;-[0-9]*mdk$;;'`
+    release=`rpm -q mandrake-release | sed -e 's;^mandrake-release-;;' \
+                                           -e 's;-[0-9]*mdk$;;'`
 elif [ `rpm -q yellowdog-release >/dev/null 2>&1; echo $?` = 0 ]; then
     releasename=yellowdog
-    release=`rpm -q yellowdog-release | sed -e 's;^yellowdog-release-;;' -e 's;-[0-9]*$;;'`
+    release=`rpm -q yellowdog-release | sed -e 's;^yellowdog-release-;;' \
+                                            -e 's;-[0-9]*$;;'`
 else
     releasename=unknown
     release=0.0
 fi
-major=`echo $release | sed -e 's;\.[0-9]*$;;'`
-minor=`echo $release | sed -e 's;^[0-9]*\.;;'`
+
+echo $release | grep -q '\.' && {
+    # there's a '.' in release (e.g. 8.0)
+    major=`echo $release | sed -e 's;\.[0-9]*$;;'`
+    minor=`echo $release | sed -e 's;^[0-9]*\.;;'`
+} || {
+    # there's no '.' in release (e.g. 9)
+    major=$release
+    minor=0
+}
+
+#echo releasename=$releasename
+#echo release=$release
+#echo major=$major
+#echo minor=$minor
  
 echo ${releasename}-${major}.${minor}

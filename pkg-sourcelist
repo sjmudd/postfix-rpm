@@ -1,7 +1,7 @@
 make-postfix.spec
-pfixtls-0.8.13-2.0.3-0.9.7.tar.gz
+pfixtls-0.8.13-2.0.9-0.9.7b.tar.gz
 postfix-1.1.12-20021124-multiline-greeting.patch
-postfix-2.0.0.2.patch.gz
+postfix-2.0.6.patch.gz
 postfix-aliases
 postfix-bounce_notify_util.c.patch
 postfix-build
@@ -12,11 +12,12 @@ postfix-etc-init.d-postfix
 postfix-files.patch
 postfix-get-distribution
 postfix-log_recipient
-postfix-pg.postfix-1.1.4.patch
+postfix-mysql_query.patch
+postfix-pg.postfix-2.0.0.2.patch
 postfix-pg-raw.patch
 postfix-rbl_reply_maps.patch
 postfix-RPM-new-packages
 postfix-RPM-TODO
 postfix-smtp_sasl_proto.c.patch
 postfix.spec.in
-tls+ipv6-1.12-pf-2.0.3-20030126.patch.gz
+tls+ipv6-1.13-pf-2.0.7-20030319.patch.gz
