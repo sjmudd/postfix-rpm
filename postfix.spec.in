@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.76 2002/12/10 10:52:18 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.77 2002/12/11 16:34:07 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -29,7 +29,7 @@
 # include_db               - include the dbX library when compiling (rh6.x with db3)
 # SMTPD_MULTILINE_GREETING - my patch to allow multiline banner
 # vda                      - add virtual delivery agent patch
-# DISABLE_CHROOT           - disable setup of chroot environment
+# disable_chroot           - disable setup of chroot environment
 # MANPAGE_SUFFIX	   - man page suffix, .gz except Mandrake 8 which uses .bz2
 #
 %define distribution __DISTRIBUTION__
@@ -50,7 +50,7 @@
 %define REQUIRES_INIT_D __REQUIRES_INIT_D__
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
 %define vda __VDA__
-%define DISABLE_CHROOT __DISABLE_CHROOT__
+%define disable_chroot __DISABLE_CHROOT__
 %define RBL_MAPS __RBL_MAPS__
 
 # start to support the conditional builds via rpm's
@@ -66,7 +66,7 @@
 %define official 1 
 %define ver 1.1.12
 %define mail_release_date 20020115
-%define rel 3.4
+%define rel 4
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -207,10 +207,10 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.76 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.77 $,
 with the following options:
 
-SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
+SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
 ldap=%{ldap}, sasl=%{sasl}, pcre=%{pcre}, tls=%{tls}, tlsfix=%{tlsfix}, mysql=%{mysql}, redhatmysql=%{redhatmysql}
 include_db=%{include_db}, requires_db=%{requires_db}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}, RBL_MAPS=%{RBL_MAPS}, cdb=%{cdb}
 debug=%{?_with_debug:1}%{?!_with_debug:0}
@@ -311,7 +311,7 @@ done
 %endif
 
 # setup master.cf to be chrooted
-%if ! %{DISABLE_CHROOT}
+%if ! %{disable_chroot}
 mv conf/master.cf conf/master.cf-nochroot
 awk -f %{_sourcedir}/postfix-chroot-setup.awk < conf/master.cf-nochroot > conf/master.cf
 %endif
@@ -475,7 +475,7 @@ install %{_sourcedir}/postfix-etc-init.d-postfix \
 
 # Copy the Linux chroot setup script to %{config_dir}, ready to use,
 # later, removing the 'postfix reload' call from this script
-%if ! %{DISABLE_CHROOT}
+%if ! %{disable_chroot}
 # These set up the chroot directory structure
 mkdir -p %{buildroot}%{queue_dir}/etc
 mkdir -p %{buildroot}%{queue_dir}/lib
@@ -650,7 +650,7 @@ else
 fi
 
 # Generate chroot jails on the fly when needed things are installed/upgraded
-%if ! %{DISABLE_CHROOT}
+%if ! %{disable_chroot}
 
 %triggerin -- glibc
 %{copy_cmd}
@@ -676,7 +676,7 @@ for i in /etc/localtime /usr/lib/zoneinfo/localtime \
 done
 %endif
 
-%if %{requires_db} && ! %{DISABLE_CHROOT}
+%if %{requires_db} && ! %{disable_chroot}
 %triggerin -- db%{requires_db}
 %{copy_cmd}
 for i in /lib/libdb-%{requires_db}.*so; do
@@ -686,7 +686,7 @@ done
 ldconfig -n %{queue_dir}/lib
 %endif
 
-%if %{ldap} && ! %{DISABLE_CHROOT}
+%if %{ldap} && ! %{disable_chroot}
 %triggerin -- openldap
 %{copy_cmd}
 rm -f %{queue_dir}%{_libdir}/libldap*.so*
@@ -705,7 +705,7 @@ ldconfig -n %{queue_dir}%{_libdir}
 /bin/rm -f %{queue_dir}%{_libdir}/liblber.so*
 %endif
 
-%if %{pgsql} && ! %{DISABLE_CHROOT}
+%if %{pgsql} && ! %{disable_chroot}
 %triggerin -- postgresql-libs
 %{copy_cmd}
 rm -f %{queue_dir}%{_libdir}/libpq*
@@ -713,7 +713,7 @@ copy %{_libdir}/libpq.so.2 %{queue_dir}%{_libdir}
 ldconfig -n %{queue_dir}%{_libdir}
 %endif
 
-%if ! %{DISABLE_CHROOT}
+%if ! %{disable_chroot}
 %triggerin -- setup
 %{copy_cmd}
 rm -f %{queue_dir}%{_sysconfdir}/services
@@ -807,7 +807,7 @@ if [ "$1" = 0 ]; then
     %{_sbindir}/groupdel postdrop || %whinge "WARNING: failed to remove group postdrop"
 
     cd %{queue_dir} && {
-        %if ! %{DISABLE_CHROOT}
+        %if ! %{disable_chroot}
           chroot_remove
         %endif
         
@@ -852,7 +852,7 @@ fi
 %attr(0755, root, root) %config %{init_directory}/postfix
 
 %dir                      %verify(not md5 size mtime) %{queue_dir}
-%if ! %{DISABLE_CHROOT}
+%if ! %{disable_chroot}
   %dir %attr(-, root, root) %verify(not md5 size mtime) %{queue_dir}/etc
   %dir %attr(-, root, root) %verify(not md5 size mtime) %{queue_dir}/lib
   %attr(-, root, root)      %verify(not md5 size mtime) %{queue_dir}/usr
@@ -960,12 +960,11 @@ fi
 
 %changelog
 
-* Tue Dec 10 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-3.4
-  - update glibc chroot creation
-
-* Tue Dec 10 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-3.3
+* Wed Dec 11 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-4
   - remove postfix-etc-cron.daily-postfix from pkg-sourcelist
-  - remove postfix-config.patch, not sure when it was added.
+  - remove postfix-config.patch, as it is not being used.
+  - update glibc chroot creation
+  - rename macro: DISABLE_CHROOT -> disable_chroot
 
 * Mon Dec 09 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-3
   - update TLS patches to 0.8.12-1.1.12-0.9.6h
