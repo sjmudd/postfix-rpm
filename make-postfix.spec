@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.3 2000/12/22 15:55:02 root Exp $
+#  $Id: make-postfix.spec,v 1.4 2000/12/22 16:10:56 root Exp $
 
 POSTFIX_SUFFIX=
 POSTFIX_CCARGS=
@@ -27,8 +27,8 @@ fi
 if [ "X$POSTFIX_MYSQL" = "X1" ]; then
     echo "adding MySQL support to spec file"
     POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+mysql"
-#   POSTFIX_CCARGS=${POSTFIX_CCARGS} ...fix me..."
-#   POSTFIX_AUXLIBS="${POSTFIX_AUXLIBS} ...fix me..."
+    POSTFIX_CCARGS=${POSTFIX_CCARGS} ...fix me..."
+    POSTFIX_AUXLIBS="${POSTFIX_AUXLIBS} ...fix me..."
 fi
 if [ "X$POSTFIX_SASL" = "X1" ]; then
     echo "adding SASL support to spec file"
@@ -58,6 +58,7 @@ cat > ../SPECS/postfix.spec <<EOF
 #
 # POSTFIX_SMTPD_MULTILINE_GREETING=$POSTFIX_SMTPD_MULTILINE_GREETING
 # POSTFIX_SAFE_MYNETWORKLS=$POSTFIX_SAFE_MYNETWORKS
+# POSTFIX_BROKEN_AUTH=$POSTFIX_BROKEN_AUTH
 # POSTFIX_LDAP=$POSTFIX_LDAP
 # POSTFIX_PCRE=$POSTFIX_PCRE
 # POSTFIX_MYSQL=$POSTFIX_MYSQL
