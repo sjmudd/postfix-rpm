@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.21 2001/04/17 21:13:50 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.22 2001/04/17 21:19:25 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -47,7 +47,7 @@
 %define version1 %{vers}-%{patchlevel}
 %define version2 %{vers}_%{patchlevel}
 %define rel  3
-%define tlsno pfixtls-0.7.0-20010228-pl01-0.9.6a
+%define tlsno pfixtls-0.7.1-20010228-pl01-0.9.6a
 
 Name: postfix
 Summary: Postfix Mail Transport Agent
@@ -137,7 +137,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.21 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.22 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
