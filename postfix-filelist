@@ -1,6 +1,7 @@
 make-postfix.spec
-pfixtls-0.7.10-snap20011008-0.9.6b.tar.gz
+pfixtls-0.7.11-snap20011008-0.9.6b.tar.gz
 pflogsumm-1.0.3.pl
+postfix-INSTALL.sh.non-root.patch
 postfix-INSTALL.sh.patch
 postfix-README_maildrop_security.txt
 postfix-aliases
