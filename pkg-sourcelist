@@ -9,7 +9,6 @@ postfix-chroot-setup.awk
 postfix-chroot_setup.patch
 postfix-config.patch
 postfix-dict_cdb.tar.gz
-postfix-etc-cron.daily-postfix
 postfix-etc-init.d-postfix
 postfix-files.patch
 postfix-get-distribution
