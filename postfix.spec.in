@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.54 2001/07/08 20:06:04 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.55 2001/08/03 06:45:50 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -43,10 +43,10 @@
 
 %define branch release
 %define vers 20010228
-%define patchlevel pl03
+%define patchlevel pl04
 %define version1 %{vers}-%{patchlevel}
 %define version2 %{vers}_%{patchlevel}
-%define rel  7
+%define rel  1
 
 %define tlsno pfixtls-0.7.3-20010228-pl03-0.9.6a
 %define pflogno -1.0.3
@@ -123,7 +123,7 @@ BuildRequires: MySQL-shared, MySQL-devel, zlib-devel
 
 %if %{SASL}
 Requires: cyrus-sasl
-BuildRequires: cyrus-sasl
+BuildRequires: cyrus-sasl, cyrus-sasl-devel
 %endif
 
 %if %{TLS}
@@ -145,7 +145,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.54 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.55 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -689,6 +689,9 @@ fi
 #
 
 %changelog
+
+* Fri Aug 03 2001 Simon J Mudd <sjmudd@pobox.com>
+- postfix-20010228-pl04-1, update version
 
 * Sun Jul 08 2001 Simon J Mudd <sjmudd@pobox.com>
 - postfix-20010228-pl03-7, include Wietse's smtp_addr.c Patch
