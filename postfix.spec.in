@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.124 2001/06/01 16:06:03 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.125 2001/06/01 16:06:55 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -151,7 +151,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.124 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.125 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -628,7 +628,7 @@ fi
 %doc ULTRIX_README
 %doc UUCP_README
 
-%doc postfix-new-PACKAGE-announcements
+%doc postfix-new-RPMS
 
 %if %{TLS}
 %doc ACKNOWLEDGEMENTS.TLS
@@ -698,7 +698,7 @@ fi
 %changelog
 * Wed May 30 2001 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20010525-4, remove a couple of files
-  - add postfix-new-PACKAGE-announcements
+  - add postfix-new-RPMS
   - include -I/usr/include/pcre as required with some versions of pcre-devel
 
 * Wed May 30 2001 Simon J Mudd <sjmudd@pobox.com>
