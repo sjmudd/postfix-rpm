@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.32 2000/12/22 15:47:11 root Exp $
+# $Id: postfix.spec.in,v 2.33 2000/12/22 15:55:15 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -8,7 +8,7 @@
 # Please send bugfixes and comments to the packager.
 ##############################################################################
 
-Name: XX_POSTFIX_NAME
+Name: postfix
 Summary: Postfix Mail Transport Agent
 Group: System Environment/Daemons
 URL: http://www.postfix.org
@@ -19,7 +19,7 @@ PreReq: /sbin/chkconfig
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
 Version: 20001217
-Release: 1
+Release: 2XX_POSTFIX_SUFFIX
 Packager: Simon J Mudd <sjmudd@pobox.com> but see description below
 Vendor: None -- see packager
 Distribution: Experimental
@@ -450,8 +450,11 @@ rm -rf ${RPM_BUILD_ROOT}
 #	Bennett Todd <bet@mordor.net>
 
 %changelog
-* XXX Dec XX 2000 Simon Mudd <sjmudd@pobox.com>
-- snapshot-20001217-2
+* Fri Dec 22 2000 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001217-2, major changes so that I
+  can build any spec file to include mysql, ldap, pcre
+  and AUTH support.  This is not finished but basically
+  just requires the Requires: lines to work properly
 
 * Mon Dec 18 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001217-1, no changes, updating to latest snapshot
