@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.2.5 2004/09/17 16:16:00 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.2.6 2004/12/08 18:39:24 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -56,7 +56,7 @@
 #
 # Red Hat Linux MAY require (according to configuration)
 # TLSFIX=1		enable a fix for TLS support on RH 6.2 (see spec file)
-# TLSFIX=2		enable a fix for TLS support on RH 9 (see spec file)
+# TLSFIX=2		enable a fix for TLS support on RH 9 and RHEL3
 #
 # For build instructions see:
 # - postfix.spec[.in]	if you have the source rpm installed
@@ -265,7 +265,7 @@ if [ "$POSTFIX_TLS" = 1 ]; then
     [ ${releasename} = 'redhat' -a ${major} -eq 6 ] && TLSFIX=1
     [ ${releasename} = 'redhat' -a ${major} -eq 9 ] && { TLSFIX=2; REQUIRES_ZLIB=1; }
     [ ${releasename} = 'fedora' -a ${major} -eq 1 ] && TLSFIX=2
-    [ ${releasename} = 'rhel'   -a ${major} -ge 3 ] && REQUIRES_ZLIB=1
+    [ ${releasename} = 'rhel'   -a ${major} -ge 3 ] && { TLSFIX=2; REQUIRES_ZLIB=1; }
 fi
 if [ "$POSTFIX_VDA" = 1 ]; then
     echo "  adding VDA support to spec file"

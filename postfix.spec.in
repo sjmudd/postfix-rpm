@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.2.23 2004/09/22 16:31:23 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.2.24 2004/12/08 18:39:24 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -31,8 +31,8 @@
 #                            - rpms for libspf can be found at http://www.sosdg.org/rpm/libspf/
 #                            - apparently they work on RHEL3
 # with_tls                 - include TLS support
-# with_tlsfix              - include TLS fix (apparently needed for rh6.2)
-#                          - (also include for rh9)
+# with_tlsfix              - include TLS fix
+#                            - needed for rh6.2, rh9 and rhel3
 # with_vda                 - add virtual delivery agent patch
 #
 # Please send bugfixes and comments to the packager.
@@ -89,7 +89,7 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 1
 %define V_postfix 2.1.5
-%define rel 3__SUFFIX__
+%define rel 4__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -253,7 +253,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.2.23 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.2.24 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -801,11 +801,11 @@ test -f /usr/lib/sendmail && {
 %triggerpostun -- sendmail
 
 # If removing sendmail and not using alternatives: replace with postfix equivalents
-%whinge "triggerpostun -- sendmail: final number of sendmail packages=$2"
+%whinge "%{V_postfix}-%{rel} triggerpostun -- sendmail: final number of sendmail packages=$2"
 [ $2 = 0 ] || exit 0
 
 if [ -x %{_sbindir}/alternatives ]; then
-    %whinge "Uninstalling sendmail, so setup Postfix: using RH alternatives"
+    %whinge "%{V_postfix}-%{rel} Uninstalling sendmail, so setup Postfix: using RH alternatives"
     %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{sendmail_path} 30 \
         --slave %{_bindir}/mailq mta-mailq %{mailq_path} \
         --slave %{_bindir}/newaliases mta-newaliases %{newaliases_path} \
@@ -815,9 +815,10 @@ if [ -x %{_sbindir}/alternatives ]; then
         --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
         --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
         --initscript postfix
+	:	# ensure the trigger exit status is 0
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
-        %whinge "Uninstalling sendmail, no %{_sbindir}/sendmail present: simulating RH alternatives"
+        %whinge "%{V_postfix}-%{rel} Uninstalling sendmail, no %{_sbindir}/sendmail present: simulating RH alternatives"
         ln -sf %{sendmail_path}             %{_sbindir}/sendmail
         ln -sf %{mailq_path}                %{_bindir}/mailq 
         ln -sf %{newaliases_path}           %{_bindir}/newaliases 
@@ -836,11 +837,11 @@ fi
 # If upgrading postfix some versions are pre-alternatives and use
 # /usr/sbin/sendmail.  After uninstalling the old package this file will be
 # missing and we need to link to the new postfix sendmail binary.
-%whinge "triggerpostun -- postfix: final number of Postfix packages=$2"
+%whinge "%{V_postfix}-%{rel} triggerpostun -- postfix: final number of Postfix packages=$2"
 [ $2 -gt 0 ] || exit 0
 
 if [ -x %{_sbindir}/alternatives ]; then
-    %whinge "Upgrading Postfix: using RH alternatives"
+    %whinge "%{V_postfix}-%{rel} Upgrading Postfix: using RH alternatives"
     %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{sendmail_path} 30 \
         --slave %{_bindir}/mailq mta-mailq %{mailq_path} \
         --slave %{_bindir}/newaliases mta-newaliases %{newaliases_path} \
@@ -850,9 +851,10 @@ if [ -x %{_sbindir}/alternatives ]; then
         --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
         --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
         --initscript postfix
+	:	# ensure the trigger exit status is 0
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
-        %whinge "Upgrading Postfix, no %{_sbindir}/sendmail present: simulating RH alternatives"
+        %whinge "%{V_postfix}-%{rel} Upgrading Postfix, no %{_sbindir}/sendmail present: simulating RH alternatives"
         ln -sf %{sendmail_path}                           %{_sbindir}/sendmail
         ln -sf %{mailq_path}                              %{_bindir}/mailq 
         ln -sf %{newaliases_path}                         %{_bindir}/newaliases 
@@ -1103,6 +1105,9 @@ umask 022
 #
 
 %changelog
+
+* Wed Dec 08 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.5-4
+  - minor change including TLSFIX=2 for RHEL3
 
 * Wed Sep 22 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.5-3
   - update ipv6 patch
