@@ -19,11 +19,13 @@ build_output=build-output
 current_directory=`pwd`
 sign='--sign'
 test_tls=1
+test_vda=1
  
 USAGE="Usage: $0 [name=value] [option]
     --no_check              Do not check if the files have changed against the version stored in cvs.
     --no_sign               Do not sign the package.
     --no_test_tls           Do not test the TLS patches apply cleanly before building the package
+    --no_test_vda           Do not test the VDA patches apply cleanly before building the package
     name=value              Specify an installation parameter".
  
 # Process command-line options and parameter settings. Work around
@@ -37,6 +39,7 @@ do
    --no_check) no_check=1;;
     --no_sign) sign=;;
 --no_test_tls) test_tls=0;;
+--no_test_vda) test_vda=0;;
             *) echo $0: Error: $USAGE 1>&2; exit 1;;
     esac
     shift
@@ -71,6 +74,18 @@ testtls () {
       cd ${specdir} && \
       rpm -bp postfix.spec ) || { echo "Testing TLS patches: ** FAILED **"; exit 1; }
       echo "Testing TLS patches: ** OK **"
+    }
+}
+
+# Test the rpm prep stage for VDA patches - do they apply cleanly?
+testvda () {
+    [ "${test_vda}" = 1 ] && {
+    echo "Testing VDA patches: ***"
+    ( cd ${srcdir} && \
+      POSTFIX_VDA=1 sh make-postfix.spec && \
+      cd ${specdir} && \
+      rpm -bp postfix.spec ) || { echo "Testing VDA patches: ** FAILED **"; exit 1; }
+      echo "Testing VDA patches: ** OK **"
     }
 }
 
@@ -149,6 +164,25 @@ Checking TLS patches...
 EOF
 download_if_necessary . ${base} ${file}
 
+# Look for VDA Patch
+# Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}_quota.patch                                                                   
+vdaver=`grep '^%define vdaver' postfix.spec.in | awk '{ print $3 } '`
+patch4=`grep '^Patch4: http://ftp.oav.net/others/postfix/VDA/postfix' postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{vdaver};${vdaver};"`
+
+base=`dirname ${patch4}`
+file=`echo ${patch4} | sed -e 's;.*/;;'`
+file="$file.gz"
+
+cat <<EOF
+Checking VDA patches...
+	vdaver:			${vdaver}
+	VDA patch tarball name:	${file}
+	URL location:		${base}
+
+EOF
+download_if_necessary . ${base} ${file}
+gunzip ${file}
+
 echo "CVS Status:"
 
 if [ $no_check ]; then
@@ -166,6 +200,7 @@ echo ""
 sh removelinks --quiet
 sh makelinks
 testtls
+testvda
 build
 echo ""
 sh removelinks
