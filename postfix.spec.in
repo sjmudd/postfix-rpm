@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.255 2003/09/11 20:16:28 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.256 2003/11/14 22:22:32 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -81,9 +81,9 @@
 
 # If set to 1 if official version, 0 if snapshot
 %define official 0
-%define ver 2.0.14
-%define mail_release_date 20030812
-%define rel 2
+%define ver 2.0.16
+%define mail_release_date 20031113
+%define rel 0.1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -153,13 +153,13 @@ Patch5: postfix-mysql_query.patch
 Patch7: postfix-log_recipient
 Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pgver}.patch
 Patch51: postfix-pg-raw.patch
-Patch99: ftp://ftp.wl0.org/SOURCES/postfix-1.1.12-20021124-multiline-greeting.patch
+Patch99: ftp://ftp.wl0.org/SOURCES/postfix-2.0.16-20031026-multiline-greeting.patch
 
 BuildRoot: %{_tmppath}/postfix-%{package_version}-buildroot
 
 # Determine packaging requirements
-BuildRequires: gawk, perl, sed, ed, patch, rpm >= 4
-Requires: gawk, perl, sed, ed
+BuildRequires: gawk, sed, ed, patch, rpm >= 4
+Requires: gawk, sed, ed
 
 %if %{requires_db}
 Requires: db%{requires_db}
@@ -226,7 +226,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.255 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.256 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -325,7 +325,7 @@ sh dict_cdb.sh
 %if %{tls}
 # Move postfix/tls docs into TLS dir
 mkdir TLS
-mv %{pfixtls}/doc/* TLS
+mv %{pfixtls}/doc/* TLS/
 for i in ACKNOWLEDGEMENTS CHANGES INSTALL README TODO; do
   mv %{pfixtls}/$i $i.TLS
 done
@@ -439,17 +439,17 @@ umask 022
 # Use perl rather than looking in /etc/passwd or /etc/group as this works
 # in a wider NIS or LDAP environment
 
-perl -e '$gid=getgrnam("postdrop"); exit 1 if ! defined( $gid )' || {
+/usr/bin/getent group postdrop >/dev/null || {
     %whinge "Adding postdrop group to system"
     %{_sbindir}/groupadd -r postdrop
 }
 
-perl -e '$gid=getgrnam("postfix"); exit 1 if ! defined( $gid )' || {
+/usr/bin/getent group postfix >/dev/null || {
     %whinge "Adding postfix group to system"
     %{_sbindir}/groupadd -r postfix
 }
 
-perl -e '$uid=getpwnam("postfix"); exit 1 if ! defined( $uid )' || {
+/usr/bin/getent passwd postfix >/dev/null || {
     %whinge "Adding postfix user to system"
     %{_sbindir}/useradd -d %{_var}/spool/postfix -s /bin/true -g postfix -G mail -M -r postfix
 }
@@ -538,9 +538,13 @@ done
 install -c -m 755 %{_sourcedir}/%{postfinger} ${RPM_BUILD_ROOT}%{_bindir}/postfinger
 install -c -m 755 %{_sourcedir}/postfix-chroot.sh ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/
 
-# fix path to perl
+# fix path to perl and certs
 %if %{tls}
-perl -pi -e "s,/usr/local/bin/perl,/usr/bin/perl,g" TLS/loadCAcert.pl
+ed TLS/loadCAcert.pl <<EOF || exit 1
+%%s,/usr/local/bin/perl,/usr/bin/perl,g
+w
+q
+EOF
 %endif
 
 %post
@@ -850,13 +854,17 @@ umask 022
 
 %dir %attr(0755, root, root)        %verify(not md5 size mtime) %{_var}/spool/postfix/pid
 
-#%doc 0README
+%doc AAAREADME
+%doc CA-2003-12
+%doc COPYRIGHT
 %doc COMPATIBILITY
 %doc HISTORY
 %doc INSTALL
 %doc PORTING
+%doc RELEASE_NOTES
 %doc RELEASE_NOTES-1.1
 %doc RELEASE_NOTES-2.0
+%doc US_PATENT_6321267
 
 %doc postfix-RPM-new-packages
 %doc postfix-RPM-TODO
@@ -878,6 +886,7 @@ umask 022
 %doc examples
 
 %dir %attr(0755, root, root) %verify(not md5 size mtime) %{_libexecdir}/postfix
+%{_libexecdir}/postfix/anvil
 %{_libexecdir}/postfix/bounce
 %{_libexecdir}/postfix/cleanup
 %{_libexecdir}/postfix/error
@@ -935,6 +944,11 @@ umask 022
 #
 
 %changelog
+
+* Fri Nov 14 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.16-20031113-1
+  - update to latest snapshot
+  - add anvil daemon
+  - add missing documentation files
 
 * Thu Sep 11 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.14-20030812-2
   - various updates:

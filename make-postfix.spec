@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.15 2003/09/11 19:56:56 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.16 2003/11/14 22:22:32 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -266,6 +266,7 @@ if [ "$POSTFIX_TLS" = 1 ]; then
     # Different fixes (see spec file)
     [ ${releasename} = 'redhat' -a ${major} = 6 ] && TLSFIX=1
     [ ${releasename} = 'redhat' -a ${major} = 9 ] && TLSFIX=2
+    [ ${releasename} = 'fedora' -a ${major} = 1 ] && TLSFIX=2
 fi
 if [ "$POSTFIX_VDA" = 1 ]; then
     echo "  adding VDA support to spec file"
@@ -281,10 +282,28 @@ yellowdog)
     ;;
 
 rhes|rhas)
-    DEFAULT_DB=3
-    [ ${releasename} = "rhes" ] && DIST=".rhes21"
-    [ ${releasename} = "rhas" ] && DIST=".rhas21"
+    # Stop distinguishing between enterprise | advanced server or workstation
+    # as this seems rather pointless (should run on all versions I think)
+    DEFAULT_DB=4
+    case ${major} in
+    3)
+        DIST=".rhes3"
+        ;;
+    2)
+        DEFAULT_DB=3
+        DIST=".rhes21"
+        ;;
+    *)
+        echo "ERROR: Do not recognise the version of Red Hat Enterprise Server/Advanced Server/Workstation"
+        exit 1
+        ;;
+    esac
     ;;
+
+fedora)
+        DEFAULT_DB=4
+        DIST=".fc1"
+	;;
 
 redhat)
     case ${major} in

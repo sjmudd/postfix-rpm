@@ -9,10 +9,18 @@
 # With rh9 the return value of rpm -q redhat-release does not include a
 # minor version.  This is used in several places in make-postfix.spec so we
 # generate a minor version of 0 if necessary.
+#
+# Recognised distributions so far are:
+# - RedHat Linux
+# - RedHat Enterprise Linux
+# - Fedora
+# - YellowDog Linux
+# - Whitebox Linux
+# - Mandrake Linux
 
 # Provide a usage message
 function usage () {
-id='$Revision: 1.5 $'
+id='$Revision: 1.6 $'
 id=$(echo $id | sed -e 's/^.*: //g' -e 's/ .*$//g')
 cat <<EOF
 `basename $0` $id
@@ -41,9 +49,26 @@ fi
 
 #
 # Get release information (if possible)
+#
 if [ `rpm -q redhat-release >/dev/null 2>&1; echo $?` = 0 ]; then
-    releasename=redhat
+    # This means we are RHL <= 9 OR enterprise linux
+    # redhat-release-3ES-1
+    # redhat-release-9-3
+    # redhat-release-8.0-8
+    # redhat-release-7.2-1
+    # redhat-release-6.2-1
+    if [ -n "`rpm -q redhat-release | egrep '(ES|ES|AS)'`" ];
+    then
+        releasename=rhes
+    else
+        releasename=redhat
+    fi
     release=`rpm -q redhat-release | sed -e 's;^redhat-release-;;' \
+                                         -e 's;-[0-9]*$;;' \
+                                         -e 's;[EWA]S;;'`
+elif [ `rpm -q fedora-release >/dev/null 2>&1; echo $?` = 0 ]; then
+    releasename=fedora
+    release=`rpm -q fedora-release | sed -e 's;^fedora-release-;;' \
                                          -e 's;-[0-9]*$;;'`
 elif [ `rpm -q redhat-release-es >/dev/null 2>&1; echo $?` = 0 ]; then
     releasename=rhes
