@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.223 2002/12/12 21:28:08 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.224 2002/12/13 10:42:16 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -130,7 +130,6 @@ Source6: postfix-chroot-setup.awk
 Source7: postfix.spec.in
 Source8: make-postfix.spec
 Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{pfixtls}.tar.gz
-Source10: http://www.cyber-magic.org/~taka/misc/postfix-1.1.11+ipv6.patch.gz
 Source11: postfix-build
 Source12: http://www.corpit.ru/ftp/postfix/postfix-dict_cdb.tar.gz
 Source13: http://www.corpit.ru/ftp/postfix/README.CDB
@@ -209,7 +208,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.223 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.224 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -957,7 +956,6 @@ fi
 %changelog
 
 * Wed Dec 11 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021209-1.2
-  - add ipv6 patch (not yet used)
   - remove (duplicate) LICENSE from %doc directory
 
 * Wed Dec 11 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021209-1.1
