@@ -6,7 +6,6 @@ postfix-INSTALL.sh.patch
 postfix-README_maildrop_security.txt
 postfix-aliases
 postfix-bounce_notify_util.c.patch
-postfix-broken_auth.patch
 postfix-build
 postfix-chroot-setup.awk
 postfix-chroot_chk.patch

@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.151 2001/10/19 07:09:52 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.152 2001/10/19 09:37:04 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -128,7 +128,7 @@ BuildRequires: MySQL-shared, MySQL-devel, zlib-devel
 
 %if %{SASL}
 Requires: cyrus-sasl
-BuildRequires: cyrus-sasl
+BuildRequires: cyrus-sasl, cyrus-sasl-devel
 %endif
 
 %if %{TLS}
@@ -150,7 +150,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.151 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.152 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -284,7 +284,7 @@ AUXLIBS=
 
 %if %{LDAP}
   CCARGS="${CCARGS} -DHAS_LDAP"
-  AUXLIBS="${AUXLIBS} -L/usr/lib -lldap -llber"  
+  AUXLIBS="${AUXLIBS} -L/usr/lib -lldap -llber"
 %endif
 %if %{PCRE}
   # -I option required for pcre 3.4 (and later?)
@@ -372,7 +372,7 @@ sh INSTALL.sh < /dev/null
 bin/postconf -c %{buildroot}%{config_directory} -e \
 	"alias_maps = hash:%{config_directory}/aliases" \
 	"alias_database = hash:%{config_directory}/aliases" \
-|| exit 1 
+|| exit 1
 
 # This installs into the /etc/rc.d/init.d directory
 /bin/mkdir -p %{buildroot}%{init_directory}
@@ -537,7 +537,7 @@ if [ "$1" = 0 ]; then
         true
     fi
 
-    /sbin/chkconfig --del postfix                    
+    /sbin/chkconfig --del postfix                 
 
     # userdel also deletes the user's group
     userdel postfix || : %whinge "WARNING: failed to remove user postfix"
@@ -635,7 +635,7 @@ fi
 %doc QMQP_README
 %doc RELEASE_NOTES
 %doc RESTRICTION_CLASS
-%doc SASL_README 
+%doc SASL_README
 %doc TODO
 %doc ULTRIX_README
 %doc UUCP_README
@@ -683,7 +683,7 @@ fi
 %{command_directory}/postalias
 %{command_directory}/postcat
 %{command_directory}/postconf
-%attr(2755,root,postfix) %{command_directory}/postdrop 
+%attr(2755,root,postfix) %{command_directory}/postdrop
 %{command_directory}/postfix
 %{command_directory}/postkick
 %{command_directory}/postlock
@@ -694,7 +694,7 @@ fi
 %{command_directory}/smtp-sink
 %{command_directory}/smtp-source
 
-%attr(700,root,root) %{command_directory}/pflogsumm.pl 
+%attr(700,root,root) %{command_directory}/pflogsumm.pl
 
 %{sendmail_path}
 %{mailq_path}
@@ -716,7 +716,7 @@ fi
 - snapshot-20011008-3
   - update to latest TLS patch (0.7.11)
   - enable building as non-root:
-    - patches provided by Dominik Mierzejewski <dmierzej@elka.pw.edu.pl> 
+    - patches provided by Dominik Mierzejewski <dmierzej@elka.pw.edu.pl>
 
 * Wed Oct 17 2001 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20011008-2
@@ -801,7 +801,7 @@ fi
 - snapshot-20010502-3
   - configuration changes, used with make-postfix.spec
   - remove changelog entries before 01-01-2001
-  - modifications to improve support with MySQL-3.23.36-1 
+  - modifications to improve support with MySQL-3.23.36-1
   - add warning if rebuilding and haven't updated spec file from .spec.in
     in ./SOURCES
 
@@ -809,7 +809,7 @@ fi
 - snapshot-20010502-2, add smptd_check.c.patch from Wietse
 
 * Fri May 04 2001 Simon J Mudd <sjmudd@pobox.com>
-- snapshot-20010502-1, change /etc/cron.daily/postfix and add support 
+- snapshot-20010502-1, change /etc/cron.daily/postfix and add support
   for pflogsumm.pl
 - update TLS patch
 - remove temporary smtpd.c.patch
