@@ -61,20 +61,17 @@ download_if_necessary() {
 
 # Check postfix tar ball has been download
 
-major_version=`grep '^%define major' postfix.spec.in | awk '{ print $3 } '`
-minor_version=`grep '^%define minor' postfix.spec.in | awk '{ print $3 } '`
-patch_level=`grep '^%define patchlevel' postfix.spec.in | awk '{ print $3 } '`
+version=`grep '^%define ver ' postfix.spec.in | awk '{ print $3 } '`
 release_date=`grep '^%define releasedate' postfix.spec.in | awk '{ print $3 } '`
 rpm_release=`grep '^%define rel ' postfix.spec.in | awk '{ print $3 } '`
 
 RC=`grep -q '%define official 1' postfix.spec.in; echo $?`
 if [ ${RC} = "0" ]; then
     name=postfix
-    version="${major_version}.${minor_version}.${patch_level}"
     ftpdir=official
 else
     name=snapshot
-    version="${major_version}.${minor_version}.${patch_level}-${release_date}"
+    version="${version}-${release_date}"
     ftpdir=experimental
 fi
 
