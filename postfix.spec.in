@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.127 2001/06/01 16:37:21 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.128 2001/06/01 16:39:19 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -150,7 +150,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.127 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.128 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -282,7 +282,7 @@ awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > co
 
 # Copy README files allowing us to just go %doc below, and have rpm(1)
 # automatically tuck it in alongside the READMEs and COPYRIGHTs.
-cp ${RPM_SOURCE_DIR}/postfix-README_rpm.txt README_rpm.txt
+cp ${RPM_SOURCE_DIR}/postfix-new-RPMS postfix-new-RPMS
 cp ${RPM_SOURCE_DIR}/postfix-README_maildrop_security.txt \
 	README_maildrop_security.txt
 
