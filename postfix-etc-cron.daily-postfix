@@ -1,27 +1,50 @@
 #!/bin/sh
 #
-# /etc/cron.daily/postfix
+# /etc/cron.daily/1postfix
 #
-# This file is run on a daily basis to perform basic checks on your postfix
-# configuration.
+# This file is run on a daily basis to perform checks on your postfix
+# configuration and to analyse your mail logs.
 #
-# This file is flagged by rpm as a configuration file.
+# The file is named "1postfix" to ensure that it is run before logrotate
+# when the /var/log/maillog files are rotated.
 #
-# If you modify this file, further upgrades to postfix will not overwrite
-# the file.
+# The file is also flagged by rpm as a configuration file, so if you modify
+# it, further upgrades to postfix will not be overwriten.
 #
-# uncomment this line to disable the daily cronjob
+# uncomment the next line to completely disable the daily cronjob
 # exit 0
+
+LOGFILE=/var/log/maillog
+EXECUTABLE=/usr/sbin/pflogsumm.pl
+PFLOGSUMTMP=/etc/postfix/pfls.tmp.$$	# safer directory than /tmp
+
+# Clean up when done or when aborting.
+trap "rm -f ${PFLOGSUMTMP}" 0 1 2 3 15 
 
 [ -x /usr/sbin/postfix ] || exit 0
 /usr/sbin/postfix check
 
-# Add the check suggested by /usr/share/doc/postfix-<version>/INSTALL
-#/bin/egrep '(reject|warning|error|fatal|panic):' /var/log/maillog
-
 # Invoke pflogsumm.pl to gather statistics
 # see http://jimsun.linxnet.com/postfix_contrib.html for further info.
-#
+
 [ -x /usr/sbin/pflogsumm.pl ] || exit 0
 
-/usr/sbin/pflogsumm.pl < /var/log/maillog
+# WARNING - This is a bit of a hack
+#
+# pflogsumm.pl needs Date::Calc to work so we do the following:
+# Check if our installation works with Date::Calc
+# - if so, use pflogsumm.pl directly
+# - if not filter out the Date::Calc useage and use the resulting script
+
+perl -e "use Date::Calc;" 2>/dev/null || {
+    # strip out Date::Calc from pflogsumm.pl
+    sed -e '/# ---Begin:/,/# ---End:/d' < ${EXECUTABLE} > ${PFLOGSUMTMP}
+    chmod u=x,go= ${PFLOGSUMTMP}
+    EXECUTABLE=${PFLOGSUMTMP}
+}
+
+echo "# Output of pflogsumm.pl applied to ${LOGFILE} follows."
+echo "# Further information from http://jimsun.linxnet.com/postfix_contrib.html"
+echo "# --"
+${EXECUTABLE} < ${LOGFILE}
+
