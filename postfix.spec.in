@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.49 2002/10/20 23:01:28 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.50 2002/10/28 15:25:46 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -21,6 +21,8 @@
 # pgsql2                   - experimental postgres patches by George Barbarosie
 #                            <georgeb@intelinet.ro>: needs pgsql=1
 # sasl                     - include SASL/AUTH support
+# cdb                      - include CDB support by Michael Tokarev
+#                            <mjt@corpit.ru>
 # tls                      - include TLS support
 # tlsfix                   - include TLS fix (apparently needed for rh6.2)
 # REQUIRES_INIT_D          - Required by RedHat 7.x
@@ -33,6 +35,7 @@
 #
 %define distribution __DISTRIBUTION__
 %define mps __MANPAGE_SUFFIX__
+%define cdb __CDB__
 %define ldap __LDAP__
 %define mysql __MYSQL__
 %define redhatmysql __REDHAT_MYSQL__
@@ -65,7 +68,7 @@
 %define official 1 
 %define ver 1.1.11
 %define mail_release_date 20020115
-%define rel 10
+%define rel 11
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -130,6 +133,8 @@ Source8: make-postfix.spec
 Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{pfixtls}.tar.gz
 Source10: http://jimsun.linxnet.com/downloads/pflogsumm%{pflogno}.pl
 Source11: postfix-build
+Source12: http://www.corpit.ru/ftp/postfix/postfix-dict_cdb.tar.gz
+Source13: http://www.corpit.ru/ftp/postfix/README.CDB
 
 # Obligatory Patches
 Patch1: postfix-config.patch
@@ -210,15 +215,15 @@ and configuring postfix.
 
 The binary and source rpms I produce are currently available at
 	http://pobox.com/~sjmudd/postfix, ftp://ftp.WL0.org
-and the following mirrors:
-	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
+and the mirrors which can be found at the following URL:
+	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.49 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.50 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
 ldap=%{ldap}, sasl=%{sasl}, pcre=%{pcre}, tls=%{tls}, tlsfix=%{tlsfix}, mysql=%{mysql}, redhatmysql=%{redhatmysql}
-REQUIRES_DB3=%{REQUIRES_DB3}, REQUIRES_DB4=%{REQUIRES_DB4}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}, RBL_MAPS=%{RBL_MAPS}
+REQUIRES_DB3=%{REQUIRES_DB3}, REQUIRES_DB4=%{REQUIRES_DB4}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}, RBL_MAPS=%{RBL_MAPS}, cdb=%{cdb}
 debug=%{?_with_debug:1}%{?!_with_debug:0}
 
 To use postfix with alternative options download the source package and
@@ -285,6 +290,11 @@ patch -p1 <%{pfixtls}/pfixtls.diff
 %patch7 -p1 -b .logrcpt
 
 # Apply optional patches
+%if %{cdb}
+%setup -D -T -a 12
+cp $RPM_SOURCE_DIR/README.CDB .
+sh dict_cdb.sh
+%endif
 %if %{vda}
 %patch4 -p1 -b .vda
 %endif
@@ -344,6 +354,10 @@ CCARGS="${CCARGS} -fsigned-char"
   CCARGS="-I/usr/include/db3 ${CCARGS}"
 %endif
 
+%if %{cdb}
+  CCARGS="${CCARGS} -DHAS_CDB"
+  AUXLIBS="${AUXLIBS} -lcdb"
+%endif
 %if %{ldap}
   CCARGS="${CCARGS} -DHAS_LDAP"
   AUXLIBS="${AUXLIBS} -L/usr/lib -lldap -llber"
@@ -891,6 +905,10 @@ fi
 %doc PORTING
 %doc RELEASE_NOTES
 
+%if %{cdb}
+%doc README.CDB
+%endif
+
 %if %{pgsql}
 %doc PGSQL_README
 %endif
@@ -966,6 +984,10 @@ fi
 #
 
 %changelog
+
+* Mon Oct 28 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-11
+  - add support for Constant Database, CDB, by Michael Tokarev
+    <mjt@corpit.ru>, as originally devised by djb.
 
 * Mon Oct 21 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-10
   - add Victor Duchovni's log_recipient patch

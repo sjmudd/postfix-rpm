@@ -22,3 +22,5 @@ postfix-smtp_sasl_proto.c.patch
 postfix-smtpd_chat.c.diff
 postfix-smtpd_multiline_greeting.patch
 postfix.spec.in
+postfix-dict_cdb.tar.gz
+README.CDB
