@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.70 2002/12/07 21:39:53 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.71 2002/12/09 11:48:50 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -66,7 +66,7 @@
 %define official 1 
 %define ver 1.1.12
 %define mail_release_date 20020115
-%define rel 2.3
+%define rel 2.4
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -208,7 +208,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.70 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.71 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -738,7 +738,7 @@ chroot_remove () {
             lib/libdb-%{requires_db}.*so \
 %endif
 	    lib/libnss_* lib/libresolv*; do
-        test -f %{queue_dir}/${i} && /bin/rm -f %{queue_dir}/${i}
+        test -f %{queue_dir}/${i} -o -L %{queue_dir}/${i} && /bin/rm -f %{queue_dir}/${i}
     done
 
     for dir in usr/lib/zoneinfo usr/lib usr lib etc; do
@@ -754,29 +754,29 @@ queue_hash_depth_remove () {
     local depth=$2
     local new_depth
     local a
-    if [ "$depth" -gt 0 ]; then
-        new_depth=$(($depth - 1))
-        for a in 0 1 2 3 4 5 6 7 8 9 A B C D E F; do
-            test -d $dir/$a && queue_hash_depth_remove $dir/$a $new_depth
-        done
-    fi
-    /bin/rm -f $dir/*
-    /bin/rmdir $dir || %whinge "WARNING: preun - unable to remove directory %{queue_dir}/$dir"
+    [ -d "$dir" ] && {
+        if [ "$depth" -gt 0 ]; then
+            new_depth=$(($depth - 1))
+            for a in 0 1 2 3 4 5 6 7 8 9 A B C D E F; do
+                test -d $dir/$a && queue_hash_depth_remove $dir/$a $new_depth
+            done
+        fi
+        /bin/rm -f $dir/*
+        /bin/rmdir $dir || %whinge "WARNING: preun - unable to remove directory %{queue_dir}/$dir"
+    }
 }
 
 # remove the rest of the queue directory structure
 queue_directory_remove () {
     # remove the hashed directories
     depth=`postconf -h hash_queue_depth`
-    for dir in `postconf -h hash_queue_names| sed -e 's/,/\
+    for dir in `postconf -h hash_queue_names | sed -e 's/,/\\
 /g'`; do
-        echo "DEBUG: removing $dir ($depth)"
         queue_hash_depth_remove $dir $depth
     done
 
     # now remove the other directories
     for dir in corrupt hold maildrop pid private public saved; do
-        echo "DEBUG: removing $dir (0)"
         queue_hash_depth_remove $dir 0
     done
 }
@@ -959,6 +959,9 @@ fi
 
 %changelog
 
+* Mon Dec 09 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-2.4
+  - fix chroot_remove - it was not removing all chroot files
+ 
 * Sat Dec 07 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-2.3
   - /usr/lib/sendmail -> /usr/sbin/sendmail check needed fixing in light of
     Postfix and sendmail existing on the machine at the same time.
