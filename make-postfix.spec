@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.29 2001/06/08 16:24:43 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.30 2001/11/03 11:00:12 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -60,51 +60,74 @@ EOF
     exit 1
 }
 
-# RedHat 6.2 and later include LDAP support, earlier versions don't
-# For this reason LDAP support is not compiled by default
+if [ `rpm -q redhat-release >/dev/null 2>&1; echo $?` = 0 ]; then
+    releasename=redhat
+    release=`rpm -q redhat-release | sed -e 's;^redhat-release-;;' -e 's;-[0-9]*$;;'`
+    major=`echo $release | sed -e 's;\.[0-9]*$;;'`
+    minor=`echo $release | sed -e 's;^[0-9]*\.;;'`
+else
+    releasename=unknown
+    release=0.0
+    major=0
+    minor=0
+fi
+
+# RedHat 6.2 and later include LDAP support, earlier versions don't.
+# Automatically include support for ldap in rh7x, but not in rh6x.
+
+test ${releasename} = 'redhat' && test ${major} -gt 6 && POSTFIX_LDAP=1
 
 echo ""
 echo "Creating Postfix spec file: `rpm --eval '%{_specdir}'`/postfix.spec"
 
 if [ "$POSTFIX_LDAP" = 1 ]; then
     echo "  adding LDAP  support to spec file"
-    SUFFIX="${SUFFIX}+ldap"
+    SUFFIX="${SUFFIX}.ldap"
 fi
 if [ "$POSTFIX_PCRE" = 1 ]; then
     echo "  adding PCRE  support to spec file"
-    SUFFIX="${SUFFIX}+pcre"
+    SUFFIX="${SUFFIX}.pcre"
 fi
 if [ "$POSTFIX_MYSQL" = 1 ]; then
     POSTFIX_REDHAT_MYSQL=0
     echo "  adding MySQL support (www.mysql.com MySQL* packages) to spec file"
-    SUFFIX="${SUFFIX}+MySQL"
+    SUFFIX="${SUFFIX}.MySQL"
 fi
 if [ "$POSTFIX_REDHAT_MYSQL" = 1 ]; then
     POSTFIX_MYSQL=0
     echo "  adding MySQL support (RedHat mysql* packages) to spec file"
-    SUFFIX="${SUFFIX}+mysql"
+    SUFFIX="${SUFFIX}.mysql"
 fi
 if [ "$POSTFIX_SASL" = 1 ]; then
     echo "  adding SASL  support to spec file"
-    SUFFIX="${SUFFIX}+sasl"
+    SUFFIX="${SUFFIX}.sasl"
 fi
 if [ "$POSTFIX_TLS" = 1 ]; then
     echo "  adding TLS support to spec file"
-    SUFFIX="${SUFFIX}+tls"
+    SUFFIX="${SUFFIX}.tls"
 fi
 
 # Determine the correct db files to use. RedHat 7 requires db3
-if [ `rpm -q redhat-release >/dev/null 2>&1; echo $?` = 0 ]; then
-    A=`rpm -q redhat-release | grep -q 7; echo $?`
-    if [ "$A" = 0 ]; then
+if [ ${releasename} = 'redhat' ]; then
+
+    case ${major} in
+    6) SUFFIX=".rh6x${SUFFIX}" ;;
+    7)
 	REQUIRES_INIT_D=1
         REQUIRES_DB3=1
-    fi
-    # check for RedHat 6 and change SUFFIX to avoid package name conflicts
-    A=`rpm -q redhat-release | grep -q 6; echo $?`
-    if [ "$A" = 0 ]; then
-        SUFFIX="rh6x${SUFFIX}"
-    fi
+
+        case ${minor} in
+        0) SUFFIX=".rh70-1${SUFFIX}" ;;
+        1) SUFFIX=".rh70-1${SUFFIX}" ;;
+        2) ;;
+        *) ;;
+        esac
+
+        # remove .ldap suffix from SUFFIX (as unnecessary)
+        SUFFIX=`echo ${SUFFIX} | sed -e 's;\.ldap;;'`
+        ;;
+    *) ;;
+    esac
 fi
 
 # ensure if undefined the value is 0
@@ -118,9 +141,6 @@ fi
 [ -z "$POSTFIX_SASL" ]			&& POSTFIX_SASL=0
 [ -z "$POSTFIX_TLS" ]			&& POSTFIX_TLS=0
 [ -z "$POSTFIX_SMTPD_MULTILINE_GREETING" ] && POSTFIX_SMTPD_MULTILINE_GREETING=0
-
-# Remove leading '+' from package suffix (if exists)
-SUFFIX=`echo "${SUFFIX}" | sed -e 's;^\+;;'`
 
 cat > `rpm --eval '%{_specdir}'`/postfix.spec <<EOF
 ##############################################################################
@@ -139,11 +159,8 @@ sed "
 s!__REQUIRES_DB3__!$REQUIRES_DB3!g
 s!__REQUIRES_INIT_D__!$REQUIRES_INIT_D!g
 s!__DISTRIBUTION__!$DISTRIBUTION!g
-
 s!__SMTPD_MULTILINE_GREETING__!$POSTFIX_SMTPD_MULTILINE_GREETING!g
-
 s!__SUFFIX__!$SUFFIX!g
-
 s!__LDAP__!$POSTFIX_LDAP!g
 s!__MYSQL__!$POSTFIX_MYSQL!g
 s!__REDHAT_MYSQL__!$POSTFIX_REDHAT_MYSQL!g
