@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.190 2002/01/16 19:18:34 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.191 2002/01/17 13:36:53 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -174,7 +174,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.190 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.191 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -408,6 +408,13 @@ perl -e '$uid=getpwnam("postfix"); exit 1 unless defined( $uid )' || {
     %{_sbindir}/useradd -d %{queue_directory} -s /bin/true -g postfix -M -r -u %{postfix_uid} postfix
 }
 
+# Due to a few of my previous packages adding a symbolic link (and not
+# removing it), ensure that any links to samples and README_FILES are removed
+# before installing # the package
+for i in samples html README_FILES; do
+  test -L %{config_directory}/$i && rm %{config_directory}/$i
+done
+
 %install
 umask 022
 
@@ -502,13 +509,7 @@ for i in smtp-sink smtp-source; do
   install -c -m 755 bin/$i %{buildroot}%{command_directory}/
 done
 
-# setup a symbolic link in the config directory of the following
-# documentation directories:
-#	html -> "Doc directory"/html
-#
-# - not sure what the correct macro for /usr/share/doc/postfix-<version>/ is
-#   so do this by hand until some kind soul tells me!
-#
+# add a symbolic link in the config directory to the html files.
 ln -s ../../usr/share/doc/%{name}-%{version}/html %{buildroot}%{config_directory}/html
 
 ##############################################################################
@@ -645,6 +646,11 @@ if [ "$1" = 0 ]; then
     }
     true # to ensure we exit safely
 fi
+
+# Remove unneeded symbolic links
+for i in samples html README_FILES; do
+  test -L %{config_directory}/$i && rm %{config_directory}/$i
+done
 
 %postun
 umask 022
