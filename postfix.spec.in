@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.41 2002/07/06 08:19:46 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.42 2002/07/08 07:44:31 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -62,7 +62,7 @@
 %define official 1 
 %define ver 1.1.11
 %define mail_release_date 20020115
-%define rel 3
+%define rel 4
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -205,7 +205,7 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.41 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.42 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, VDA=%{VDA}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -543,7 +543,7 @@ if [ -x %{_sbindir}/alternatives ]; then
         --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
         --slave %{_mandir}/man1/mailq.1.gz mta-mailqman %{_mandir}/man1/mailq.postfix.1.gz \
         --slave %{_mandir}/man1/newaliases.1.gz mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1.gz \
-        --slave %{_mandir}/man5/aliases.5.gz mta-aliasesman %{_mandir}/man5/aliases.postfix.5.gz
+        --slave %{_mandir}/man5/aliases.5.gz mta-aliasesman %{_mandir}/man5/aliases.postfix.5.gz \
         --initscript postfix
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
@@ -572,7 +572,7 @@ if [ -x %{_sbindir}/alternatives ]; then
         --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
         --slave %{_mandir}/man1/mailq.1.gz mta-mailqman %{_mandir}/man1/mailq.postfix.1.gz \
         --slave %{_mandir}/man1/newaliases.1.gz mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1.gz \
-        --slave %{_mandir}/man5/aliases.5.gz mta-aliasesman %{_mandir}/man5/aliases.postfix.5.gz
+        --slave %{_mandir}/man5/aliases.5.gz mta-aliasesman %{_mandir}/man5/aliases.postfix.5.gz \
         --initscript postfix
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
@@ -606,7 +606,7 @@ if [ -x %{_sbindir}/alternatives ]; then
         --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
         --slave %{_mandir}/man1/mailq.1.gz mta-mailqman %{_mandir}/man1/mailq.postfix.1.gz \
         --slave %{_mandir}/man1/newaliases.1.gz mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1.gz \
-        --slave %{_mandir}/man5/aliases.5.gz mta-aliasesman %{_mandir}/man5/aliases.postfix.5.gz
+        --slave %{_mandir}/man5/aliases.5.gz mta-aliasesman %{_mandir}/man5/aliases.postfix.5.gz \
         --initscript postfix
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
@@ -944,6 +944,10 @@ fi
 #
 
 %changelog
+
+* Mon Jul 08 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-4
+  - fix typo in use of alternatives (missing backslashes)
+    - reported by David Elliot <daveelliot@yahoo.com>
 
 * Sat Jul 06 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-3
   - add Provides: %{_bindir}/newaliases to satisfy mailman
