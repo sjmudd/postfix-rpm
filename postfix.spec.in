@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.5 2001/03/06 22:35:07 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.6 2001/03/06 22:44:23 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -73,7 +73,11 @@ Patch3:  postfix-INSTALL.sh.patch
 # applied if %SMTPD_MULTILINE_GREETING=1
 Patch99: postfix-smtpd_multiline_greeting.patch
 
-BuildRoot: %{_tmppath}/%{name}-%{version}-root
+BuildRoot: %{_tmppath}/%{name}-%{version}-release-root
+ 
+# Determine the different packages required for building and installing postfix
+Requires: awk
+BuildRequires: perl, sed
 
 # Requires for different packages - added automatically (optional)
 __REQUIRES__
@@ -120,7 +124,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.5 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.6 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
