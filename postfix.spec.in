@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.77 2002/12/11 16:34:07 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.78 2002/12/12 17:43:19 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -66,7 +66,7 @@
 %define official 1 
 %define ver 1.1.12
 %define mail_release_date 20020115
-%define rel 4
+%define rel 4.1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -207,7 +207,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.77 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.78 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -878,7 +878,6 @@ fi
 %doc COMPATIBILITY
 %doc HISTORY
 %doc INSTALL
-%doc LICENSE
 %doc PORTING
 %doc RELEASE_NOTES
 
@@ -959,6 +958,9 @@ fi
 #
 
 %changelog
+
+* Wed Dec 11 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-4.1
+  - remove LICENSE from %doc directory, already in /etc/postfix
 
 * Wed Dec 11 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-4
   - remove postfix-etc-cron.daily-postfix from pkg-sourcelist
