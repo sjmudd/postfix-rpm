@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.35 2000/12/22 16:19:59 root Exp $
+# $Id: postfix.spec.in,v 2.36 2000/12/22 16:26:39 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -121,7 +121,6 @@ too. If anyone want to provide binary rpms please let me know.
 
 %prep
 umask 022
-
 %setup -q -n snapshot-%{version}
 
 # setup master.cf to be chrooted
@@ -176,6 +175,7 @@ grep -q ^postfix: /etc/passwd || {
 }
 
 %build
+
 
 umask 022
 make tidy
