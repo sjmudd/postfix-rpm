@@ -2,7 +2,7 @@ make-postfix.spec
 pfixtls-0.8.18-2.1.0-0.9.7d.tar.gz
 postfinger-1.29
 postfix-2.0.16-20031026-multiline-greeting.patch
-postfix-2.0.16.patch.gz
+postfix-2.1.0.patch.gz
 postfix-aliases
 postfix-bounce_notify_util.c.patch
 postfix-chroot.sh

@@ -174,7 +174,7 @@ download_if_necessary . ${base} ${file}
 # Look for VDA Patch
 # Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vda_version}_quota.patch.gz
 vda_version=`grep '^%define vda_version' postfix.spec.in | awk '{ print $3 } '`
-patch4=`grep '^Patch4: http://ftp.oav.net/others/postfix/VDA/postfix' postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{vda_version};${vda_version};"`
+patch4=`grep '^Patch4: http://.*/postfix/VDA/postfix' postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{vda_version};${vda_version};"`
 
 base=`dirname ${patch4}`
 file=`echo ${patch4} | sed -e 's;.*/;;'`

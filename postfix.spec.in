@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.287 2004/04/28 21:34:57 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.288 2004/05/01 07:42:36 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -75,7 +75,7 @@
 %define debug %{?_with_debug:1}%{?!_with_debug:0}
 
 # patch version information
-%define vda_version 2.0.16
+%define vda_version 2.1.0
 %define tls_version pfixtls-0.8.18-2.1.0-0.9.7d
 %define pg_version 2.0.0.2
 %define ipv6_version tls+ipv6-1.22-pf-2.0.19-20040312
@@ -85,7 +85,7 @@
 %define official 1
 %define ver 2.1.0
 %define mail_release_date RC4-20040418
-%define rel 0.2__SUFFIX__
+%define rel 0.3__SUFFIX__
 %if %{official}
 %define tarball_version %{ver}
 %define ftp_dir official
@@ -160,7 +160,7 @@ Patch2: postfix-smtp_sasl_proto.c.patch
 Patch3: postfix-files.patch
 
 # Optional patches
-Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vda_version}.patch.gz
+Patch4: http://web.onda.com.br/nadal/postfix/VDA/postfix-%{vda_version}.patch.gz
 Patch5: postfix-mysql_query.patch
 Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pg_version}.patch
 Patch51: postfix-pg-raw.patch
@@ -242,7 +242,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.287 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.288 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -1067,6 +1067,9 @@ umask 022
 #
 
 %changelog
+
+* Sat May  1 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.0-0.3
+- update VDA patch, pointer from Viragh Janos <viragh@inf.u-szeged.hu>
 
 * Tue Apr 27 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.0-0.2
 - update TLS patches
