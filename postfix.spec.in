@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.303 2004/07/08 17:15:53 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304 2004/07/08 18:21:56 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -84,7 +84,7 @@
 %define official 1
 %define ver 2.1.3
 %define mail_release_date RC4-20040418
-%define rel 3__SUFFIX__
+%define rel 4__SUFFIX__
 %if %{official}
 %define tarball_version %{ver}
 %define ftp_dir official
@@ -240,7 +240,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.303 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -473,6 +473,18 @@ mv man/man1/newaliases.1 man/man1/newaliases.postfix.1
 mv man/man1/sendmail.1   man/man1/sendmail.postfix.1
 mv man/man5/aliases.5    man/man5/aliases.postfix.5
 
+# add missing man pages
+mantools/srctoman - auxiliary/qshape/qshape.pl >man/man1/qshape.1
+mantools/srctoman src/smtpstone/smtp-source.c  >man/man1/smtp-source.1
+mantools/srctoman src/smtpstone/smtp-sink.c    >man/man1/smtp-sink.1
+
+# update conf/postfix-files
+cat <<EOF >> conf/postfix-files
+\$manpage_directory/man1/qshape.1:f:root:-:644
+\$manpage_directory/man1/smtp-sink.1:f:root:-:644
+\$manpage_directory/man1/smtp-source.1:f:root:-:644
+EOF
+
 # install postfix into build root
 sh postfix-install -non-interactive \
        install_root=${RPM_BUILD_ROOT} \
@@ -510,7 +522,7 @@ install -c %{_sourcedir}/postfix-etc-init.d-postfix \
                   ${RPM_BUILD_ROOT}%{init_directory}/postfix
 
 install -c auxiliary/rmail/rmail ${RPM_BUILD_ROOT}%{rmail_path}
-install -c auxiliary/qshape/qshape.pl ${RPM_BUILD_ROOT}/%{_bindir}/
+install -c auxiliary/qshape/qshape.pl ${RPM_BUILD_ROOT}/%{_sbindir}/
 
 # copy new aliases files and generate a ghost aliases.db file
 cp -f %{_sourcedir}/postfix-aliases ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/aliases
@@ -1062,7 +1074,7 @@ umask 022
 %{newaliases_path}
 %attr(0755, root, root) %{rmail_path}
 %attr(0755, root, root) %{_bindir}/postfinger
-%attr(0755, root, root) %{_bindir}/qshape.pl
+%attr(0755, root, root) %{_sbindir}/qshape.pl
 
 %{_mandir}/*/*
 
@@ -1074,6 +1086,10 @@ umask 022
 #
 
 %changelog
+
+* Thu Jul 08 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.3-4
+  - add man pages for qshape, smtp-sink and smtp-source
+  - move qshape.pl to %{_sbindir}
 
 * Thu Jul 08 2004 Simon J Mudd <sjmudd@pobox.com> 2.1.3-3
   - add qshape.pl now included in tar ball.
