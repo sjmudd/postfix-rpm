@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.29 2000/12/17 22:46:32 root Exp $
+# $Id: postfix.spec.in,v 2.30 2000/12/18 18:25:10 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -15,8 +15,8 @@ Copyright: IBM Public License -- see LICENSE for details
 PreReq: /sbin/chkconfig
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
-Version: 20001212
-Release: 3
+Version: 20001217
+Release: 1
 Packager: Simon J Mudd <sjmudd@pobox.com> but see description below
 Vendor: None -- see packager
 Distribution: Experimental
@@ -467,6 +467,9 @@ rm -rf ${RPM_BUILD_ROOT}
 #	Bennett Todd <bet@mordor.net>
 
 %changelog
+* Mon Dec 18 2000 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001217-1, no changes, updating to latest snapshot
+
 * Thu Dec 13 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001212-3, minor fixes
   %{queue_directory} removal while correct as probably a bit dangerous
