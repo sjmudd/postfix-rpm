@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.42 2002/07/08 07:44:31 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.43 2002/07/12 21:03:08 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -62,7 +62,7 @@
 %define official 1 
 %define ver 1.1.11
 %define mail_release_date 20020115
-%define rel 4
+%define rel 5
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -205,7 +205,7 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.42 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.43 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, VDA=%{VDA}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -372,7 +372,7 @@ CCARGS="${CCARGS} -fsigned-char"
 export CCARGS AUXLIBS
 make -f Makefile.init makefiles
 unset CCARGS AUXLIBS
-make DEBUG="%{?debug:-g}" OPT="$RPM_OPT_FLAGS"
+make DEBUG="%{?_with_debug:-g}" OPT="$RPM_OPT_FLAGS"
 
 %pre
 umask 022
@@ -395,8 +395,14 @@ perl -e '$gid=getgrnam("postfix"); exit 1 if ! defined( $gid )' || {
 
 perl -e '$uid=getpwnam("postfix"); exit 1 if ! defined( $uid )' || {
     %whinge "Adding postfix user to system"
-    %{_sbindir}/useradd -d %{queue_dir} -s /bin/true -g postfix -M -r postfix
+    %{_sbindir}/useradd -d %{queue_dir} -s /bin/true -g postfix -G mail -M -r postfix
 }
+
+# If Postfix is not a member of the mail group (it wasn't in older versions of
+# my package) add it to the group.  This is needed for people using cyrus, linked
+# by unix sockets (amongst other things)
+GROUP=`id postfix | awk '{print $3}' | sed -e 's/groups=//' | grep mail`
+test -z "${GROUP}" && usermod -G mail postfix || :
 
 %install
 umask 022
@@ -944,6 +950,13 @@ fi
 #
 
 %changelog
+
+* Fri Jul 12 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-5
+  - remove debugging which was enabled when it shouldn't have been
+    - reported by "Weisz, Norbert" <norbert.weisz@hp.com>
+  - add Postfix user to mail group, so that it can be used more easily
+    with cyrus.
+    - suggestion by Christopher D. Audley <Christopher.D.Audley@jhu.edu>
 
 * Mon Jul 08 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-4
   - fix typo in use of alternatives (missing backslashes)
