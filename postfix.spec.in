@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.174 2001/12/11 08:47:51 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.175 2001/12/12 14:01:01 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -49,9 +49,9 @@
 #Used when we have patchlevels, as can't include '-' in the package name
 #define version1 %{vers}-%{patchlevel}
 #define version2 %{vers}_%{patchlevel}
-%define rel 1
+%define rel 2
 
-%define tlsno pfixtls-0.7.13c-snap20011127-0.9.6b
+%define tlsno pfixtls-0.7.13d-snap20011210-0.9.6b
 %define pflogno -1.0.3
 
 Name: postfix
@@ -148,7 +148,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.174 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.175 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -762,7 +762,11 @@ fi
 
 %changelog
 
-* Wed Nov 28 2001 Simon J Mudd <sjmudd@pobox.com>
+* Wed Dec 12 2001 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20011210-2
+  - update to latest TLS patch (pfixtls-0.7.13d-snap20011210-0.9.6b)
+
+* Tue Dec 11 2001 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20011210-1
   - update to latest snapshot
 
