@@ -18,17 +18,19 @@
 # - Whitebox Linux (reports as RedHat Enterprise Linux for building)
 # - Mandrake Linux
 
+version=$(echo '$Revision: 1.9 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
+myname=$(basename $0)
+
 # Provide a usage message
 function usage () {
 
-version=$(echo '$Revision: 1.8 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
 cat <<EOF
-`basename $0` Version $version
+$myname version $version
 
 Copyright (C) 2002-2004 - Simon J Mudd <sjmudd@pobox.com>
 This program may be freely redistributed under the terms of the GNU GPL
 
-Usage: `basename $0` [--help] [--distribution] [--name] [--major] [--minor] [--full]
+Usage: $myname [--help] [--distribution] [--name] [--major] [--minor] [--full]
 
 Shows the distribution name or one of several different components:
 --distribution	<name>-<major>.<minor>		[default behaviour]
@@ -38,6 +40,33 @@ Shows the distribution name or one of several different components:
 --full		Redhat-Release-X.Y, Whitebox-Release-X.Y, ...
 --debug		show all values
 EOF
+}
+
+# is the given rpm installed?
+function check_release {
+	local release=$1
+
+	if [ -n "$debug_release" ]; then
+		if [ "$debug_release" = "$release" ]; then
+			echo 0
+		else
+			echo 1
+		fi
+		return
+	fi
+	rpm -q ${release} >/dev/null 2>&1
+	echo $?
+}
+
+# get the full release version
+function get_release {
+	local release=$1
+
+	[ -n "$debug_fullrelease" ] && {
+		echo "$debug_fullrelease"
+		return
+	}
+	rpm -q ${release}
 }
 
 info=distribution
@@ -63,55 +92,56 @@ minor=0
 #
 # Get release information (if possible)
 #
-if [ `rpm -q redhat-release >/dev/null 2>&1; echo $?` = 0 ]; then
-    # This means we are RHL <= 9 OR enterprise linux
+if [ $(check_release redhat-release) = 0 ]; then
+    # We are using RHL <= 9 OR enterprise linux
     # redhat-release-3ES-1
+    # redhat-release-3ES-7.2
     # redhat-release-2.9.5AS-7 (taroon beta)
     # redhat-release-9-3
     # redhat-release-8.0-8
     # redhat-release-7.2-1
     # redhat-release-6.2-1
     rpmname=redhat-release
-    full=`rpm -q ${rpmname}`
-    if [ -n "`rpm -q ${rpmname} | egrep '(ES|ES|AS|WS)'`" ];
+    full=`get_release ${rpmname}`
+    if [ -n "`echo $full | egrep '(ES|ES|AS|WS)'`" ];
     then
         name=rhel
     else
         name=redhat
     fi
-    release=`rpm -q ${rpmname} | sed -e "s;^${rpmname}-;;" -e 's;-[0-9]*$;;' \
+    release=`echo $full | sed -e "s;^${rpmname}-;;" -e 's;-[0-9.]*$;;' \
                                          -e 's;[EWA]S;;'`
-elif [ `rpm -q whitebox-release >/dev/null 2>&1; echo $?` = 0 ]; then
+elif [ $(check_release whitebox-release) = 0 ]; then
     # whitebox SHOULD behave like rhel
     rpmname=whitebox-release
-    full=`rpm -q ${rpmname}`
+    full=`get_release ${rpmname}`
     name=rhel	# compatibility with RedHat Enterprise Linux
-    release=`rpm -q ${rpmname} | sed -e "s;^${rpmname}-;;" -e 's;-[0-9]*$;;'`
-elif [ `rpm -q fedora-release >/dev/null 2>&1; echo $?` = 0 ]; then
+    release=`echo $full | sed -e "s;^${rpmname}-;;" -e 's;-[0-9.]*$;;'`
+elif [ $(check_release fedora-release) = 0 ]; then
     rpmname=fedora-release
-    full=`rpm -q ${rpmname}`
+    full=`get_release ${rpmname}`
     name=fedora
-    release=`rpm -q ${rpmname} | sed -e "s;^${rpmname}-;;" -e 's;-[0-9]*$;;'`
-elif [ `rpm -q redhat-release-es >/dev/null 2>&1; echo $?` = 0 ]; then
+    release=`echo $full | sed -e "s;^${rpmname}-;;" -e 's;-[0-9.]*$;;'`
+elif [ $(check_release redhat-release-es) = 0 ]; then
     rpmname=redhat-release-es
-    full=`rpm -q ${rpmname}`
+    full=`get_release ${rpmname}`
     name=rhel
-    release=`rpm -q ${rpmname} | sed -e "s;^${rpmname}-;;" -e 's;[A-Z]*-[0-9]*$;;'`
-elif [ `rpm -q redhat-release-as >/dev/null 2>&1; echo $?` = 0 ]; then
+    release=`echo $full | sed -e "s;^${rpmname}-;;" -e 's;[A-Z]*-[0-9.]*$;;'`
+elif [ $(check_release redhat-release-as) = 0 ]; then
     rpmname=redhat-release-as
-    full=`rpm -q ${rpmname}`
+    full=`get_release ${rpmname}`
     name=rhel
-    release=`rpm -q ${rpmname} | sed -e "s;^${rpmname}-;;" -e 's;[A-Z]*-[0-9]*$;;'`
-elif [ `rpm -q mandrake-release >/dev/null 2>&1; echo $?` = 0 ]; then
+    release=`echo $full | sed -e "s;^${rpmname}-;;" -e 's;[A-Z]*-[0-9.]*$;;'`
+elif [ $(check_release mandrake-release) = 0 ]; then
     rpmname=mandrake-release
-    full=`rpm -q ${rpmname}`
+    full=`get_release ${rpmname}`
     name=mandrake
-    release=`rpm -q ${rpmname} | sed -e "s;^${rpmname}-;;" -e 's;-[0-9]*mdk$;;'`
-elif [ `rpm -q yellowdog-release >/dev/null 2>&1; echo $?` = 0 ]; then
+    release=`echo $full | sed -e "s;^${rpmname}-;;" -e 's;-[0-9.]*mdk$;;'`
+elif [ $(check_release yellowdog-release) = 0 ]; then
     rpmname=yellowdog-release
-    full=`rpm -q ${rpmname}`
+    full=`get_release ${rpmname}`
     name=yellowdog
-    release=`rpm -q ${rpmname} | sed -e "s;^${rpmname}-;;" -e 's;-[0-9]*$;;'`
+    release=`echo $full | sed -e "s;^${rpmname}-;;" -e 's;-[0-9.]*$;;'`
 fi
 
 # from release determine the major and minor versions
