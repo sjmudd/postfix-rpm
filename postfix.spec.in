@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.39 2001/05/15 09:26:11 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.40 2001/05/15 16:07:02 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -150,7 +150,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.39 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.40 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -199,7 +199,7 @@ die(){ %whinge "$*"; exit 1; }
 #	'redhat-release-7' and 'mandrake-release-7'
 # and make the comparison at these levels.
 
-CURRDIST=`rpm -qa | grep release | egrep '(redhat-|mandrake-)'`
+CURRDIST=`rpm -qa | grep -- -release | egrep '(redhat-|mandrake-)'`
 SPECDIST="__DISTRIBUTION__"
 
 if [ "${CURRDIST}" != "${SPECDIST}" ]; then

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.22.2.3 2001/05/15 09:26:11 sjmudd Exp $
+#  $Id: make-postfix.spec,v 1.22.2.4 2001/05/15 16:07:02 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -26,7 +26,10 @@
 SUFFIX=
 REQUIRES_DB3=
 REQUIRES_INIT_D=
-DISTRIBUTION='Unknown Linux Distribution'
+
+# Determine the distribution
+DISTRIBUTION=`rpm -qa | grep -- -release | egrep '(redhat-|mandrake-)'`
+[ -z "$DISTRIBUTION" ] && DISTRIBUTION='Unknown Distribution'
 
 # Ensure only one of POSTFIX_MYSQL and POSTFIX_REDHAT_MYSQL are defined
 [ -n "$POSTFIX_MYSQL" ] && \
@@ -81,13 +84,12 @@ if [ "$POSTFIX_TLS" = 1 ]; then
 fi
 
 # Determine the correct db files to use. RedHat 7 requires db3
-if [ `rpm -q redhat-release` ]; then
+if [ `rpm -q redhat-release >/dev/null 2>&1; echo $?` = 0 ]; then
     A=`rpm -q redhat-release | grep -q 7; echo $?`
     if [ "$A" = 0 ]; then
 	REQUIRES_INIT_D=1
         REQUIRES_DB3=1
     fi
-    DISTRIBUTION=`rpm -qa | grep release | egrep '(redhat|mandrake)'` 
     # check for RedHat 6 and change SUFFIX to avoid package name conflicts
     A=`rpm -q redhat-release | grep -q 6; echo $?`
     if [ "$A" = 0 ]; then
