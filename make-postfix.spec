@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.22 2001/02/26 23:07:33 sjmudd Exp $
+#  $Id: make-postfix.spec,v 1.22.2.1 2001/03/30 16:11:16 sjmudd Exp $
 #
 
 SUFFIX=
@@ -55,6 +55,10 @@ if [ "$POSTFIX_SASL" = 1 ]; then
     echo "  adding SASL  support to spec file"
     SUFFIX="${SUFFIX}+sasl"
 fi
+if [ "$POSTFIX_TLS" = 1 ]; then
+    echo "  adding TLS support to spec file"
+    SUFFIX="${SUFFIX}+tls"
+fi
 
 # rh7 db3 crap - this is rather ugly
 if [ `rpm -q redhat-release` ]; then
@@ -90,6 +94,9 @@ fi
 if [ -z "$POSTFIX_SASL" ]; then
     POSTFIX_SASL=0
 fi
+if [ -z "$POSTFIX_TLS" ]; then
+    POSTFIX_TLS=0
+fi
 if [ -z "$POSTFIX_SMTPD_MULTILINE_GREETING" ]; then
     POSTFIX_SMTPD_MULTILINE_GREETING=0
 fi
@@ -121,6 +128,7 @@ s!__MYSQL__!$POSTFIX_MYSQL!g
 s!__REDHAT_MYSQL__!$POSTFIX_REDHAT_MYSQL!g
 s!__PCRE__!$POSTFIX_PCRE!g
 s!__SASL__!$POSTFIX_SASL!g
+s!__TLS__!$POSTFIX_TLS!g
 " postfix.spec.in >> ../SPECS/postfix.spec
 
 # end of make-postfix.spec
