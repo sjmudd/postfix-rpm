@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.19 2000/12/01 20:11:04 root Exp $
+# $Id: postfix.spec.in,v 2.20 2000/12/12 21:00:57 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -15,8 +15,8 @@ Copyright: IBM Public License -- see LICENSE for details
 PreReq: /sbin/chkconfig
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
-Version: 20001121
-Release: 4
+Version: 20001211
+Release: 1
 Packager: Simon J Mudd <sjmudd@pobox.com> but see description below
 Vendor: None -- see packager
 Distribution: Experimental
@@ -30,9 +30,13 @@ Source6: postfix-chroot-setup.awk
 Source7: postfix-RPM-TODO-list
 Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
-###Patch3:  postfix-makedefs.patch2  ### shouldn't be necessary any more
-#  ** Patch99 is applied only on builds on my machines **
+#
+# Optional patches - set the appropriate environment variables to include
+#                    them when building the package
+#
+Patch98: postfix-safe_mynetworks.patch
 Patch99: postfix-smtpd_reply_multiline.patch
+
 BuildRoot: /var/tmp/%{name}-%{version}-root
 
 
@@ -80,7 +84,6 @@ related to these platforms.
 
 %define whinge logger -p mail.info -t postfix/rpm
 
-
 %prep
 umask 022
 
@@ -90,13 +93,26 @@ mv conf/master.cf conf/master.cf-nochroot
 awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > conf/master.cf
 %patch1 -p1 -b .config
 %patch2 -p1 -b .chk
-###patch3 -p1 -b .old     shouldn't be needed
 
-# apply this patch ONLY if built on my machines
-if [ `hostname`="phoenix.ea4els.ampr.org" -o \
-     `hostname`="www2.alltrading.es" ]; then
+# APPLY OPTIONAL PATCHES
+
+# Optionally apply Daniel Roesen's safe mynetworks patch
+if [ $POSTFIX_SAFE_MYNETWORKS = 1 ]; then
+%patch98 -p1 -b .mynetworks
+fi
+
+# Optionally apply SMTPD Multiline greeting
+if [ $POSTFIX_SMTPD_MULTILINE = 1 ]; then
+	echo "GOT HERE"
+	exit 1
 %patch99 -p1 -b .multiline
 fi
+
+## apply this patch ONLY if built on my machines
+#if [ `hostname`="phoenix.ea4els.ampr.org" -o \
+#     `hostname`="www2.alltrading.es" ]; then
+#%patch99 -p1 -b .multiline
+#fi
 
 # Copy README files allowing us to just go %doc below, and have rpm(1)
 # automatically tuck it in alongside the READMEs and COPYRIGHTs.
@@ -204,7 +220,7 @@ install -c auxiliary/rmail/rmail ${RPM_BUILD_ROOT}%{rmail_path}
 gzip -9f ${RPM_BUILD_ROOT}%{_mandir}/man{1,5,8}/* ||:
 
 #
-# copy new aliases files and build the aliases.db (ghost) file
+# copy new aliases files and build the aliases.db file
 #
 cp -f  ${RPM_SOURCE_DIR}/postfix-aliases ${RPM_BUILD_ROOT}%{config_directory}/aliases
 chmod 644 ${RPM_BUILD_ROOT}%{config_directory}/aliases
@@ -230,9 +246,9 @@ umask 022
 
 if [ "$1" = 0 ]; then
     # stop postfix silently (if it's running)
-    $daemon_directory/master -t 2>/dev/null || {
+    %{daemon_directory}/master -t 2>/dev/null || {
     echo "Stopping the Postfix mail system"
-    kill `sed 1q pid/master.pid` }
+    kill `sed 1q %{queue_directory}/pid/master.pid` }
 
     /sbin/chkconfig --del postfix                    
 
@@ -243,7 +259,12 @@ if [ "$1" = 0 ]; then
     test "%{queue_directory}Z" = "Z" && echo "WARNING: chroot removal buggy - check .spec file" && exit 0
 
     # cd to %{queue_directory} before removing unwanted files
-    cd %{queue_directory} || ( echo "unable to cd %{queue_directory}"; exit 1 )
+    if [ -d %{queue_directory} ]; then
+        cd %{queue_directory}
+
+
+
+        XXXXX
 
     # remove chroot jail when uninstalling the package
     for i in etc/localtime usr/lib/zoneinfo/localtime \
@@ -266,6 +287,10 @@ if [ "$1" = 0 ]; then
         ( cd $dir && rm -rf * ) # dangerous I know
         test -d $dir && ( rmdir $dir || echo "unable to remove directory %{queue_directory}/$dir" )
     done  
+    else
+        echo "WARNING: missing directory %{queue_directory}";
+        exit 1
+    fi
 fi
 
 %postun
@@ -274,11 +299,11 @@ if [ "$1" != 0 ]; then
     # restart postfix if it was running
     # -- need to fix this to stop during install and keep note of the state for use here ---
     # stop postfix silently (if it's running)
-    $daemon_directory/master -t 2>/dev/null || {
+    %{daemon_directory}/master -t 2>/dev/null || {
     echo "Stopping the Postfix mail system"
     kill `sed 1q pid/master.pid` 
     sleep 2 # to give things time to stop
-    $daemon_directory/master &
+    %{daemon_directory}/master &
     echo "Restarting the Postfix mail system" }
 fi
 
@@ -359,6 +384,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{command_directory}/postlog
 %{command_directory}/postmap
 %{command_directory}/postsuper
+
+%{command_directory}/smtpsink
+%{command_directory}/smtpsource
 
 %{sendmail_path}
 %{mailq_path}
