@@ -1,0 +1,119 @@
+diff -uNr postfix-1.1.11-orig/src/smtpd/smtpd.c postfix-1.1.11/src/smtpd/smtpd.c
+--- postfix-1.1.11-orig/src/smtpd/smtpd.c	Tue May 28 19:08:24 2002
++++ postfix-1.1.11/src/smtpd/smtpd.c	Fri Oct 18 14:48:49 2002
+@@ -1490,7 +1490,7 @@
+ 	&& (state.access_denied = smtpd_check_client(&state)) != 0) {
+ 	smtpd_chat_reply(&state, "%s", state.access_denied);
+     } else {
+-	smtpd_chat_reply(&state, "220 %s", var_smtpd_banner);
++	smtpd_chat_reply_multiline(&state, 220, var_smtpd_banner);
+ 	msg_info("connect from %s[%s]", state.name, state.addr);
+     }
+ 
+diff -uNr postfix-1.1.11-orig/src/smtpd/smtpd_chat.c postfix-1.1.11/src/smtpd/smtpd_chat.c
+--- postfix-1.1.11-orig/src/smtpd/smtpd_chat.c	Wed Dec 26 22:51:25 2001
++++ postfix-1.1.11/src/smtpd/smtpd_chat.c	Fri Oct 18 14:48:16 2002
+@@ -14,6 +14,11 @@
+ /*	SMTPD_STATE *state;
+ /*	char	*format;
+ /*
++/*	void	smtpd_chat_reply_multiline(state, smtp_reply_code, format, ...)
++/*	SMTPD_STATE *state;
++/*	int	smtp_reply_code;
++/*	char	*format;
++/*
+ /*	void	smtpd_chat_notify(state)
+ /*	SMTPD_STATE *state;
+ /*
+@@ -31,6 +36,11 @@
+ /*	When soft_bounce is enabled, all 5xx (reject) reponses are
+ /*	replaced by 4xx (try again).
+ /*
++/*	smtpd_chat_reply_multiline() formats a server reply, sends it to
++/*	the client, and appends a copy to the SMTP transaction log.
++/*	The reply can contain embedded "\n"s which will be treated as
++/*	separators in a multiline reply.
++/*
+ /*	smtpd_chat_notify() sends a copy of the SMTP transaction log
+ /*	to the postmaster for review. The postmaster notice is sent only
+ /*	when delivery is possible immediately. It is an error to call
+@@ -61,6 +71,8 @@
+ #include <time.h>
+ #include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
+ #include <stdarg.h>
++#include <string.h>
++#include <ctype.h>
+ 
+ /* Utility library. */
+ 
+@@ -172,6 +184,59 @@
+ 	vstream_fflush(state->client);
+ }
+ 
++/* trim_line - remove trailing whitespace and return   */
++/* a pointer to the first non-space char in the string */
++/* WARNING: this function is DESTRUCTIVE.              */
++/* Based on TRIM() in ../util/dict.c                   */
++
++static char *trim_line( char *line ) {
++    char *p;
++
++    for (p=line + strlen(line); p > line && ISSPACE(p[-1]); p--);
++	*p = 0;
++
++    while ( ISSPACE(*line) )
++	++line;
++
++    return ( line );
++}
++
++/* smtpd_chat_reply_multiline - format, send and record an SMTP response
++   for multiline SMTP replies */
++
++#define LINE_SEPARATOR "\n"
++
++void smtpd_chat_reply_multiline(SMTPD_STATE *state, int smtp_reply_code, char *format,...)
++{
++    va_list ap;
++    VSTRING *temp_line = vstring_alloc(512);/* SMTP reply before unescapeing     */
++    VSTRING *multiline = vstring_alloc(512);/* SMTP reply after unescaping       */
++    char    *line, *line2;                  /* one line (of the multiline) reply */
++    size_t   size;                          /* size of a single line             */
++
++    va_start(ap, format);
++    vstring_vsprintf(temp_line, format, ap);
++    va_end(ap);
++
++    /* unescape lines with "\\n", converting them to "\n" */
++    unescape( multiline, STR(temp_line) );
++    vstring_free( temp_line );
++
++    line = STR(multiline);
++    while ( (size = strcspn(line, LINE_SEPARATOR)) < strlen(line) ) {
++	*(line + size) = 0;
++
++	line2 = trim_line(line);
++	smtpd_chat_reply(state, "%03d-%s", smtp_reply_code, line2);
++
++	line += size + 1;
++    }
++    line2 = trim_line(line);
++    smtpd_chat_reply(state, "%03d %s", smtp_reply_code, line2);
++
++    vstring_free( multiline );
++}
++
+ /* print_line - line_wrap callback */
+ 
+ static void print_line(const char *str, int len, int indent, char *context)
+diff -uNr postfix-1.1.11-orig/src/smtpd/smtpd_chat.h postfix-1.1.11/src/smtpd/smtpd_chat.h
+--- postfix-1.1.11-orig/src/smtpd/smtpd_chat.h	Sat Nov 18 15:37:30 2000
++++ postfix-1.1.11/src/smtpd/smtpd_chat.h	Fri Oct 18 14:40:14 2002
+@@ -15,6 +15,7 @@
+ extern void smtpd_chat_reset(SMTPD_STATE *);
+ extern void smtpd_chat_query(SMTPD_STATE *);
+ extern void PRINTFLIKE(2, 3) smtpd_chat_reply(SMTPD_STATE *, char *, ...);
++extern void smtpd_chat_reply_multiline(SMTPD_STATE *, int, char *, ...);
+ extern void smtpd_chat_notify(SMTPD_STATE *);
+ 
+ /* LICENSE

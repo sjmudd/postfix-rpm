@@ -1,0 +1,1194 @@
+# $Id: postfix.spec.in,v 2.198 2002/11/22 14:39:51 sjmudd Exp $
+#
+# File used to generate the distribution-specific postfix.spec file.
+# Please send bugfixes and comments to the packager.
+#
+# This spec file was built on distribution: __DISTRIBUTION__
+#
+# If you need to make changes to postfix.spec, make them to postfix.spec.in
+# and regenerate the spec file.
+#
+# See make-postfix.spec and postfix-build in %{_sourcedir} for more information.
+#
+# Information imported from postfix.spec.in
+#
+# ldap                     - include LDAP support
+# mysql	                   - include www.mysql.com's MySQL rpms
+# redhatmysql              - include RedHat's MySQL rpms
+# pcre                     - include pcre support
+# pgsql                    - include Postgres database support
+# pgsql2                   - experimental postgres patches by George Barbarosie
+#                            <georgeb@intelinet.ro>: needs pgsql=1
+# sasl                     - include SASL/AUTH support
+# cdb                      - include CDB support by Michael Tokarev
+#                            <mjt@corpit.ru>
+# tls                      - include TLS support
+# tlsfix                   - include TLS fix (apparently needed for rh6.2)
+# REQUIRES_INIT_D          - Required by RedHat 7.x
+# requires_db              - used to add dbX dependencies in the package
+# include_db               - include the dbX library when compiling (rh6.x with db3)
+# SMTPD_MULTILINE_GREETING - my patch to allow multiline banner
+# vda                      - add virtual delivery agent patch
+# DISABLE_CHROOT           - disable setup of chroot environment
+# MANPAGE_SUFFIX	   - man page suffix, .gz except Mandrake 8 which uses .bz2
+#
+%define distribution __DISTRIBUTION__
+%define mps __MANPAGE_SUFFIX__
+%define cdb __CDB__
+%define ldap __LDAP__
+%define mysql __MYSQL__
+%define redhatmysql __REDHAT_MYSQL__
+%define pcre __PCRE__
+%define pgsql __PGSQL__
+%define pgsql2 __PGSQL2__
+%define sasl __SASL__
+%define tls __TLS__
+%define tlsfix __TLSFIX__
+%define include_db __INCLUDE_DB__
+%define requires_db __REQUIRES_DB__
+%define REQUIRES_INIT_D __REQUIRES_INIT_D__
+%define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
+# VDA doesn't appear to work on these snapshots
+%define vda __VDA__
+%define vda 0
+%define DISABLE_CHROOT __DISABLE_CHROOT__
+%define RBL_MAPS __RBL_MAPS__
+
+# start to support the conditional builds via rpm's
+# --with debug
+%define debug %{?_with_debug:1}%{?!_with_debug:0}
+
+# Version information
+%define pflogno -1.0.4
+%define vdaver 1.1.11-20020822
+%define pfixtls pfixtls-0.8.11a-1.1.11-20021031-0.9.6g
+%define pgver 1.1.4
+
+# If set to 1 if official version, 0 if snapshot
+%define official 0
+%define ver 1.1.11
+%define mail_release_date 20021115
+%define rel 1
+%if %{official}
+%define tarball_version %{ver}
+%define package_version %{ver}
+%define ftp_dir official
+%else
+%define tarball_version %{ver}-%{mail_release_date}
+%define package_version %{ver}.%{mail_release_date}
+%define ftp_dir experimental
+%endif
+
+%define config_dir %{_sysconfdir}/postfix
+%define daemon_dir %{_libexecdir}/postfix
+%define queue_dir %{_var}/spool/postfix
+
+%define sample_dir %{config_dir}/samples
+%define readme_dir %{config_dir}/README_FILES
+
+%define newaliases_path %{_bindir}/newaliases.postfix
+%define mailq_path %{_bindir}/mailq.postfix
+%define rmail_path %{_bindir}/rmail.postfix
+%define sendmail_path %{_sbindir}/sendmail.postfix
+
+%define init_directory /etc/rc.d/init.d
+%define cron_directory /etc/cron.daily
+
+%define whinge /usr/bin/logger -p mail.info -t postfix/rpm
+%define postfix_running %{daemon_dir}/master -t >/dev/null 2>&1; echo $?
+%define die_cmd die(){ %whinge "$*"; exit 1; }
+
+# Link source file to destination directory if possible. If the link is a
+# symbolic link, make a copy in the destination directory, otherwise copy
+# the file.  For the moment log to /var/log/maillog what we are doing.
+%define copy_cmd copy() { %{whinge} "copy $1 to $2"; file=`basename $1`; ln -f $1 $2/$file 2>/dev/null || { test -L $1 2>/dev/null && { dest=`ls -l $1| awk '{print $11}'`; ln -sf $dest $2/$file; } || cp -dpf $1 $2/$file; }; }
+
+Name: postfix
+Group: System Environment/Daemons
+URL: http://www.postfix.org
+License: IBM Public License
+PreReq: /sbin/chkconfig
+%if %{REQUIRES_INIT_D}
+PreReq: /etc/init.d, /sbin/service
+%endif
+Epoch: 2
+Provides: MTA smtpd smtpdaemon
+# Keep packages like squirrelmail and mailman happy.
+Provides: %{_sbindir}/sendmail
+Provides: %{_bindir}/newaliases
+Version: %{package_version}
+Release: %{rel}__SUFFIX__
+Packager: Simon J Mudd <sjmudd@pobox.com>
+Summary: Postfix Mail Transport Agent
+Vendor: Built on %{distribution}
+Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_dir}/postfix-%{tarball_version}.tar.gz
+Source1: postfix-new-RPM-packages
+Source2: postfix-get-distribution
+Source3: postfix-etc-init.d-postfix
+Source4: postfix-etc-cron.daily-postfix
+Source5: postfix-aliases
+Source6: postfix-chroot-setup.awk
+Source7: postfix.spec.in
+Source8: make-postfix.spec
+Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{pfixtls}.tar.gz
+Source10: http://jimsun.linxnet.com/downloads/pflogsumm%{pflogno}.pl
+Source11: postfix-build
+Source12: http://www.corpit.ru/ftp/postfix/postfix-dict_cdb.tar.gz
+Source13: http://www.corpit.ru/ftp/postfix/README.CDB
+
+# Obligatory Patches
+Patch1: postfix-config.patch
+Patch2: postfix-smtp_sasl_proto.c.patch
+Patch3: postfix-files.patch
+
+# Optional patches
+Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}_quota.patch.gz
+Patch5: postfix-rbl_reply_maps.patch
+# Adapted from http://www.stahl.bau.tu-bs.de/~hildeb/postfix/duchovni/log_recipient.gz
+Patch7: postfix-log_recipient
+Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pgver}.patch
+Patch51: postfix-pg-raw.patch
+Patch99: postfix-smtpd_multiline_greeting.patch
+
+BuildRoot: %{_tmppath}/postfix-%{package_version}-buildroot
+
+# Determine packaging requirements
+BuildRequires: gawk, perl, sed, ed, patch, rpm >= 4
+Requires: gawk, perl, sed, ed
+
+%if %{requires_db}
+Requires: db%{requires_db}
+BuildRequires: db%{requires_db}-devel
+%endif
+
+%if %{ldap}
+Requires: openldap >= 1.2.9
+BuildRequires: openldap-devel >= 1.2.9
+%endif
+
+%if %{pcre}
+Requires: pcre
+BuildRequires: pcre, pcre-devel
+%endif
+
+%if %{redhatmysql}
+Requires: mysql
+BuildRequires: mysql, mysql-devel
+%endif
+
+%if %{mysql}
+Requires: MySQL-shared, zlib
+BuildRequires: MySQL-shared, MySQL-devel, zlib-devel
+%endif
+
+%if %{pgsql}
+Requires: postgresql, libpq.so
+BuildRequires: postgresql, libpq.so, postgresql-devel
+%endif
+
+%if %{sasl}
+Requires: cyrus-sasl
+BuildRequires: cyrus-sasl, cyrus-sasl-devel
+%endif
+
+%if %{tls}
+Requires: openssl
+BuildRequires: openssl-devel
+%endif
+
+%description
+Postfix is a Mail Transport Agent (MTA), intended to be an alternative
+to the widely-used sendmail.  This package includes optional support for
+LDAP, pcre, mysql, SMTP AUTH (SASL) and TLS; by default it sets up
+chroot for added security.
+
+See http://www.redhat.com/support/docs/faqs/RH-postfix-FAQ/book1.html,
+a slightly outdated FAQ, which covers the steps involved in installing
+and configuring postfix.
+
+The binary and source rpms I produce are currently available at
+	http://pobox.com/~sjmudd/postfix, ftp://ftp.WL0.org
+and the mirrors which can be found at the following URL:
+	http://pobox.com/~sjmudd/postfix/en/mirrors/
+
+This package/specfile was built from postfix.spec.in $Revision: 2.198 $,
+with the following options:
+
+SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
+ldap=%{ldap}, sasl=%{sasl}, pcre=%{pcre}, tls=%{tls}, tlsfix=%{tlsfix}, mysql=%{mysql}, redhatmysql=%{redhatmysql}
+include_db=%{include_db}, requires_db=%{requires_db}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}, RBL_MAPS=%{RBL_MAPS}, cdb=%{cdb}
+debug=%{?_with_debug:1}%{?!_with_debug:0}
+
+To use postfix with alternative options download the source package and
+rebuild the binary package following the instructions in the source
+package or on my web page.
+
+
+%prep
+umask 022
+
+%{die_cmd}
+
+# Warn if the distribution this spec file was made for isn't the same as
+# the current distribution, using a script in the SOURCES directory.
+# This will be removed and built into the spec file later.
+
+tmpdir=`rpm --eval '%{_sourcedir}'`
+distribution=`sh ${tmpdir}/postfix-get-distribution`
+
+if [ "${distribution}" != "%{distribution}" ]; then
+    cat <<ENDTEXT
+
+			W A R N I N G
+			=============
+
+This package's spec file was built for a different distribution to the
+version which you are using.  If the differences (shown below) are only
+a difference in MINOR version number this should not be a problem.
+
+Current Distribution:	${distribution}
+postfix.spec built for:	%{distribution}
+
+If not it is advisable to rebuild the postfix.spec file as indicated below:
+
+To rebuild the spec file (and thus avoid this warning) follow the following
+steps:
+
+	cd `rpm --eval '%{_sourcedir}'`
+	sh make-postfix.spec	# to rebuild the spec file
+	cd `rpm --eval '%{_specdir}'`
+	rpm -ba postfix.spec	# to build postfix
+
+If this procedure doesn't allow you to produce a working package, please
+adivse me so I can take appropriate steps.
+
+ENDTEXT
+	sleep 10
+fi
+
+%setup -q -n postfix-%{tarball_version} -a 9
+
+# Apply the TLS patch, must be at first, because the changes of master.cf
+%if %{tls}
+patch -p1 <%{pfixtls}/pfixtls.diff
+%endif
+
+# Apply obligatory patches
+%patch1 -p1 -b .config
+%patch2 -p1 -b .auth
+%patch3 -p1 -b .alternatives
+%patch7 -p1 -b .logrcpt
+
+# Apply optional patches
+%if %{cdb}
+%setup -D -T -a 12
+cp $RPM_SOURCE_DIR/README.CDB .
+sh dict_cdb.sh
+%endif
+%if %{vda}
+gunzip < %{_sourcedir}/postfix-%{vdaver}_quota.patch.gz | patch -p1 -b --suffix .vda -s
+%endif
+# Apply RBL Reply maps
+%if %{RBL_MAPS}
+%patch5 -p0 -b .rbl
+%endif
+# Apply the PostgreSQL patches only if required
+%if %{pgsql}
+%patch50 -p1 -b .pg
+%endif
+%if %{pgsql2}
+%patch51 -p1 -b .pgraw
+%endif
+%if %{SMTPD_MULTILINE_GREETING}
+%patch99 -p1 -b .multiline
+%endif
+
+%if %{tls}
+# Move postfix/tls docs into TLS dir
+mkdir TLS
+mv %{pfixtls}/doc/* TLS
+for i in ACKNOWLEDGEMENTS CHANGES INSTALL README TODO; do
+  mv %{pfixtls}/$i $i.TLS
+done
+%endif
+
+# setup master.cf to be chrooted
+%if ! %{DISABLE_CHROOT}
+mv conf/master.cf conf/master.cf-nochroot
+awk -f %{_sourcedir}/postfix-chroot-setup.awk < conf/master.cf-nochroot > conf/master.cf
+%endif
+
+# Modify master.cf: rmail --> rmail.postfix
+ed conf/master.cf <<EOF || exit 1
+%s/rmail/rmail.postfix/
+w
+q
+EOF
+
+cp %{_sourcedir}/postfix-new-RPM-packages postfix-new-RPM-packages
+
+%build
+umask 022
+
+CCARGS=
+AUXLIBS=
+
+%ifarch s390 s390x ppc
+CCARGS="${CCARGS} -fsigned-char"
+%endif
+
+%if %{include_db}
+  # specify where there compiler should attempt to find db.h file
+  CCARGS="-I/usr/include/db%{requires_db} ${CCARGS}"
+%endif
+
+%if %{cdb}
+  CCARGS="${CCARGS} -DHAS_CDB"
+  AUXLIBS="${AUXLIBS} -lcdb"
+%endif
+%if %{ldap}
+  CCARGS="${CCARGS} -DHAS_LDAP"
+  AUXLIBS="${AUXLIBS} -L/usr/lib -lldap -llber"
+%endif
+%if %{pcre}
+  # -I option required for pcre 3.4 (and later?)
+  CCARGS="${CCARGS} -DHAS_PCRE -I/usr/include/pcre"
+  AUXLIBS="${AUXLIBS} -lpcre"
+%endif
+# Careful:
+# - Redhat's mysql package doesn't seem to need zlib support (postfix compiles without it)
+# - MySQL's (www.mysql.com) package does need zlib support to compile correctly
+%if %{mysql}
+  CCARGS="${CCARGS} -DHAS_MYSQL -I/usr/include/mysql"
+  AUXLIBS="${AUXLIBS} -L/usr/lib/mysql -lmysqlclient -lz -lm"
+%endif
+%if %{redhatmysql}
+  CCARGS="${CCARGS} -DHAS_MYSQL -I/usr/include/mysql"
+  AUXLIBS="${AUXLIBS} -L/usr/lib/mysql -lmysqlclient -lm"
+%endif
+%if %{pgsql}
+  CCARGS="${CCARGS} -DHAS_PGSQL -I/usr/include/pgsql"
+  AUXLIBS="${AUXLIBS} -lpq -lcrypt"
+%endif
+%if %{sasl}
+  CCARGS="${CCARGS} -DUSE_SASL_AUTH"
+  AUXLIBS="${AUXLIBS} -lsasl"
+%endif
+%if %{tls}
+# See http://www.openldap.org/lists/openldap-devel/200105/msg00008.html
+# - it seems rh6.2 needs LIBS=-ldl to build correctly.
+# - reported by Jauder Ho <jauderho@carumba.com>
+  if [ "${tlsfix}" = 1 ]; then
+    LIBS=-ldl
+  else
+    LIBS=
+  fi
+  CCARGS="${CCARGS} -DHAS_SSL -I/usr/include/openssl"
+  AUXLIBS="${AUXLIBS} -lssl -lcrypto"
+%endif
+
+export CCARGS AUXLIBS
+make -f Makefile.init makefiles
+unset CCARGS AUXLIBS
+make DEBUG="%{?_with_debug:-g}" OPT="$RPM_OPT_FLAGS"
+
+%pre
+umask 022
+
+%{die_cmd}
+
+# create postfix user and group, and maildrop group if necessary.
+# Use perl rather than looking in /etc/passwd or /etc/group as this works
+# in a wider NIS or LDAP environment
+
+perl -e '$gid=getgrnam("postdrop"); exit 1 if ! defined( $gid )' || {
+    %whinge "Adding postdrop group to system"
+    %{_sbindir}/groupadd -r postdrop
+}
+
+perl -e '$gid=getgrnam("postfix"); exit 1 if ! defined( $gid )' || {
+    %whinge "Adding postfix group to system"
+    %{_sbindir}/groupadd -r postfix
+}
+
+perl -e '$uid=getpwnam("postfix"); exit 1 if ! defined( $uid )' || {
+    %whinge "Adding postfix user to system"
+    %{_sbindir}/useradd -d %{queue_dir} -s /bin/true -g postfix -G mail -M -r postfix
+}
+
+# If Postfix is not a member of the mail group (it wasn't in older versions of
+# my package) add it to the group.  This is needed for people using cyrus, linked
+# by unix sockets (amongst other things)
+GROUP=`id postfix | awk '{print $3}' | sed -e 's/groups=//' | grep mail`
+test -z "${GROUP}" && usermod -G mail postfix || :
+
+%install
+umask 022
+
+[ %{buildroot} != "/" ] && {
+    /bin/rm -rf   %{buildroot}
+    /bin/mkdir -p %{buildroot}
+}
+
+%{?!debug:strip -R .comment --strip-unneeded bin/* libexec/*}
+
+# Rename man pages so they we don't conflict with sendmail's
+# Binaries are handled in the defines in preamble of specfile
+mv man/man1/mailq.1      man/man1/mailq.postfix.1
+mv man/man1/newaliases.1 man/man1/newaliases.postfix.1
+mv man/man1/sendmail.1   man/man1/sendmail.postfix.1
+mv man/man5/aliases.5    man/man5/aliases.postfix.5
+
+# install postfix into %{buildroot}
+sh postfix-install -non-interactive \
+       install_root=%{buildroot} \
+       config_directory=%{config_dir} \
+       daemon_directory=%{daemon_dir} \
+       command_directory=%{_sbindir} \
+       queue_directory=%{queue_dir} \
+       sendmail_path=%{sendmail_path} \
+       newaliases_path=%{newaliases_path} \
+       mailq_path=%{mailq_path} \
+       mail_owner=postfix \
+       setgid_group=postdrop \
+       manpage_directory=%{_mandir} \
+       sample_directory=%{sample_dir} \
+       readme_directory=%{readme_dir} || exit 1
+
+# RPM compresses man pages automatically.  Edit postfix-files to reflect this,
+# so post-install won't get confused.
+ed %{buildroot}%{config_dir}/postfix-files <<EOF || exit 1
+%s/\(\/man[158]\/.*\.[158]\):/\1%{mps}:/
+w
+q
+EOF
+
+# Change alias_maps and alias_database default directory to %{config_dir}
+bin/postconf -c %{buildroot}%{config_dir} -e \
+	"alias_maps = hash:%{config_dir}/aliases" \
+	"alias_database = hash:%{config_dir}/aliases" \
+|| exit 1
+
+# This installs into the /etc/rc.d/init.d directory
+/bin/mkdir -p %{buildroot}%{init_directory}
+install %{_sourcedir}/postfix-etc-init.d-postfix \
+                  %{buildroot}%{init_directory}/postfix
+
+# Copy the Linux chroot setup script to %{config_dir}, ready to use,
+# later, removing the 'postfix reload' call from this script
+%if ! %{DISABLE_CHROOT}
+# These set up the chroot directory structure
+mkdir -p %{buildroot}%{queue_dir}/etc
+mkdir -p %{buildroot}%{queue_dir}/lib
+mkdir -p %{buildroot}%{queue_dir}/usr/lib/zoneinfo
+%endif
+
+# This is the /etc/cron.daily directory
+/bin/mkdir -p %{buildroot}%{cron_directory}
+
+# This file is named 1postfix to ensure it is run _before_ logrotate
+install %{_sourcedir}/postfix-etc-cron.daily-postfix %{buildroot}%{cron_directory}/1postfix
+
+# install pflogsumm.pl (used by daily cron) into %{_sbindir}
+install -m 755 %{_sourcedir}/pflogsumm%{pflogno}.pl %{buildroot}%{_sbindir}/pflogsumm.pl
+
+install auxiliary/rmail/rmail %{buildroot}%{rmail_path}
+
+# copy new aliases files and generate a ghost aliases.db file
+cp -f %{_sourcedir}/postfix-aliases %{buildroot}%{config_dir}/aliases
+chmod 644 %{buildroot}%{config_dir}/aliases
+
+touch %{buildroot}/%{config_dir}/aliases.db
+
+for i in active bounce corrupt defer deferred flush incoming private saved; do
+    mkdir -p %{buildroot}%{queue_dir}/$i
+done
+for i in maildrop public pid; do
+    mkdir -p %{buildroot}%{queue_dir}/$i
+done
+
+# install qmqp-source, smtp-sink & smtp-source by hand
+for i in qmqp-source smtp-sink smtp-source; do
+  install -m 755 bin/$i %{buildroot}%{_sbindir}/$i
+done
+
+%post
+umask 022
+
+/sbin/chkconfig --add postfix
+
+# upgrade configuration files if necessary
+sh %{config_dir}/post-install upgrade-package \
+	config_directory=%{config_dir} \
+	daemon_directory=%{daemon_dir} \
+	command_directory=%{_sbindir} \
+	mail_owner=postfix \
+	setgid_group=postdrop \
+	manpage_directory=%{_mandir} \
+	sample_directory=%{sample_dir} \
+	readme_directory=%{readme_dir} \
+|| :
+
+%{_sbindir}/postalias %{config_dir}/aliases
+%{_sbindir}/postfix check || :
+
+# Add submission to services if not found, required for rh <= 7.0
+if ! grep -q ^submission %{_sysconfdir}/services
+then
+cat <<EOF >>%{_sysconfdir}/services
+submission	587/tcp		msa	# mail message submission
+submission	587/udp		msa	# mail message submission
+EOF
+fi
+
+# Add smtps to services if not found
+if ! grep -q ^smtps %{_sysconfdir}/services
+then
+cat <<EOF >>%{_sysconfdir}/services
+smtps		465/tcp			# SMTP over SSL (TLS)
+EOF
+fi
+
+# Apply the alternatives scripts ONLY if installing (not upgrading) to
+# ensure a link exists from # %{_sbindir}/sendmail to
+# %{_sbindir}/sendmail.postfix (and other files).
+#
+# If performing an upgrade this MUST be done in the trigger scripts.
+# (old postfix packages, pre-alternatives have a /usr/sbin/sendmail and this
+# gets removed _AFTER_ the %post stage when the old package is removed)
+
+[ "$1" = 1 ] || exit 0
+
+if [ -x %{_sbindir}/alternatives ]; then
+    %whinge "Fresh Postfix Install: using RH alternatives"
+    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{_sbindir}/sendmail.postfix 30 \
+        --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
+        --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
+        --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
+        --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
+        --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
+        --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
+        --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
+        --initscript postfix
+else
+    if [ ! -e %{_sbindir}/sendmail ]; then
+        %whinge "Fresh Postfix Install, no %{_sbindir}/sendmail present: simulating RH alternatives"
+        ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
+        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
+        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
+        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
+        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps} 
+        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
+        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
+        ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
+    fi
+fi
+
+%triggerpostun -- sendmail
+
+# If removing sendmail and not using alternatives: replace with postfix equivalents
+%whinge "triggerpostun -- sendmail: final number of sendmail packages=$2"
+[ $2 = 0 ] || exit 0
+
+if [ -x %{_sbindir}/alternatives ]; then
+    %whinge "Uninstalling sendmail, so setup Postfix: using RH alternatives"
+    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{_sbindir}/sendmail.postfix 30 \
+        --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
+        --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
+        --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
+        --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
+        --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
+        --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
+        --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
+        --initscript postfix
+else
+    if [ ! -e %{_sbindir}/sendmail ]; then
+        %whinge "Uninstalling sendmail, no %{_sbindir}/sendmail present: simulating RH alternatives"
+        ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
+        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
+        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
+        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
+        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps} 
+        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
+        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
+        ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
+    fi
+fi
+
+%triggerpostun -- postfix
+ 
+# If upgrading postfix some versions are pre-alternatives and thus use /usr/sbin/sendmail.
+# After uninstalling the old package this file will be missing and we need to link to the
+# new postfix sendmail binary
+%whinge "triggerpostun -- postfix: final number of Postfix packages=$2"
+[ $2 -gt 0 ] || exit 0
+
+# add alternatives support (available in rh7.3), or perform the equivalent
+# functionality by hand if needed.
+
+if [ -x %{_sbindir}/alternatives ]; then
+    %whinge "Upgrading Postfix: using RH alternatives"
+    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{_sbindir}/sendmail.postfix 30 \
+        --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
+        --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
+        --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
+        --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
+        --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
+        --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
+        --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
+        --initscript postfix
+else
+    if [ ! -e %{_sbindir}/sendmail ]; then
+        %whinge "Upgrading Postfix, no %{_sbindir}/sendmail present: simulating RH alternatives"
+        ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
+        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
+        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
+        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
+        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps} 
+        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
+        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
+        ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
+    fi
+fi
+
+# Generate chroot jails on the fly when needed things are installed/upgraded
+%if ! %{DISABLE_CHROOT}
+
+%triggerin -- glibc
+%{copy_cmd}
+# kill off old versions
+rm -f %{queue_dir}/lib/libnss* %{queue_dir}/lib/libresolv*
+# determine glibc version
+LIBCVER=`ls -l /lib/libc.so.6* | sed "s/.*libc-\(.*\).so$/\1/g"`
+# copy the relevant parts in
+for i in compat dns files hesoid nis nisplus winbind wins; do
+  [ -e /lib/libnss_${i}-${LIBCVER}.so ] && copy /lib/libnss_${i}-${LIBCVER}.so %{queue_dir}/lib
+  [ -e /lib/libnss_${i}.so ]            && copy /lib/libnss_${i}.so            %{queue_dir}/lib
+done
+copy /lib/libresolv-${LIBCVER}.so %{queue_dir}/lib
+ldconfig -n %{queue_dir}/lib
+# copy real files into chroot environment
+for i in /etc/localtime /usr/lib/zoneinfo/localtime \
+	/etc/host.conf /etc/resolv.conf /etc/nsswitch.conf \
+	/etc/hosts /etc/passwd /etc/services; do
+    test -f ${i} && rm -f %{queue_dir}${i} && copy ${i} `/usr/bin/dirname %{queue_dir}${i}`
+done
+%endif
+
+%if %{requires_db} && ! %{DISABLE_CHROOT}
+%triggerin -- db%{requires_db}
+%{copy_cmd}
+for i in /lib/libdb-%{requires_db}.*so; do
+  rm -f %{queue_dir}${i}
+  copy ${i} %{queue_dir}/lib
+done
+ldconfig -n %{queue_dir}/lib
+%endif
+
+%if %{ldap} && ! %{DISABLE_CHROOT}
+%triggerin -- openldap
+%{copy_cmd}
+rm -f %{queue_dir}%{_libdir}/libldap*.so*
+rm -f %{queue_dir}%{_libdir}/liblber.so*
+for i in %{_libdir}/libldap*.so* \
+         %{_libdir}/libldap_r.so* \
+         %{_libdir}/liblber.so*; do
+      [ -e $i ] && copy $i %{queue_dir}%{_libdir}
+done
+ldconfig -n %{queue_dir}%{_libdir}
+
+# remove ldap chroot environment
+%triggerun -- openldap
+[ $2 = 0 ] || exit 0
+/bin/rm -f %{queue_dir}%{_libdir}/libldap*.so*
+/bin/rm -f %{queue_dir}%{_libdir}/liblber.so*
+%endif
+
+%if %{pgsql} && ! %{DISABLE_CHROOT}
+%triggerin -- postgresql-libs
+%{copy_cmd}
+rm -f %{queue_dir}%{_libdir}/libpq*
+copy %{_libdir}/libpq.so.2 %{queue_dir}%{_libdir}
+ldconfig -n %{queue_dir}%{_libdir}
+%endif
+
+%if ! %{DISABLE_CHROOT}
+%triggerin -- setup
+%{copy_cmd}
+rm -f %{queue_dir}%{_sysconfdir}/services
+copy %{_sysconfdir}/services %{queue_dir}%{_sysconfdir}
+%endif
+
+%preun
+umask 022
+
+# remove chroot jail when uninstalling the package
+# WE MUST BE IN /var/spool/postfix before calling this routine
+
+chroot_remove () {
+%if %{ldap}
+    /bin/rm -f %{queue_dir}%{_libdir}/libldap*.so*
+    /bin/rm -f %{queue_dir}%{_libdir}/liblber.so*
+%endif
+
+    for i in etc/localtime usr/lib/zoneinfo/localtime \
+            etc/host.conf etc/resolv.conf etc/nsswitch.conf \
+	    etc/hosts etc/passwd etc/services \
+%if %{requires_db}
+            lib/libdb-%{requires_db}.*so \
+%endif
+	    lib/libnss_* lib/libresolv*; do
+        test -f %{queue_dir}/${i} && /bin/rm -f %{queue_dir}/${i}
+    done
+
+    for dir in usr/lib/zoneinfo usr/lib usr lib etc; do
+        test -d $dir && /bin/rmdir $dir || \
+	    echo "WARNING: preun - unable to remove directory %{queue_dir}/$dir"
+    done
+}
+
+# selectively remove the rest of the queue directory structure
+# first remove the "queues" (and assume the hash depth is still 2)
+queue_directory_remove () {
+    for dir in active bounce defer deferred flush incoming; do
+        for a in 0 1 2 3 4 5 6 7 8 9 A B C D E F; do
+   	    test -d $dir/$a && {
+	        for b in 0 1 2 3 4 5 6 7 8 9 A B C D E F; do
+		    test -d $dir/$a/$b && (
+		        /bin/rm -f $dir/$a/$b/*
+		        /bin/rmdir $dir/$a/$b
+		    )
+		done
+		/bin/rmdir $dir/$a || echo "WARNING: preun - unable to remove directory %{queue_dir}/$dir/$a"
+	    }
+        done
+	/bin/rmdir $dir || echo "WARNING: preun - unable to remove directory %{queue_dir}/$dir"
+    done
+
+    # now remove the other directories
+    for dir in corrupt maildrop pid private public saved; do
+        test -d $dir && {
+            /bin/rm -f $dir/*
+            /bin/rmdir $dir || echo "WARNING: preun - unable to remove directory %{queue_dir}/$dir"
+        }
+    done
+}
+
+if [ "$1" = 0 ]; then
+    /sbin/service postfix stop >/dev/null 2>&1
+    /sbin/chkconfig --del postfix
+
+    if [ -x %{_sbindir}/alternatives ]; then
+        %{_sbindir}/alternatives --remove mta %{_sbindir}/sendmail.postfix
+    elif [ -L %{_sbindir}/sendmail} ]; then
+        # check that symbolic link belongs to postfix and perhaps remove files
+        if [ `ls -l %{_sbindir}/sendmail | awk '{print $11}'` = %{_sbindir}/sendmail.postfix ]; then
+            rm -f %{_sbindir}/sendmail
+            rm -f %{_bindir}/mailq
+            rm -f %{_bindir}/newaliases
+            rm -f %{_bindir}/rmail
+            rm -f %{_mandir}/man1/sendmail.1%{mps}
+            rm -f %{_mandir}/man1/mailq.1%{mps}
+            rm -f %{_mandir}/man1/newaliases.1%{mps}
+            rm -f %{_mandir}/man5/aliases.5%{mps}
+        fi
+    fi
+
+    # userdel also deletes the user's group
+    %{_sbindir}/userdel postfix   || %whinge "WARNING: failed to remove user postfix"
+    %{_sbindir}/groupdel postdrop || %whinge "WARNING: failed to remove group postdrop"
+
+    cd %{queue_dir} && {
+        %if ! %{DISABLE_CHROOT}
+          chroot_remove
+        %endif
+        
+        queue_directory_remove
+    } || :
+fi
+
+# ---
+# Request by Wietse: if there is a /usr/lib/sendmail file (ie not symbolic link), not owned by
+# a package then replace it with a symbolic link to /usr/sbin/sendmail.
+# ---
+
+SENDMAIL=/usr/lib/sendmail
+test -f ${SENDMAIL} && {
+    rpm -qf ${SENDMAIL} >/dev/null 2>&1 || ln -sf %{sendmail_path} ${SENDMAIL}
+} || :
+
+%postun
+umask 022
+if [ "$1" -ge 1 ]; then
+    /sbin/service postfix condrestart 
+fi
+
+%clean
+/bin/rm -rf %{buildroot}
+
+%files
+%defattr(-, root, root)
+%verify(not md5 size mtime) %config %dir %{config_dir}
+%attr(0644, root, root)         %{config_dir}/LICENSE
+%attr(0755, root, root) %config %{config_dir}/postfix-script
+%attr(0755, root, root) %config %{config_dir}/post-install
+%attr(0644, root, root)                                                %{config_dir}/postfix-files
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_dir}/main.cf
+%attr(0644, root, root)                                                %{config_dir}/main.cf.default
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_dir}/master.cf
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_dir}/access
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_dir}/aliases
+%attr(0644, root, root) %verify(not md5 size mtime) %ghost             %{config_dir}/aliases.db
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_dir}/canonical
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_dir}/pcre_table
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_dir}/regexp_table
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_dir}/relocated
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_dir}/transport
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_dir}/virtual
+
+%dir %attr(-, root, root) %{sample_dir}
+%attr(0644,   root, root) %{sample_dir}/*
+%dir %attr(-, root, root) %{readme_dir}
+%attr(0644,   root, root) %{readme_dir}/*
+
+%attr(0755, root, root) %config %{init_directory}/postfix
+
+%dir                      %verify(not md5 size mtime) %{queue_dir}
+%if ! %{DISABLE_CHROOT}
+  %dir %attr(-, root, root) %verify(not md5 size mtime) %{queue_dir}/etc
+  %dir %attr(-, root, root) %verify(not md5 size mtime) %{queue_dir}/lib
+  %attr(-, root, root)      %verify(not md5 size mtime) %{queue_dir}/usr
+%endif
+
+# For correct directory permissions check postfix-install script
+%dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_dir}/active
+%dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_dir}/bounce
+%dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_dir}/corrupt
+%dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_dir}/defer
+%dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_dir}/deferred
+%dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_dir}/flush
+%dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_dir}/incoming
+%dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_dir}/private
+%dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_dir}/saved
+
+%dir %attr(0730, postfix, postdrop) %verify(not md5 size mtime) %{queue_dir}/maildrop
+%dir %attr(0710, postfix, postdrop) %verify(not md5 size mtime) %{queue_dir}/public
+
+%dir %attr(0755, root, root)        %verify(not md5 size mtime) %{queue_dir}/pid
+
+%attr(0755, root, root) %verify(not md5 size mtime) %config(noreplace) %{cron_directory}/1postfix
+
+%doc 0README
+%doc COMPATIBILITY
+%doc HISTORY
+%doc INSTALL
+%doc LICENSE
+%doc PORTING
+%doc RELEASE_NOTES
+
+%if %{cdb}
+%doc README.CDB
+%endif
+
+%if %{pgsql}
+%doc PGSQL_README
+%endif
+
+%doc postfix-new-RPM-packages
+
+%if %{tls}
+%doc ACKNOWLEDGEMENTS.TLS
+%doc CHANGES.TLS
+%doc README.TLS
+%doc TODO.TLS
+%doc TLS
+%doc %{pfixtls}/contributed/make-postfix-cert.sh
+%endif
+
+%doc html
+%doc examples
+
+%dir %attr(0755, root, root) %verify(not md5 size mtime) %{daemon_dir}
+%{daemon_dir}/bounce
+%{daemon_dir}/cleanup
+%{daemon_dir}/error
+%{daemon_dir}/flush
+%{daemon_dir}/lmtp
+%{daemon_dir}/local
+%{daemon_dir}/master
+%{daemon_dir}/nqmgr
+%{daemon_dir}/pickup
+%{daemon_dir}/pipe
+%{daemon_dir}/qmgr
+%{daemon_dir}/qmqpd
+%{daemon_dir}/showq
+%{daemon_dir}/smtp
+%{daemon_dir}/smtpd
+%{daemon_dir}/spawn
+%{daemon_dir}/trivial-rewrite
+%{daemon_dir}/virtual
+
+%if %{tls}
+%{daemon_dir}/tlsmgr
+%endif
+
+%{_sbindir}/postalias
+%{_sbindir}/postcat
+%{_sbindir}/postconf
+%attr(2755,root,postdrop) %{_sbindir}/postdrop
+%attr(2755,root,postdrop) %{_sbindir}/postqueue
+%{_sbindir}/postfix
+%{_sbindir}/postkick
+%{_sbindir}/postlock
+%{_sbindir}/postlog
+%{_sbindir}/postmap
+%{_sbindir}/postsuper
+
+%{_sbindir}/smtp-sink
+%{_sbindir}/smtp-source
+%{_sbindir}/qmqp-source
+
+%attr(555,root,root) %{_sbindir}/pflogsumm.pl
+
+%{sendmail_path}
+%{mailq_path}
+%{newaliases_path}
+%attr(0755, root, root) %{rmail_path}
+
+%{_mandir}/*/*
+
+##############################################################################
+# List of changes made to this package.
+#
+# Although old entries from the changelog have been removed most of them
+# are available from my CVS repository of changes made to this file.
+#
+
+%changelog
+
+* Fri Nov 22 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-20021115-1
+
+* Fri Nov 22 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-13
+  - modify make-postfix.spec and postfix.spec.in to work correctly with RH 8
+    and the new db4 files.
+    - Thanks to  Josep M. <websurfer_email@yahoo.es> for lending me a rh8
+      machine to test this on.
+  - modify postfix-get-distribution to recognise Yellowdog Linux
+    - thanks to Emmanuel Seyman <seyman@acticiel.com> for testing
+
+* Mon Oct 28 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-12
+  - The man page links when using /usr/sbin/alternatives didn't correctly
+    link the sendmail.postfix man page to the sendmail man page.
+    Consequently man sendmail/newaliases/mailq would fail.  This does not
+    affect users of rh before 7.3 where /usr/sbin/alternatives does not exist.
+
+* Mon Oct 28 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-11
+  - add support for Constant Database, CDB, by Michael Tokarev
+    <mjt@corpit.ru>, as originally devised by djb.
+
+* Mon Oct 21 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-10
+  - add Victor Duchovni's log_recipient patch
+
+* Sat Oct 19 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-9
+  - 1.1.11-8 was released with an error. (multiline patch was wrong)
+    This releases fixes the problem.
+
+* Fri Oct 18 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-8
+  - add optional RBL_MAP patch from Lamont Jones <lamont@hp.com>,
+    applied with POSTFIX_RBL_MAPS=1 when used with make-postfix.spec
+  - convert src/smtpd/smtpd_chat.c provided by Wietse from the
+    1.2-snapshots into a diff, applying the patch at his request
+  - modify multiline_banner patch to work with new smtpd_chat.c
+
+* Mon Jul 15 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-7
+  - update the TLS patches
+  - update the VDA patches
+
+* Mon Jul 15 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-6
+  - add MANPAGE_SUFFIX in make-postfix.spec and %{mps} in spec file
+    to allow Mandrake 8's .bz2 man page suffix to be used.
+    - Erin Schnabel <erin@haaser.com>
+  - add BuildRequires: rpm >= 4 to ensure that the spec file is used correctly.
+    RH6.1 builds failed due to rpm v3 not processing the %if macros correctly.
+
+* Fri Jul 12 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-5
+  - remove debugging which was enabled when it shouldn't have been
+    - reported by "Weisz, Norbert" <norbert.weisz@hp.com>
+  - add Postfix user to mail group, so that it can be used more easily
+    with cyrus.
+    - suggestion by Christopher D. Audley <Christopher.D.Audley@jhu.edu>
+
+* Mon Jul 08 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-4
+  - fix typo in use of alternatives (missing backslashes)
+    - reported by David Elliot <daveelliot@yahoo.com>
+
+* Sat Jul 06 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-3
+  - add Provides: %{_bindir}/newaliases to satisfy mailman
+    - reported by Tom Diehl <tdiehl@rogueind.com>
+
+* Fri Jul 05 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-2
+  - Add support for alternatives (needed on RH 7.3)
+    - based on patch provided by Christopher D. Audley
+      <Christopher.D.Audley@jhu.edu>.
+    - works on 7.3 and earlier distributions, simulating the alternatives
+      package if it is not present.
+    - other minor fixes based on suggestions from various testers:
+      - Scott A. Hughes <sahughes@sanguine.net> 
+      - Tom Diehl <tdiehl@rogueind.com>
+      - Emmanuel Seyman <seyman@acticiel.com>
+      - Norbert Weisz <norbert.weisz@hp.com> 
+
+* Sun Jun 09 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-1
+  - update to postfix-1.1.11
+  - support for building with db3 on rh6.x - patch provided by
+     Frederic Hermann <Frederic.Hermann@ferma.fr>
+  - remove FQDN hostname checks - request by Wietse
+
+* Sun May 19 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.10-1
+  - fix debug macro bug, reported by  Christopher Audley <Christopher.D.Audley@jhu.edu>  
+  - upgrade to 1.1.10
+  - upgrade TLS patch
+
+* Tue Apr 30 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-6
+  - /lib/lidbdb.so is not needed within the chroot (it's used only by the 
+    db[34]-devel packages).  So remove it.  Symptom: error message
+    "cp: cannot stat `/lib/libdb.so" on machines which didn't have
+    db[34]-devel installed.
+    - Reported by Bill Landry <BillL@Pointshare.com>
+
+* Sun Apr 28 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-5
+  - various changes suggested by Todd <Freedom_Lover@bigfoot.com>
+    - minor change to redhatmysql support, removing unneeded
+    Requires:
+    - minor change to TLS support, moving documentation to
+    /usr/share/doc/postfix-1.1.7/TLS/
+    - inclusion of Postfix examples directory which was missing
+  - chroot environment changes: after removing chroot-setup-LINUX2 and
+    replacing it with triggerin scripts some files were missing.  Fixed
+
+* Thu Apr 18 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-4
+  - bugfix: add Source2: postfix-get-distribution
+    - advised by "Weisz, Norbert" <Norbert.Weisz@Compaq.com>
+
+* Thu Apr 18 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-3
+  - changes to names and stuff in spec file (basic tidy-up)
+  - add qmqp-source
+  - changes to use triggerin macros instead of chroot stuff
+    - mainly taken from Bero and Tuomo's Postfix spec files
+  - remove changelog entries for before 01-01-2002, they can still be recovered
+    from my CVS archives.
+  - useradd/groupadd of postfix/postdrop have been modified to not specify
+    a specific user/group id.  rpm uses the name when checking permissions and
+    postfix's main.cf also works with names so don't insist on specific ids.
+    the uid/gids created are system accounts.
+  - upgrade VDA patch to 1.1.6
+
+* Wed Apr 10 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-2
+  - bug fix to copy_cmd macro which was causing lots of grief
+
+* Mon Apr 01 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.7-1
+  - update to 1.1.7
+
+* Mon Apr 01 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.6-1
+  - upgrade to 1.1.6
+  - minor changes to 1postfix
+  - remove smtp-helo-name patch
+  - update TLS patches
+
+* Wed Mar 20 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.5-3
+  - include Wietse's smtp-helo-name patch
+
+* Wed Mar 13 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.5-2
+  - upgrade TLS patches to 0.8.5
+
+* Tue Mar 12 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.5-1
+  - upgrade to postfix-1.1.5
+
+* Tue Mar 12 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.4-4
+  2 patches provided by Robert L Mathews <rob@tigertech.com> 
+  - add support via POSTFIX_DISABLE_CHROOT=1 to disable standard chroot
+    setup in package.
+  - add support for explicitly defining the postfix uid/gid in spec file
+    via POSTFIX_UID=... and POSTFIX_GID=...
+
+* Fri Mar 08 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.4-3
+  - add patch to BuildRequires!
+  - add separate Postgres support patches into two parts
+    - standard Postgres patches from Mathieu Arnold <arn_mat@club-internet.fr>
+    - other experimental patch by George Barbarosie <georgeb@intelinet.ro>
+
+* Fri Mar 01 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.4-2
+  - add Postgres Database support: George Barbarosie <georgeb@intelinet.ro>
+  - update TLS patches: Dominik Mierzejewski <dominik@aaf16.warszawa.sdi.tpnet.pl>
+  - update /etc/cron.daily/1postfix script: Dominik/Simon
+
+* Mon Feb 25 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.4-1
+  - add virtual delivery agent patch, from http://www.oav.net/~kiwi/postfix
+    - requested by  D M <dcm_scorpio@hotmail.com> 
+  - upgrade to pflogsumm.pl 1.0.4
+  - upgrade to postfix-1.1.4
+  - minor modification to postfix-etc-init.d-postfix so it works correctly
+    with condrestart
+
+* Wed Feb 20 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.3-2
+  - after looking at Bero's version of my rpm make some mainly cosmetic
+    changes
+
+* Sun Feb 03 2002 Simon J Mudd <sjmudd@pobox.com>
+- postfix-1.1.3-1
+  - update to postfix-1.1.3
+
+* Fri Jan 25 2002 Simon J Mudd <sjmudd@pobox.com>
+- postfix-1.1.2-1
+  - update to postfix-1.1.2
+
+- postfix-1.1.1-1
+  - update TLS patch - pfixtls-0.8.1-1.1.1-0.9.6c
+
+* Tue Jan 22 2002 Simon J Mudd <sjmudd@pobox.com>
+- postfix-1.1.1-1
+  - update to postfix-1.1.1
+  - update TLS patch - pfixtls-0.8.0-1.1.0-0.9.6c
+
+* Mon Jan 21 2002 Simon J Mudd <sjmudd@pobox.com>
+- postfix-1.1.0-3, check for /usr/lib/sendmail and if it is a file NOT
+    owned by another package: replace it with a symbolic link to
+    /usr/sbin/sendmail [requested by Wietse to avoid upgrade problems]
+  - add patch to postqueue provided by LaMont Jones <lamont@security.hp.com>
+  - update TLS patch - pfixtls-0.7.16-1.1.0-0.9.6c
+
+* Sat Jan 19 2002 Simon J Mudd <sjmudd@pobox.com>
+- postfix-1.1.0-2, add serial tag, so that this version appears newer
+  to RPM than version previous 200xmmdd versions.
+  - thanks to Dominik Mierzejewski <dominik@aaf16.warszawa.sdi.tpnet.pl>
+    for pointing this out to me.
+
+* Sat Jan 19 2002 Simon J Mudd <sjmudd@pobox.com>
+- postfix-1.1.0, update to the latest official release
+  - tidying up of the spec file to fit in line with Wietse's new
+    naming convention.
+
+* Wed Jan 16 2002 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20020115-1, update to latest snapshot
+  - fix postfix-files to reflect compressed man pages
+
+* Tue Jan 15 2002 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20020113-1, update to latest snapshot
+  - sample files have moved, they are now (temporarily?) in /etc/postfix
+    following Wietse's wish.
+
+* Fri Jan 11 2002 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20020111-1, update to latest snapshot
+
+* Fri Jan 11 2002 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20020110-1, update to latest snapshot
+  - update install procedures
+    - use patch provided by Victor Duchovni to ensure the installation works
+      as expected.
+
+* Wed Jan 09 2002 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20020107-1, update to latest snapshot
+  (candidate for next official postfix release)
+
+* Wed Jan 01 2002 Simon J Mudd <sjmudd@pobox.com>
+- snapshot-20011226-1, update to latest snapshot
