@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.45 2002/08/20 07:54:04 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.46 2002/10/18 12:07:50 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -27,7 +27,7 @@
 # REQUIRES_DB3             - used on RH 7.x, Mandrake 8.1 and eventually RH6.2
 # REQUIRES_DB4             - adding support for db4 (can be used on 7.2?)
 # SMTPD_MULTILINE_GREETING - my patch to allow multiline banner
-# VDA                      - add virtual delivery agent patch
+# vda                      - add virtual delivery agent patch
 # DISABLE_CHROOT           - disable setup of chroot environment
 # MANPAGE_SUFFIX	   - man page suffix, .gz except Mandrake 8 which uses .bz2
 #
@@ -47,8 +47,9 @@
 %define REQUIRES_DB4 __REQUIRES_DB4__
 %define REQUIRES_INIT_D __REQUIRES_INIT_D__
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
-%define VDA __VDA__
+%define vda __VDA__
 %define DISABLE_CHROOT __DISABLE_CHROOT__
+%define RBL_MAPS __RBL_MAPS__
 
 # start to support the conditional builds via rpm's
 # --with debug
@@ -64,7 +65,7 @@
 %define official 1 
 %define ver 1.1.11
 %define mail_release_date 20020115
-%define rel 7
+%define rel 8
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -137,6 +138,9 @@ Patch3: postfix-files.patch
 
 # Optional patches
 Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}_quota_maildirsize.patch 
+Patch5: postfix-rbl_reply_maps.patch
+# Provided by Wietse, smtpd_chat.c from the 1.1 snapshot
+Patch6: postfix-smtpd_chat.c.diff
 Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pgver}.patch
 Patch51: postfix-pg-raw.patch
 Patch99: postfix-smtpd_multiline_greeting.patch
@@ -207,12 +211,12 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.45 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.46 $,
 with the following options:
 
-SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, VDA=%{VDA}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
+SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
 ldap=%{ldap}, sasl=%{sasl}, pcre=%{pcre}, tls=%{tls}, tlsfix=%{tlsfix}, mysql=%{mysql}, redhatmysql=%{redhatmysql}
-REQUIRES_DB3=%{REQUIRES_DB3}, REQUIRES_DB4=%{REQUIRES_DB4}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}
+REQUIRES_DB3=%{REQUIRES_DB3}, REQUIRES_DB4=%{REQUIRES_DB4}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}, RBL_MAPS=%{RBL_MAPS}
 debug=%{?_with_debug:1}%{?!_with_debug:0}
 
 To use postfix with alternative options download the source package and
@@ -269,14 +273,21 @@ fi
 patch -p1 <%{pfixtls}/pfixtls.diff
 %endif
 
+# apply Wietse's new src/smtpd/smtpd_chat.c to the 1.1 tarball
+%patch6 -p1 -b .snapchat
+
 # Apply obligatory patches
 %patch1 -p1 -b .config
 %patch2 -p1 -b .auth
 %patch3 -p1 -b .alternatives
 
 # Apply optional patches
-%if %{VDA}
+%if %{vda}
 %patch4 -p1 -b .vda
+%endif
+# Apply RBL Reply maps
+%if %{RBL_MAPS}
+%patch5 -p0 -b .rbl
 %endif
 # Apply the PostgreSQL patches only if required
 %if %{pgsql}
@@ -952,6 +963,12 @@ fi
 #
 
 %changelog
+
+* Mon Jul 15 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-8
+  - add optional RBL_MAP patch from Lamont Jones <lamont@hp.com>,
+    applied with POSTFIX_RBL_MAPS=1 when used with make-postfix.spec
+  - convert src/smtpd/smtpd_chat.c provided by Wietse from the
+    1.2-snapshots into a diff, applying the patch at his request
 
 * Mon Jul 15 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-7
   - update the TLS patches
