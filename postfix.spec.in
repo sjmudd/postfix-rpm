@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.2.1 2004/07/17 09:53:35 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.2.2 2004/07/17 12:11:28 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -240,7 +240,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.2.1 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.2.2 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -649,14 +649,47 @@ cat <<EOF > ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/postfix.spec.cf
 #
 # This file holds the configuration options used to build the postfix rpm
 # you are using. You can use it to build a newer version of the package from
-# the Source RPM with the same options.
+# the Source RPM with the same options.  It also gives intructions on how
+# to build an RPM with other options.
 #
-# To do this download and install the new source RPM and do the following:
+# 1. BUILDING INSTRUCTIONS
 #
-#	cd <PATH_TO_SOURCESDIR>
+# To rebuild the rpm you MUST download and install the Postfix source RPM.
+# Once you have done this do the following:
+#
+# 1.1 Upgrading the build with the same options as your running system
+#
+#	# Create some temporary variables for building
+#	SRC=`rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;'`
+#	SPEC=`rpm --eval '%{_specdir}' | sed 's;%{name};postfix;'`
+#
+#	# Create the spec file
+#	cd $SRC
 #	( . /etc/postfix/postfix.spec.cf; sh make-postfix.spec )
-#	cd <PATH_TO_SPECSDIR>
+#
+#	# Build the rpm
+#	cd $SPEC
 #	rpmbuild -ba postfix.spec
+#
+# 1.2 Building postfix with specific options
+#
+#	# Create some temporary variables for building
+#	SRC=`rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;'`
+#	SPEC=`rpm --eval '%{_specdir}' | sed 's;%{name};postfix;'`
+#
+#	# Set the appropriate environment variables for building the spec file
+#	export POSTFIX_TLS=1        # for example
+#	export POSTFIX_PCRE=1       # for example
+#
+#	# Create the spec file
+#	cd $SRC
+#	sh make-postfix.spec
+#
+#	# Build the rpm
+#	cd $SPEC
+#	rpmbuild -ba postfix.spec
+#
+# 2. CONFIGURATION OPTIONS OF BINARY RPM
 #
 # Package built on: %{build_dist_full} (%{build_dist})
 

@@ -135,8 +135,8 @@ source0=`grep "^Source0:" postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{ftp
 
 file="postfix-${version}.tar.gz"
 base=`dirname ${source0}`
-srcdir=`rpm --eval '%{_sourcedir}'`
-specdir=`rpm --eval '%{_specdir}'`
+srcdir=$(rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;')
+specdir=$(rpm --eval '%{_specdir}' | sed 's;%{name};postfix;')
 
 cat <<EOF
 ===> checking postfix.spec.in:
@@ -200,9 +200,9 @@ else
 fi
 echo ""
 
-sh removelinks --quiet
-sh makelinks
+sh linkfiles --quiet --delete
+sh linkfiles --create
 test_patches	# Just check the patches here
 build
 echo ""
-sh removelinks
+sh linkfiles --delete
