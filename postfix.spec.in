@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.15 2000/11/25 17:49:20 root Exp $
+# $Id: postfix.spec.in,v 2.16 2000/11/25 18:05:12 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -112,13 +112,21 @@ make tidy # shouldn't be necessary
 ########################################################
 #
 # This is to build with AUTH support : see SASL_README
-# make DEBUG="" OPT="$RPM_OPT_FLAGS" CCARGS=-DSASL
+#
+########################################################
+#
+# This is to build with PCRE support : see PCRE_README
+#
+# make -f Makefile.init Makefiles CCARGS=-DHAS_PCRE AUXLIBS=-lpcre
+# make DEBUG="" OPT="$RPM_OPT_FLAGS"
 #
 ########################################################
 #
 # This is to build a plain postfix package
+#
 make DEBUG="" OPT="$RPM_OPT_FLAGS"
-
+#
+########################################################
 
 %pre
 
