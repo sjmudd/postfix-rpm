@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.11 2001/03/23 16:44:59 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.12 2001/03/24 09:52:45 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -40,6 +40,9 @@
 
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
 
+%define vers 20010228
+%define rel  4
+
 Name: postfix
 Summary: Postfix Mail Transport Agent
 Group: System Environment/Daemons
@@ -48,9 +51,8 @@ Copyright: IBM Public License
 PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail, exim, qmail, smail
-%define vers 20010228
 Version: %{vers}release
-Release: 3__SUFFIX__
+Release: %{rel}__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Vendor: Built under __DISTRIBUTION__
 Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/official/release-%{vers}.tar.gz
@@ -123,7 +125,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.11 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.12 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -548,7 +550,6 @@ fi
 %{daemon_directory}/lmtp
 %{daemon_directory}/local
 %{daemon_directory}/master
-#%{daemon_directory}/nqmgr
 %{daemon_directory}/pickup
 %{daemon_directory}/pipe
 %{daemon_directory}/qmgr
