@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.78 2001/03/07 13:33:16 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.79 2001/03/07 20:01:02 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -74,7 +74,7 @@ Patch99: postfix-smtpd_multiline_greeting.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 
-# Determine the different packages required for building and installing postfix
+# Determine the different packages required for building postfix
 BuildRequires: awk, perl, sed
 
 # Requires for different packages - added automatically (optional)
@@ -122,7 +122,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.78 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.79 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -598,7 +598,7 @@ fi
 %changelog
 * Tue Mar 07 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20010228-2,  update to use postfix-filelist (in my CVS tree)
-  include Requires, and BuildRequires tags
+  include BuildRequires tag
   add die() to %prep, as it was missing, Ramiro Morales <rmrpms@usa.net>
 
 * Wed Mar 01 2001 Simon Mudd <sjmudd@pobox.com>
