@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.171 2001/11/28 14:50:36 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.172 2001/11/29 12:56:53 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -51,7 +51,7 @@
 #define version2 %{vers}_%{patchlevel}
 %define rel 2
 
-%define tlsno pfixtls-0.7.13-snap20011115-0.9.6b
+%define tlsno pfixtls-0.7.13c-snap20011127-0.9.6b
 %define pflogno -1.0.3
 
 Name: postfix
@@ -148,14 +148,12 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.171 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.172 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
-LDAP=%{LDAP}		SASL=%{SASL}
-PCRE=%{PCRE}		TLS=%{TLS}
-MYSQL=%{MYSQL}		REDHATMYSQL=%{REDHATMYSQL}
-REQUIRES_DB3=%{REQUIRES_DB3}	REQUIRES_INIT_D=%{REQUIRES_INIT_D}
+LDAP=%{LDAP}, SASL=%{SASL}, PCRE=%{PCRE}, TLS=%{TLS}, MYSQL=%{MYSQL}, REDHATMYSQL=%{REDHATMYSQL}
+REQUIRES_DB3=%{REQUIRES_DB3}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}
 
 If you need to use postfix with alternative options you will need to
 download the source package and rebuild the required binary package.
@@ -342,7 +340,8 @@ check_myhostname() {
     ok=1
     test -f %{config_directory}/main.cf && \
         test -x %{command_directory}/postconf && \
-        %{command_directory}/postconf myhostname 2>&1 >/dev/null && \
+        %{command_irectory}/postconf myhostname >/dev/null 2>/dev/null && \
+        test "`%{command_directory}/postconf myhostname | grep -c '\.'`" = "1" && \
         ok=0
     return ${ok}
 }
@@ -361,7 +360,7 @@ executed, and these will fail if these conditions are not met.
 Please set the hostname to a fully-qualified hostname to enable the package
 to be installed correctly.
 END
-    whinge "Error - To install the postfix rpm please set your hostname to a FQDN"
+    die "Error - To install the postfix rpm please set your hostname to a FQDN"
 }
 
 # The 'post' phase of installation requires use of various postfix commands:
@@ -767,6 +766,7 @@ fi
 - snapshot-20011127-2
   - add explicit test for non FQDN hostnames and abort the install, while
     giving a warning to the user if this happens.
+  - update to latest TLS patch
 
 * Wed Nov 28 2001 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20011127-1
