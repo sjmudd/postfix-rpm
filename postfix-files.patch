@@ -28,11 +28,3 @@ location list.
  $manpage_directory/man5/canonical.5:f:root:-:644
  $manpage_directory/man5/pcre_table.5:f:root:-:644
  $manpage_directory/man5/regexp_table.5:f:root:-:644
-@@ -193,6 +193,7 @@
- $readme_directory/RELEASE_NOTES:f:root:-:644
- $readme_directory/RESTRICTION_CLASS_README:f:root:-:644
- $readme_directory/SASL_README:f:root:-:644
-+$readme_directory/SENDER_VERIFICATION_README:f:root:-:644
- $readme_directory/ULTRIX_README:f:root:-:644
- $readme_directory/UUCP_README:f:root:-:644
- $readme_directory/VERP_README:f:root:-:644
