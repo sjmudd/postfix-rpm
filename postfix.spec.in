@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.52 2001/06/29 23:06:43 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.53 2001/06/30 18:37:29 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -46,10 +46,10 @@
 %define patchlevel pl03
 %define version1 %{vers}-%{patchlevel}
 %define version2 %{vers}_%{patchlevel}
-%define rel  5
+%define rel  6
 
 %define tlsno pfixtls-0.7.3-20010228-pl03-0.9.6a
-%define pflogno -0.9.0
+%define pflogno -1.0.3
 
 Name: postfix
 Group: System Environment/Daemons
@@ -144,7 +144,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.52 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.53 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -425,7 +425,7 @@ install -c auxiliary/rmail/rmail %{buildroot}%{rmail_path}
 #
 # copy new aliases files and generate a ghost aliases.db file
 #
-cp -f  %{_sourcedir}/postfix-aliases %{buildroot}%{config_directory}/aliases
+cp -f %{_sourcedir}/postfix-aliases %{buildroot}%{config_directory}/aliases
 chmod 644 %{buildroot}%{config_directory}/aliases
 
 touch %{buildroot}/%{config_directory}/aliases.db
@@ -687,6 +687,10 @@ fi
 #
 
 %changelog
+
+* Fri Jun 29 2001 Simon J Mudd <sjmudd@pobox.com>
+- postfix-20010228-pl03-5, update pflogsumm.pl to 1.0.3, in line with the
+  version used in the snapshot package.
 
 * Fri Jun 29 2001 Simon J Mudd <sjmudd@pobox.com>
 - postfix-20010228-pl03-5

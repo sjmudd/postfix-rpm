@@ -1,6 +1,6 @@
 make-postfix.spec
 pfixtls-0.7.3-20010228-pl03-0.9.6a.tar.gz
-pflogsumm-0.9.0.pl
+pflogsumm-1.0.3.pl
 postfix-INSTALL.sh.patch
 postfix-INSTALL.sh.patch2
 postfix-README_maildrop_security.txt
