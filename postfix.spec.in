@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.194.2.3 2002/01/19 16:32:45 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.4 2002/01/19 16:34:33 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -183,7 +183,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.3 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.4 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -816,7 +816,10 @@ fi
 %changelog
 
 * Sat Jan 19 2002 Simon J Mudd <sjmudd@pobox.com>
-- postfix-1.1.0-2, add serial tag
+- postfix-1.1.0-2, add serial tag, so that this version appears newer
+  to RPM than version previous 200xmmdd versions.
+  - thanks to Dominik Mierzejewski <dominik@aaf16.warszawa.sdi.tpnet.pl>
+    for pointing this out to me.
 
 * Sat Jan 19 2002 Simon J Mudd <sjmudd@pobox.com>
 - postfix-1.1.0, update to the latest official release
