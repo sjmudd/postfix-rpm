@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.59 2002/11/25 13:52:02 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.60 2002/11/26 08:31:06 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -153,6 +153,9 @@ Patch99: postfix-smtpd_multiline_greeting.patch
 
 BuildRoot: %{_tmppath}/postfix-%{package_version}-buildroot
 
+# Avoid Date::Calc dependencies on rh8
+AutoReq: no
+
 # Determine packaging requirements
 BuildRequires: gawk, perl, sed, ed, patch, rpm >= 4
 Requires: gawk, perl, sed, ed
@@ -212,7 +215,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.59 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.60 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -978,6 +981,7 @@ fi
     - Jim Lohiser <jim@imaginenet.net> pointed out the problem
   - make-postfix.spec: if POSTFIX_DB=0 (and is not default) don't add stupid
     .db0 suffix.
+  - Add AutoReq: no to avoid perl Date::Calc dependencies
 
 * Fri Nov 22 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-13
   - modify make-postfix.spec and postfix.spec.in to work correctly with RH 8
