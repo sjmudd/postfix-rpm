@@ -45,6 +45,14 @@ do
     shift
 done
 
+# check whether rpmbuild exists and complain if it doesn't
+RPM=/usr/bin/rpmbuild
+
+[ -x $RPM ] || {
+    echo "$RPM not found, please install it first"
+    exit 1
+}
+
 # download_if_necessary to srcdir base/file if not already there
 
 download_if_necessary() {
