@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.18 2001/01/26 18:11:46 root Exp $
+#  $Id: make-postfix.spec,v 1.19 2001/01/26 19:21:09 root Exp $
 #
 
 SUFFIX=
@@ -24,7 +24,7 @@ if [ "$POSTFIX_PCRE" = 1 ]; then
 fi
 if [ "$POSTFIX_MYSQL" = 1 ]; then
         echo -n "  adding MySQL support "
-    if [ "$POSTFIX_REDHATMYSQL" = 1]; then
+    if [ "$POSTFIX_REDHAT_MYSQL" = 1 ]; then
         echo "(RedHat mysql* packages) to spec file"
         SUFFIX="${SUFFIX}+mysql"
     else
