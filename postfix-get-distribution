@@ -1,7 +1,11 @@
 #!/bin/sh
 #
-# simple script to determine the correct distribution
+# Simple script to determine the correct distribution
 # - there appears to be no clear way of doing this which is cross platform compatible
+#
+# As of rh9 the return value of rpm -q redhat-release does not include a minor version
+# As we check this in serveral places in the make-postfix.spec then we force it to
+# be .0
 #
 # Get release information (if possible)
 if [ `rpm -q redhat-release >/dev/null 2>&1; echo $?` = 0 ]; then
@@ -15,19 +19,20 @@ elif [ `rpm -q yellowdog-release >/dev/null 2>&1; echo $?` = 0 ]; then
     release=`rpm -q yellowdog-release | sed -e 's;^yellowdog-release-;;' -e 's;-[0-9]*$;;'`
 else
     releasename=unknown
-    release=0
+    release=0.0
 fi
 
-if [ `echo $release | grep -q '\.'` ]; then
+if [ `echo $release | grep -q '\.'` ]
+then
     major=`echo $release | sed -e 's;\.[0-9]*$;;'`	# strip off trailing minor
-    minor=`echo $release | sed -e 's;^[0-9]*\.;.;'`	# strip off leading major
+    minor=`echo $release | sed -e 's;^[0-9]*\.;;'`	# strip off leading major
 else
     major=$release
-    minor=
+    minor=0
 fi
 
 #echo release=$release
 #echo major=$major
 #echo minor=$minor
  
-echo ${releasename}-${major}${minor}
+echo ${releasename}-${major}.${minor}
