@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.99 2003/11/14 16:58:06 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.100 2003/11/15 12:27:17 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -87,7 +87,7 @@
 %define official 1
 %define ver 2.0.16
 %define mail_release_date 20021219
-%define rel 6
+%define rel 6.1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -165,7 +165,7 @@ Patch99: ftp://ftp.wl0.org/SOURCES/postfix-2.0.16-20031026-multiline-greeting.pa
 BuildRoot: %{_tmppath}/postfix-%{package_version}-buildroot
 
 # Determine packaging requirements
-BuildRequires: gawk, sed, ed, patch, rpm >= 4
+BuildRequires: /usr/bin/cc, gawk, sed, ed, patch, rpm >= 4
 Requires: gawk, sed, ed
 
 %if %{requires_db}
@@ -233,7 +233,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.99 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.100 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -946,6 +946,9 @@ umask 022
 #
 
 %changelog
+
+* Sat Nov 15 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.16-6.1
+  - include /usr/bin/cc in BuildRequires:
 
 * Fri Nov 14 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.16-6
   - (fixed) remove perl dependencies (ed script needed modifying)
