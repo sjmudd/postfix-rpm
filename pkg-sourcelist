@@ -1,11 +1,13 @@
 make-postfix.spec
-pfixtls-0.8.13-2.0.9-0.9.7b.tar.gz
+pfixtls-0.8.15a-2.0.14-20030715-0.9.7b.tar.gz
 postfinger-1.26
 postfix-1.1.12-20021124-multiline-greeting.patch
-postfix-2.0.6.patch.gz
+postfix-2.0.13.v2.patch.gz
+postfix-2.0.14-20030812.tar.gz
 postfix-aliases
 postfix-bounce_notify_util.c.patch
 postfix-build
+postfix-chroot.sh
 postfix-dict_cdb-1.1.11-20021104.tar.gz
 postfix-etc-init.d-postfix
 postfix-files.patch
@@ -20,4 +22,3 @@ postfix-RPM-TODO
 postfix-smtp_sasl_proto.c.patch
 postfix.spec.in
 tls+ipv6-1.13-pf-2.0.7-20030319.patch.gz
-postfix-chroot.sh

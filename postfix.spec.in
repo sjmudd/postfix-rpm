@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.249 2003/08/26 16:23:35 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.250 2003/08/29 19:56:38 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -65,17 +65,17 @@
 %define debug %{?_with_debug:1}%{?!_with_debug:0}
 
 # Version information
-%define vdaver 2.0.6
-%define pfixtls pfixtls-0.8.13-2.0.9-0.9.7b
+%define vdaver 2.0.13.v2
+%define pfixtls pfixtls-0.8.15a-2.0.14a-20030715-0.9.7b
 %define pgver 2.0.0.2
 %define pfixipv6 tls+ipv6-1.13-pf-2.0.7-20030319
 %define cdbver 1.1.11-20021104
 
 # If set to 1 if official version, 0 if snapshot
 %define official 0
-%define ver 2.0.9
-%define mail_release_date 20030424
-%define rel 1.100
+%define ver 2.0.14
+%define mail_release_date 20030812
+%define rel 1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -169,6 +169,9 @@ BuildRequires: openldap-devel >= 1.2.9
 %endif
 
 %if %{pcre}
+# For Mandrake 9.1
+#Requires: libpcre0
+#BuildRequires: libpcre0, libpcre0-devel
 Requires: pcre
 BuildRequires: pcre, pcre-devel
 %endif
@@ -217,7 +220,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.249 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.250 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -812,6 +815,8 @@ umask 022
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/relocated
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/transport
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/virtual
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/cidr_table
+%attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/tcp_table
 %attr(0755, root, root) %{_sysconfdir}/postfix/postfix-chroot.sh
 
 %dir %attr(-, root, root) %{sample_dir}
@@ -925,6 +930,9 @@ umask 022
 #
 
 %changelog
+
+* Fri Aug 29 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.14-20030812-1
+  - update with help from Rob Hutton <rob.hutton@comcast.net>
 
 * Tue Aug 26 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.9-20030424-1.100
   - update to sync with 2.0.14-1, doing little more than removing chroot
