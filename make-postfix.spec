@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 1.35 2002/01/15 13:57:38 sjmudd Exp $
+# $Id: make-postfix.spec,v 1.36 2002/04/02 14:03:38 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -13,14 +13,23 @@
 # POSTFIX_MYSQL		include support for MySQL's  MySQL packages
 # POSTFIX_LDAP		include support for openldap packages
 # POSTFIX_PCRE		include support for pcre maps
+# POSTFIX_PGSQL		include support for PostGres database
+# POSTFIX_PGSQL2	additional experimental patches provided by
+#			George Barbarosie <georgeb@intelinet.ro>
 # POSTFIX_SASL		include support for SASL
 # POSTFIX_TLS		include support for TLS
+# POSTFIX_VDA		include support for Virtual Delivery Agent
 # POSTFIX_SMTPD_MULTILINE_GREETING
 #			include support for multitline SMTP banner
+# POSTFIX_DB4		add support for db4, ignoring db3 (not tested)
+# POSTFIX_DISABLE_CHROOT	disable creation of chroot environment
 #
-# The following external variable can be used to define the postdrop
-# gid if the standard value I'm assigning is not correct on your system.
+# The following external variables can be used to define the postfix
+# uid/gid and postdrop gid if the standard values I'm assigning are
+# not correct on your system.
 #
+# POSTFIX_UID  (default value 89)
+# POSTFIX_GID  (default value 89)
 # POSTFIX_POSTDROP_GID  (default value 90)
 #
 # Red Hat Linux 7.x (at the moment) specific requirements
@@ -42,10 +51,17 @@
 # ensure that these variables are not set from outside
 SUFFIX=
 REQUIRES_DB3=
+REQUIRES_DB4=
 REQUIRES_INIT_D=
 TLSFIX=
 
-# Determine the distribution
+echo ""
+echo "Creating Postfix spec file: `rpm --eval '%{_specdir}'`/postfix.spec"
+echo "  Checking rpm database for distribution information..."
+echo "  - if the script gets stuck here:"
+echo "    check and remove /var/lib/rpm/__db.00? files"
+
+# Determine the distribution (is there a better way of doing this)
 DISTRIBUTION=`rpm -qa | grep -- -release | egrep '(redhat-|mandrake-)'`
 [ -z "$DISTRIBUTION" ] && DISTRIBUTION='Unknown Distribution'
 
@@ -82,8 +98,8 @@ fi
 major=`echo $release | sed -e 's;\.[0-9]*$;;'`
 minor=`echo $release | sed -e 's;^[0-9]*\.;;'`
 
+echo "  Distribution is: ${releasename} ${major}.${minor}"
 echo ""
-echo "Creating Postfix spec file: `rpm --eval '%{_specdir}'`/postfix.spec"
 
 if [ "$POSTFIX_LDAP" = 1 ]; then
     echo "  adding LDAP  support to spec file"
@@ -92,6 +108,16 @@ fi
 if [ "$POSTFIX_PCRE" = 1 ]; then
     echo "  adding PCRE  support to spec file"
     SUFFIX="${SUFFIX}.pcre"
+fi
+if [ "$POSTFIX_PGSQL2" = 1 ]; then
+    POSTFIX_PGSQL=1
+fi
+if [ "$POSTFIX_PGSQL" = 1 ]; then
+    echo "  adding PostGres support to spec file"
+    SUFFIX="${SUFFIX}.pgsql"
+fi
+if [ "$POSTFIX_PGSQL2" = 1 ]; then
+    echo "  including additional experimental PostGres patches"
 fi
 if [ "$POSTFIX_MYSQL" = 1 ]; then
     POSTFIX_REDHAT_MYSQL=0
@@ -115,6 +141,18 @@ if [ "$POSTFIX_TLS" = 1 ]; then
         TLSFIX=1
     fi
 fi
+if [ "$POSTFIX_VDA" = 1 ]; then
+    # don't bother changing the suffix
+    echo "  adding VDA support to spec file"
+fi
+if [ "$POSTFIX_DB4" = 1 ]; then
+    echo "  adding db4 support to spec file"
+    REQUIRES_DB4=1
+fi
+if [ "$POSTFIX_DISABLE_CHROOT" = 1 ]; then
+    echo "  disabling chroot environment in spec file"
+    SUFFIX="${SUFFIX}.nochroot"
+fi
 
 # Determine the correct db files to use. RedHat 7 requires db3
 case ${releasename} in
@@ -123,7 +161,7 @@ redhat)
     6) SUFFIX=".rh6x${SUFFIX}" ;;
     7)
 	REQUIRES_INIT_D=1
-        REQUIRES_DB3=1
+        test -z "$REQUIRES_DB4" && REQUIRES_DB3=1
 
         case ${minor} in
         0) SUFFIX=".rh70.1${SUFFIX}" ;;
@@ -146,7 +184,7 @@ mandrake)
     # - appears to use db3 in the same way as rh7
     case ${major} in
     7) SUFFIX="${SUFFIX}mdk7x" ;;
-    8) REQUIRES_DB3=1
+    8) test -z "$REQUIRES_DB4" && REQUIRES_DB3=1
        SUFFIX="${SUFFIX}mdk"
        ;;
     *) SUFFIX="${SUFFIX}mdk"
@@ -159,32 +197,37 @@ esac
 # set default values if they are still undefined
 
 [ -z "$REQUIRES_DB3" ]			   && REQUIRES_DB3=0
+[ -z "$REQUIRES_DB4" ]			   && REQUIRES_DB4=0
 [ -z "$REQUIRES_INIT_D" ]		   && REQUIRES_INIT_D=0
 [ -z "$POSTFIX_LDAP" ]			   && POSTFIX_LDAP=0
 [ -z "$POSTFIX_MYSQL" ]			   && POSTFIX_MYSQL=0
 [ -z "$POSTFIX_REDHAT_MYSQL" ]		   && POSTFIX_REDHAT_MYSQL=0
 [ -z "$POSTFIX_PCRE" ]			   && POSTFIX_PCRE=0
+[ -z "$POSTFIX_PGSQL" ]			   && POSTFIX_PGSQL=0
+[ -z "$POSTFIX_PGSQL2" ]		   && POSTFIX_PGSQL2=0
 [ -z "$POSTFIX_SASL" ]			   && POSTFIX_SASL=0
 [ -z "$POSTFIX_TLS" ]			   && POSTFIX_TLS=0
+[ -z "$POSTFIX_VDA" ]			   && POSTFIX_VDA=0
 [ -z "$TLSFIX" ]			   && TLSFIX=0
 [ -z "$POSTFIX_SMTPD_MULTILINE_GREETING" ] && POSTFIX_SMTPD_MULTILINE_GREETING=0
+[ -z "$POSTFIX_UID" ]              	   && POSTFIX_UID=89
+[ -z "$POSTFIX_GID" ]              	   && POSTFIX_GID=89
 [ -z "$POSTFIX_POSTDROP_GID" ]             && POSTFIX_POSTDROP_GID=90
+[ -z "$POSTFIX_DISABLE_CHROOT" ]	   && POSTFIX_DISABLE_CHROOT=0
 
 cat > `rpm --eval '%{_specdir}'`/postfix.spec <<EOF
-##############################################################################
-#
 # W A R N I N G -- DO NOT EDIT THIS FILE -- W A R N I N G
 #
-# It is generated automatically from postfix.spec.in in the SOURCES directory.
+# postfix.spec
 #
-# See make-postfix.spec for instructions on rebuilding on a different
-# distribution or with different options.
-#
-# W A R N I N G -- DO NOT EDIT THIS FILE -- W A R N I N G
-#
+# This file is generated automatically from postfix.spec.in in the SOURCES
+# directory.  If you want to build postfix with other options see
+# make-postfix.spec in the same directory for instructions.
+# --
 EOF
 sed "
 s!__REQUIRES_DB3__!$REQUIRES_DB3!g
+s!__REQUIRES_DB4__!$REQUIRES_DB4!g
 s!__REQUIRES_INIT_D__!$REQUIRES_INIT_D!g
 s!__DISTRIBUTION__!$DISTRIBUTION!g
 s!__SMTPD_MULTILINE_GREETING__!$POSTFIX_SMTPD_MULTILINE_GREETING!g
@@ -193,10 +236,16 @@ s!__LDAP__!$POSTFIX_LDAP!g
 s!__MYSQL__!$POSTFIX_MYSQL!g
 s!__REDHAT_MYSQL__!$POSTFIX_REDHAT_MYSQL!g
 s!__PCRE__!$POSTFIX_PCRE!g
+s!__PGSQL__!$POSTFIX_PGSQL!g
+s!__PGSQL2__!$POSTFIX_PGSQL2!g
 s!__SASL__!$POSTFIX_SASL!g
 s!__TLS__!$POSTFIX_TLS!g
 s!__TLSFIX__!$TLSFIX!g
+s!__VDA__!$POSTFIX_VDA!g
+s!__POSTFIX_UID__!$POSTFIX_UID!g
+s!__POSTFIX_GID__!$POSTFIX_GID!g
 s!__POSTDROP_GID__!$POSTFIX_POSTDROP_GID!g
+s!__DISABLE_CHROOT__!$POSTFIX_DISABLE_CHROOT!g
 " postfix.spec.in >> `rpm --eval '%{_specdir}'`/postfix.spec
 
 # end of make-postfix.spec
