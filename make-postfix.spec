@@ -1,8 +1,8 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.2 2000/12/22 15:47:01 root Exp $
+#  $Id: make-postfix.spec,v 1.3 2000/12/22 15:55:02 root Exp $
 
-POSTFIX_NAME=postfix
+POSTFIX_SUFFIX=
 POSTFIX_CCARGS=
 POSTFIX_AUXLIBS=
 
@@ -10,28 +10,29 @@ POSTFIX_AUXLIBS=
 # include LDAP support by default
 POSTFIX_LDAP=1
 
+echo "Generating Postfix spec file: ../postfix.spec"
 if [ "X$POSTFIX_LDAP" = "X1" ]; then
-    echo "adding LDAP support"
+    echo "adding LDAP support to spec file"
 #   if it's the default don't add it to the name
-#   POSTFIX_NAME="${POSTFIX_NAME}+ldap"
+#   POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+ldap"
     POSTFIX_CCARGS="${POSTFIX_CCARGS} -I/usr/local/include -DHAS_LDAP"
     POSTFIX_AUXLIBS="${POSTFIX_AUXLIBS} -L/usr/lib -lldap -llber"
 fi
 if [ "X$POSTFIX_PCRE" = "X1" ]; then
-    echo "adding PCRE support"
+    echo "adding PCRE support to spec file"
     POSTFIX_CCARGS="${POSTFIX_CCARGS} -DHAS_PCRE"
     POSTFIX_AUXLIBS="${POSTFIX_AUXLIBS} -lpcre"
-    POSTFIX_NAME="${POSTFIX_NAME}+pcre"
+    POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+pcre"
 fi
 if [ "X$POSTFIX_MYSQL" = "X1" ]; then
-    echo "adding MySQL support"
-    POSTFIX_NAME="${POSTFIX_NAME}+mysql"
+    echo "adding MySQL support to spec file"
+    POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+mysql"
 #   POSTFIX_CCARGS=${POSTFIX_CCARGS} ...fix me..."
 #   POSTFIX_AUXLIBS="${POSTFIX_AUXLIBS} ...fix me..."
 fi
 if [ "X$POSTFIX_SASL" = "X1" ]; then
-    echo "adding SASL support"
-    POSTFIX_NAME="${POSTFIX_NAME}+sasl"
+    echo "adding SASL support to spec file"
+    POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+sasl"
     POSTFIX_CCARGS="${POSTFIX_CCARGS} -DUSE_SASL_AUTH"
     POSTFIX_AUXLIBS="${POSTFIX_AUXLIBS} -lsasl"
 fi
@@ -64,7 +65,7 @@ cat > ../SPECS/postfix.spec <<EOF
 #
 EOF
 sed "
-s!XX_POSTFIX_NAME!$POSTFIX_NAME!g
+s!XX_POSTFIX_SUFFIX!$POSTFIX_SUFFIX!g
 s!XX_POSTFIX_CCARGS!$POSTFIX_CCARGS!g
 s!XX_POSTFIX_AUXLIBS!$POSTFIX_AUXLIBS!g
 " postfix.spec.in >> ../SPECS/postfix.spec
