@@ -203,5 +203,4 @@ testtls
 testvda
 build
 echo ""
-rm  ${file}
 sh removelinks
