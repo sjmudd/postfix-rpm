@@ -1,21 +1,21 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.11 2000/12/31 20:50:48 root Exp $
+#  $Id: make-postfix.spec,v 1.12 2001/01/04 21:36:23 root Exp $
 #
 
 POSTFIX_SUFFIX=
 POSTFIX_CCARGS=
 POSTFIX_AUXLIBS=
 POSTFIX_REQUIRES=
-REDHAT_PREREQ=
-REDHAT_RELEASE='Unknown Linux Distribution'
+DISTRIBUTION_PREREQ=
+DISTRIBUTION='Unknown Linux Distribution'
 
 # RedHat 6.2 and later include LDAP support, earlier versions don't
 # For this reason LDAP support is not compiled by default
 
 echo ""
 echo "Generating Postfix spec file: ../SPECS/postfix.spec"
-if [ "X$POSTFIX_LDAP" = "X1" ]; then
+if [ "$POSTFIX_LDAP" = 1 ]; then
     echo "  adding LDAP support to spec file"
     POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+ldap"
     POSTFIX_CCARGS="${POSTFIX_CCARGS} -DHAS_LDAP"
@@ -23,7 +23,7 @@ if [ "X$POSTFIX_LDAP" = "X1" ]; then
     POSTFIX_REQUIRES="openldap >= 1.2.9"
     POSTFIX_BUILDREQUIRES="openldap-devel >= 1.2.9"
 fi
-if [ "X$POSTFIX_PCRE" = "X1" ]; then
+if [ "$POSTFIX_PCRE" = 1 ]; then
     echo "  adding PCRE support to spec file"
     POSTFIX_CCARGS="${POSTFIX_CCARGS} -DHAS_PCRE"
     POSTFIX_AUXLIBS="${POSTFIX_AUXLIBS} -lpcre"
@@ -31,7 +31,7 @@ if [ "X$POSTFIX_PCRE" = "X1" ]; then
     POSTFIX_REQUIRES="${POSTFIX_REQUIRES},pcre"
     POSTFIX_BUILDREQUIRES="${POSTFIX_BUILDREQUIRES},pcre"
 fi
-if [ "X$POSTFIX_MYSQL" = "X1" ]; then
+if [ "$POSTFIX_MYSQL" = 1 ]; then
     echo "  adding MySQL support to spec file"
     POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+mysql"
     POSTFIX_CCARGS="${POSTFIX_CCARGS} -DHAS_MYSQL -I/usr/include/mysql"
@@ -39,7 +39,7 @@ if [ "X$POSTFIX_MYSQL" = "X1" ]; then
     POSTFIX_REQUIRES="${POSTFIX_REQUIRES},MySQL,MySQL-client"
     POSTFIX_BUILDREQUIRES="${POSTFIX_BUILDREQUIRES},MySQL,MySQL-client"
 fi
-if [ "X$POSTFIX_SASL" = "X1" ]; then
+if [ "$POSTFIX_SASL" = 1 ]; then
     echo "  adding SASL support to spec file"
     POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+sasl"
     POSTFIX_CCARGS="${POSTFIX_CCARGS} -DUSE_SASL_AUTH"
@@ -53,18 +53,18 @@ if [ `rpm -q redhat-release` ]; then
     # We are running RedHat Linux
     # check for RedHat 7 and change Requires for new db3 if necessary
     A=`rpm -q redhat-release | grep -q 7; echo $?`
-    if [ "X$A" = "X0" ]; then
+    if [ "$A" = 0 ]; then
         POSTFIX_REQUIRES="${POSTFIX_REQUIRES},db3"
         POSTFIX_BUILDREQUIRES="${POSTFIX_BUILDREQUIRES},db3,db3-devel"
-        REDHAT_PREREQ=', /etc/init.d'
+        DISTRIBUTION_PREREQ=', /etc/init.d'
     fi
-    REDHAT_RELEASE=`rpm -q redhat-release` 
+    DISTRIBUTION=`rpm -q redhat-release` 
 fi
 
-if [ ! -z "$POSTFIX_REQUIRES" ]; then
+if [ -n "$POSTFIX_REQUIRES" ]; then
     POSTFIX_REQUIRES="Requires: ${POSTFIX_REQUIRES}"
 fi
-if [ ! -z "$POSTFIX_BUILDREQUIRES" ]; then
+if [ -n "$POSTFIX_BUILDREQUIRES" ]; then
     POSTFIX_BUILDREQUIRES="BuildRequires: ${POSTFIX_BUILDREQUIRES}"
 fi
 
@@ -95,7 +95,7 @@ cat > ../SPECS/postfix.spec <<EOF
 # POSTFIX_MYSQL=$POSTFIX_MYSQL
 # POSTFIX_SASL=$POSTFIX_SASL
 #
-# Built on $REDHAT_RELEASE
+# Built on $DISTRIBUTION
 #
 EOF
 sed "
@@ -104,8 +104,8 @@ s!__POSTFIX_CCARGS__!$POSTFIX_CCARGS!g
 s!__POSTFIX_AUXLIBS__!$POSTFIX_AUXLIBS!g
 s!__POSTFIX_REQUIRES__!$POSTFIX_REQUIRES!g
 s!__POSTFIX_BUILDREQUIRES__!$POSTFIX_BUILDREQUIRES!g
-s!__REDHAT_RELEASE__!$REDHAT_RELEASE!g
-s!__REDHAT_PREREQ__!$REDHAT_PREREQ!g
+s!__DISTRIBUTION__!$DISTRIBUTION!g
+s!__DISTRIBUTION_PREREQ__!$DISTRIBUTION_PREREQ!g
 " postfix.spec.in >> ../SPECS/postfix.spec
 
 #echo " "

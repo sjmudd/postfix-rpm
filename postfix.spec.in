@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.42 2000/12/31 20:50:48 root Exp $
+# $Id: postfix.spec.in,v 2.43 2001/01/04 21:36:10 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -13,13 +13,13 @@ Summary: Postfix Mail Transport Agent
 Group: System Environment/Daemons
 URL: http://www.postfix.org
 Copyright: IBM Public License
-PreReq: /sbin/chkconfig__REDHAT_PREREQ__
+PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
 Version: 20001217
-Release: 6__POSTFIX_SUFFIX__
+Release: 7__POSTFIX_SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
-Vendor: None -- Built under __REDHAT_RELEASE__
+Vendor: None -- Built under __DISTRIBUTION__
 Distribution: Experimental
 Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{version}.tar.gz
 Source1: postfix-README_rpm.txt
@@ -453,6 +453,9 @@ rm -rf ${RPM_BUILD_ROOT}
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Thu Jan 04 2000 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001217-7, minor touches
+
 * Mon Dec 31 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001217-6, suggestions from Daniel Roesen <droesen@entire-systems.com>
 - remove default LDAP support: RedHat only supports this by default on RH 6.2
