@@ -10,6 +10,7 @@ postfix-build
 postfix-chroot-setup.awk
 postfix-chroot_chk.patch
 postfix-chroot_setup.patch
+postfix-cleanup_map1n.c.patch
 postfix-config.patch
 postfix-errors-to.patch
 postfix-etc-cron.daily-postfix
