@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.25 2003/03/03 13:10:08 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.26 2003/03/03 13:11:29 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -214,7 +214,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.25 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.26 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -975,6 +975,7 @@ fi
     POSTFIX_SASL=2 according to your requirements.
     Thanks to Steve Huston <huston@astro.Princeton.edu> and 
     Ilya Kozhevnikov <ilya@ef.unn.ru> for helping me fix this.
+  - update tls+ipv6 support to 1.13-2.04
 
 * Thu Feb 20 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.4-1
   - Internal stuff, don't allow building on another distribution
