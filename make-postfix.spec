@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.28 2003/11/26 18:46:33 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.29 2003/11/26 18:49:43 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -286,8 +286,8 @@ fi
 
 # --- REQUIRES_ZLIB --- do we require the zlib library?
 REQUIRES_ZLIB=
-[ $POSTFIX_MYSQL = 1 ]        && REQUIRES_ZLIB=1
-[ $POSTFIX_MYSQL_REDHAT = 1 ] && REQUIRES_ZLIB=1
+[ "$POSTFIX_MYSQL" = 1 ]        && REQUIRES_ZLIB=1
+[ "$POSTFIX_MYSQL_REDHAT" = 1 ] && REQUIRES_ZLIB=1
 
 if [ "$POSTFIX_TLS" = 1 ]; then
     echo "  adding TLS support to spec file"
