@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.4 2002/11/25 09:19:24 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.5 2002/11/25 11:40:14 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -261,7 +261,7 @@ mandrake)
 esac
 
 [ -z "${POSTFIX_DB}" ] && POSTFIX_DB=${DEFAULT_DB}
-[ "${POSTFIX_DB}" != "${DEFAULT_DB}" ] && {
+[ "${POSTFIX_DB}" != "${DEFAULT_DB}" -a "${POSTFIX_DB}" != 0 ] && {
     SUFFIX=".db${POSTFIX_DB}${SUFFIX}"
     echo "  adding db${POSTFIX_DB} support to spec file"
 }

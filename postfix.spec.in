@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.200 2002/11/25 09:19:24 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.201 2002/11/25 11:40:14 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -210,7 +210,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.200 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.201 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -967,6 +967,8 @@ fi
   - add missing hold queue
   - remove unneeded RBL patch, now included in the standard sources
   - fix cyrus-sasl-devel which in mandrake is libsasl-devel
+  - make-postfix.spec: if POSTFIX_DB=0 (and is not default) don't add stupid
+    .db0 suffix.
 
 * Fri Nov 22 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-20021115-1
   - first build for a while on a snapshot.
