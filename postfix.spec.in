@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.18 2001/03/30 16:31:56 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.19 2001/03/30 16:32:40 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -137,7 +137,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.18 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.19 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -636,7 +636,7 @@ fi
 #       Tim Powers <timp@redhat.com>
 
 %changelog
-* Wed Mar 14 2001 Simon Mudd <sjmudd@pobox.com>
+* Fri Mar 30 2001 Simon Mudd <sjmudd@pobox.com>
 - add support for TLS, patches provided by Peter Tuschy <peter@tuschy.com>
 - postfix-20010228_pl01release-1, upgrade to postfix-20010228-pl01.tar.gz
 
