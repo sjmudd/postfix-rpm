@@ -17,10 +17,11 @@
 # - YellowDog Linux
 # - Whitebox Linux (reports as RedHat Enterprise Linux for building)
 # - CentOS Linux (reports as RedHat Enterprise Linux for building)
+# - TaoLinux (reports as RedHat Enterprise Linux for building)
 # - Mandrake Linux
 
 [ -n "$DEBUG" ] && set -x
-version=$(echo '$Revision: 1.12.4.2 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
+version=$(echo '$Revision: 1.12.4.3 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
 myname=$(basename $0)
 
 # Provide a usage message
@@ -123,6 +124,13 @@ elif check_release whitebox-release; then
 elif check_release centos-release; then
     # CentOS SHOULD behave like rhel, so we name it the same
     rpmname=centos-release
+    full=$(get_release ${rpmname})
+    name=rhel
+    release=$(rpm -q --queryformat='%{VERSION}' ${rpmname})
+elif check_release tao-release; then
+    # tao-release-1.0-TL16
+    # Tao-Linux SHOULD behave like rhel, so we name it the same
+    rpmname=tao-release
     full=$(get_release ${rpmname})
     name=rhel
     release=$(rpm -q --queryformat='%{VERSION}' ${rpmname})
