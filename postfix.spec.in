@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.61 2001/02/05 22:27:50 root Exp $
+# $Id: postfix.spec.in,v 2.62 2001/02/06 20:56:59 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -50,10 +50,9 @@ PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail, exim, qmail, smail
 Version: 20010204
-Release: 1__SUFFIX__
+Release: 2__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Vendor: Built under __DISTRIBUTION__
-Distribution: Experimental
 Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{version}.tar.gz
 Source1: postfix-README_rpm.txt
 Source2: postfix-README_maildrop_security.txt
@@ -326,7 +325,7 @@ s;postfix reload;#postfix reload # - do not reenable - used by rpm;
 ' examples/chroot-setup/LINUX2 \
     > ${RPM_BUILD_ROOT}%{config_directory}/chroot-setup-LINUX2
 
-chmod u=rx ${RPM_BUILD_ROOT}%{config_directory}/chroot-setup-LINUX2
+chmod 0744 ${RPM_BUILD_ROOT}%{config_directory}/chroot-setup-LINUX2
 
 # This is the /etc/cron.daily directory
 mkdir -p ${RPM_BUILD_ROOT}%{cron_directory}
@@ -380,7 +379,8 @@ ldap_chroot_setup() {
 %preun
 umask 022
 
-postfix_running () {
+# see man master(8) - returns 0 if postfix not running
+postfix_stopped () {
     %{daemon_directory}/master -t 2>/dev/null
 } 
 
@@ -407,12 +407,13 @@ chroot_remove () {
     for i in etc/localtime usr/lib/zoneinfo/localtime \
             etc/host.conf etc/resolv.conf etc/nsswitch.conf \
 	    etc/hosts etc/passwd etc/services \
-	    lib/libnss_* lib/libresolv*; do
+	    lib/libnss_* lib/libresolv* lib/libdb*; do
         test -f $i && rm -f $i
     done
 
     for dir in usr/lib/zoneinfo usr/lib usr lib etc; do
-        test -d $i && rmdir $i
+        test -d $dir && rmdir $dir || \
+	    echo "WARNING: preun - unable to remove directory %{queue_directory}/$dir"
     done
 
     # selectively remove the rest of the queue directory structure
@@ -426,24 +427,27 @@ chroot_remove () {
 		        rmdir $dir/$a/$b
 		    )
 		done
-		rmdir $dir/$a || echo "unable to remove directory %{queue_directory}/$dir/$a"
+		rmdir $dir/$a || echo "WARNING: preun - unable to remove directory %{queue_directory}/$dir/$a"
 	    }
         done
+	rmdir $dir || echo "WARNING: preun - unable to remove directory %{queue_directory}/$dir"
     done
 
     # now remove the other directories
     for dir in corrupt deferred incoming maildrop pid private public saved; do
         test -d $dir && {
             rm -f $dir/*
-            rmdir $dir || echo "unable to remove directory %{queue_directory}/$dir"
+            rmdir $dir || echo "WARNING: preun - unable to remove directory %{queue_directory}/$dir"
         }
     done
 }
 
 if [ "$1" = 0 ]; then
-    # stop postfix silently, but only if it's running
-    if [ postfix_running ]; then
+    # stop postfix silently, but only if it's stopped
+    if [ ! postfix_stopped ]; then
         stop_postfix
+    else
+        true
     fi
 
     /sbin/chkconfig --del postfix                    
@@ -467,7 +471,8 @@ fi
 %postun
 umask 022
 
-postfix_running () {
+# see man master(8) - returns 0 if postfix not running
+postfix_stopped () {
     %{daemon_directory}/master -t 2>/dev/null
 } 
 
@@ -484,8 +489,8 @@ restart_postfix () {
 }
 
 if [ "$1" != 0 ]; then
-    # restart postfix, but only if it was running
-    if [ postfix_running ]; then
+    # restart postfix, but only if it was not stopped
+    if [ ! postfix_stopped ]; then
         restart_postfix
     else
         true
@@ -506,7 +511,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{config_directory}/aliases
 %attr(0644, root, root) %verify(not md5 size mtime) %ghost             %{config_directory}/aliases.db
 
-%attr(0755, root, root) %{init_directory}/postfix
+%attr(0755, root, root) %config %{init_directory}/postfix
 %attr(-, postfix, root) %verify(not md5 size mtime) %{queue_directory}
 %attr(0755, root, root) %{cron_directory}/postfix
 
@@ -539,7 +544,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %doc conf
 %doc html
 
-%{config_directory}/chroot-setup-LINUX2
+%attr(0744, root, root) %config %{config_directory}/chroot-setup-LINUX2
 
 %{daemon_directory}/bounce
 %{daemon_directory}/cleanup
@@ -595,6 +600,11 @@ rm -rf ${RPM_BUILD_ROOT}
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Tue Feb 06 2001 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20010204-2, various changes - suggestions from Ben Cross
+  - uninstall is not quite right.
+  - spec file had a few rpmlint problems
+
 * Mon Feb 05 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20010204-1, upgrade to latest snapshot
 - fix problem when upgrading with postfix stopped
