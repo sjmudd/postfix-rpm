@@ -44,7 +44,8 @@ my $tmpdir   = ($ENV{TMPDIR} || "/tmp");
 my $rpm      = 'rpm';
 my $vcheck   = './vcheck';
 my $sendmail = '/usr/sbin/sendmail';
-my $address  = 'sjmudd@pobox.com';
+my $address  = '';
+my $sender   = 'sjmudd@nl.wl0.org';
 
 #   exception handling support
 $SIG{__DIE__} = sub {
@@ -68,11 +69,12 @@ my $result = GetOptions(
 if ($help) {
     print "Usage: $progname [options] [SPECFILE ...]\n" .
           "Available options:\n" .
-          " -v,--verbose       enable verbose run-time mode\n" .
-          " -h,--help          print out this usage page\n" .
-          " -t,--tmpdir=PATH   filesystem path to temporary directory\n" .
-          " -r,--rpm=FILE      filesystem path to RPM program\n" .
-          " -V,--version       print program version\n" .
+          " -v,--verbose           enable verbose run-time mode\n" .
+          " -h,--help              print out this usage page\n" .
+          " -t,--tmpdir=PATH       filesystem path to temporary directory\n" .
+          " -r,--rpm=FILE          filesystem path to RPM program\n" .
+          " -a,--address=ADDRESS   send to ADDRESS (default stdout)\n" .
+          " -V,--version           print program version\n" .
     exit(0);
 }
 if ($version) {
@@ -119,9 +121,12 @@ foreach my $spec (@ARGV) {
 }
 
 #   sanity check address
-#if ($address !~ m|^[^@]+\@[^@.]+(\.[^@.])+$|) {
-#    die "invalid recipient mail address";
-#}
+#   - it can be empty (then we output to stdout)
+if ($address ne '') {
+    # if ($address !~ m|^[^@]+\@[^@.]+(\.[^@.])+$|) {
+    #     die "invalid recipient mail address $address";
+    # }
+}
 
 #   statistics
 my $s_pkg = 0;
@@ -223,10 +228,12 @@ my $R = '';
 my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time());
 my $rtime = sprintf("%04d-%02d-%02d %02d:%02d", 1900+$year, $mon+1, $mday, $hour, $min);
 my $ttime = sprintf("%d:%02d:%02d (H:M:S)", $t_track/(60*60), ($t_track%(60*60))/60, ($t_track%(60*60))%60);
-$R .= sprintf("From: \"Postfix RPM Version Tracker\" <sjmudd\@pobox.com>\n");
-$R .= sprintf("Subject: [Postfix RPM] Version Tracking Report ($rtime)\n");
-#$R .= sprintf("Reply-to: openpkg-dev\@openpkg.org\n");
-$R .= sprintf("To: $address\n");
+
+if ($address ne '') {
+    $R .= sprintf("From: Postfix RPM Version Tracker <%s>\n", $sender);
+    $R .= sprintf("Subject: [Postfix RPM] Version Tracking Report ($rtime) - $s_new new source(s)\n");
+    $R .= sprintf("To: $address\n");
+}
 $R .= sprintf("\n");
 $R .= sprintf(" Postfix RPM Version Tracking Report\n");
 $R .= sprintf(" ===================================\n");
@@ -291,12 +298,14 @@ $R .= sprintf("\n");
 $R .= sprintf("                              Postfix RPM Version Tracker\n");
 $R .= sprintf("                              sjmudd\@pobox.com\n");
 
-#$io = new IO::File "|$sendmail -i -f \"sjmudd\@pobox.com\" \"$address\""
-#    or die "failed to open channel to MTA \"$sendmail\"";
-#$io->print($R);
-#$io->close();
-
-print $R;
+if ($address ne '') {
+    $io = new IO::File "|$sendmail -i -f $sender \"$address\""
+        or die "failed to open channel to MTA \"$sendmail\"";
+    $io->print($R);
+    $io->close();
+} else {
+    print $R;
+}
 
 #   die gracefully
 exit(0);

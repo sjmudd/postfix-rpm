@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/buildpackage,v 2.24.2.2 2004/07/18 21:59:42 sjmudd Exp $
+# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/buildpackage,v 2.24.2.3 2004/07/19 19:00:28 sjmudd Exp $
 #
 # Shell script used to build my packages
 # - checks if the needed files exist and retrieve them
@@ -133,80 +133,10 @@ $myname (C) 2004 Simon J Mudd <sjmudd@pobox.com>
 
 EOF
 
-##############################################################################
-#
-# Check postfix tar ball has been download
-#
-# convert 
-#	Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_dir}/postfix-%{version1}.tar.gz
-# into one of the following
-#	ftp://ftp.porcupine.org/mirrors/postfix-release/official/postfix-1.1.0.tar.gz
-#	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/postfix-1.1.0-20020115.tar.gz
-
-V_postfix=`grep '^%define V_postfix ' postfix.spec.in | awk '{ print $3 } '`
-V_release_date=`grep '^%define V_release_date' postfix.spec.in | awk '{ print $3 } '`
-rpm_release=`grep '^%define rel ' postfix.spec.in | awk '{ print $3 } '`
-
-if grep -q '%define official 1' postfix.spec.in
-then
-    ftpdir=official
-else
-    V_postfix="${V_postfix}-${V_release_date}"
-    ftpdir=experimental
-fi
-
-source0=`grep "^Source0:" postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{ftp_dir};${ftpdir};" -e "s;%{V_postfix};${V_postfix};"`
-
-file="postfix-${V_postfix}.tar.gz"
-base=`dirname ${source0}`
-
-cat <<EOF
-===> checking Postfix:
-	V_postfix:		${V_postfix}
-	Release Date:		${V_release_date}
-	Postfix tarball name:	${file}
-	URL location:		${base}
-	RPM Release:		${rpm_release}
-EOF
-
-download_if_necessary ${srcdir} ${base} ${file} NO_UPDATE_PKG_SOURCELIST
-
-# Look for the TLS patches
-#	Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/pfixtls-%{V_tls}.tar.gz  
-
-V_tls=`grep '^%define V_tls' postfix.spec.in | awk '{ print $3 } '`
-source0=`grep '^Source9: ftp://ftp.aet.tu-cottbus.de' postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{V_tls};${V_tls};"`
-
-base=`dirname ${source0}`
-file=`echo ${source0} | sed -e 's;.*/;;'`
-
 cat <<EOF
 
-===> checking TLS patches...
-	V_tls:			${V_tls}
-	TLS patch tarball name:	${file}
-	URL location:		${base}
-EOF
-download_if_necessary . ${base} ${file}
-
-# Look for VDA Patch
-# Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{V_vda}_quota.patch.gz
-V_vda=`grep '^%define V_vda' postfix.spec.in | awk '{ print $3 }'`
-patch4=`grep '^Patch4: .*/postfix/VDA/postfix' postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{V_vda};${V_vda};"`
-
-base=`dirname ${patch4}`
-file=`echo ${patch4} | sed -e 's;.*/;;'`
-
-cat <<EOF
-
-===> checking VDA patches...
-	V_vda:			${V_vda}
-	VDA patch tarball name:	${file}
-	URL location:		${base}
-EOF
-download_if_necessary . ${base} ${file}
-
-cat <<EOF
+# download files if necessary
+./vcheck --plain --no-update --download --catch-up --file postfix.spec.vc
 
 ===> checking CVS Status
 EOF

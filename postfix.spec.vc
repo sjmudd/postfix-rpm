@@ -1,26 +1,27 @@
-prog V_postfix = {
-    version   = 2.1.4
-    url       = ftp://ftp.porcupine.org/mirrors/postfix-release/official/
-    regex     = postfix-(\d+\.\d+\.\d+)\.tar\.gz
-}
-prog V_tls = {
-    version   = 0.8.18-2.1.3-0.9.7d
-    url       = ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/
-    regex     = pfixtls-([^-]+-[^-]+-[^-]+)\.tar\.gz
-}
-prog V_vda = {
-    version   = 2.1.0
-    url       = http://web.onda.com.br/nadal/postfix/VDA/
-    regex     = postfix-(\d\.\d\.\d).patch.gz
-}
 prog V_cdb = {
-    version   = 1.1.11-20021104
-    url       = ftp://ftp.corpit.ru/pub/postfix
-    regex     = postfix-dict_cdb-(\d\.\d\.\d\d-\d\d\d\d\d\d\d\d).tar.gz
+  version   = 1.1.11-20021104
+  url       = ftp://ftp.corpit.ru/pub/postfix
+  regex     = postfix-dict_cdb-(\d\.\d\.\d\d-\d\d\d\d\d\d\d\d).tar.gz
 }
 prog V_ipv6 = {
-    version   = 1.25-pf-2.1.3
-    comment   = "site not reachable"
-    url       = ftp://ftp.stack.nl/pub/postfix/tls+ipv6/current/
-    regex     = tls\+ipv6-([^-]+-pf-\d\.\d\.\d)
+  version   = 1.25-pf-2.1.4
+  url       = ftp://ftp.stack.nl/pub/postfix/tls+ipv6/current/
+  regex     = tls\+ipv6-([^-]+-pf-\d\.\d\.\d)
 }
+prog V_postfix = {
+  version   = 2.1.4
+  url       = ftp://ftp.porcupine.org/mirrors/postfix-release/official/
+  regex     = postfix-(\d+\.\d+\.\d+)\.tar\.gz
+  dldir     = /home/sjmudd/RPM/SRC/postfix
+}
+prog V_tls = {
+  version   = 0.8.18-2.1.3-0.9.7d
+  url       = ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/
+  regex     = pfixtls-([^-]+-[^-]+-[^-]+)\.tar\.gz
+}
+prog V_vda = {
+  version   = 2.1.3
+  url       = http://web.onda.com.br/nadal/postfix/VDA/
+  regex     = postfix-(\d\.\d\.\d).patch.gz
+}
+
