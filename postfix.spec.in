@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.221 2002/12/11 16:23:32 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.222 2002/12/12 21:15:44 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -69,7 +69,7 @@
 %define official 0
 %define ver 1.1.12
 %define mail_release_date 20021209
-%define rel 1.1
+%define rel 1.2
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -130,6 +130,7 @@ Source6: postfix-chroot-setup.awk
 Source7: postfix.spec.in
 Source8: make-postfix.spec
 Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{pfixtls}.tar.gz
+Source10: http://www.cyber-magic.org/~taka/misc/postfix-1.1.11+ipv6.patch.gz
 Source11: postfix-build
 Source12: http://www.corpit.ru/ftp/postfix/postfix-dict_cdb.tar.gz
 Source13: http://www.corpit.ru/ftp/postfix/README.CDB
@@ -208,7 +209,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.221 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.222 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -955,6 +956,9 @@ fi
 #
 
 %changelog
+
+* Wed Dec 11 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021209-1.2
+  - add ipv6 patch (not yet used)
 
 * Wed Dec 11 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021209-1.1
   - rename macro: DISABLE_CHROOT -> disable_chroot
