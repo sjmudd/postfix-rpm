@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.6 2001/03/06 22:44:23 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.7 2001/03/07 13:30:02 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -50,7 +50,7 @@ Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail, exim, qmail, smail
 %define vers 20010228
 Version: %{vers}release
-Release: 1__SUFFIX__
+Release: 2__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
 Vendor: Built under __DISTRIBUTION__
 Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/official/release-%{vers}.tar.gz
@@ -75,9 +75,8 @@ Patch99: postfix-smtpd_multiline_greeting.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-release-root
  
-# Determine the different packages required for building and installing postfix
-Requires: awk
-BuildRequires: perl, sed
+# Determine the different packages required for building postfix
+BuildRequires: awk, perl, sed
 
 # Requires for different packages - added automatically (optional)
 __REQUIRES__
@@ -124,7 +123,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.6 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.7 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -596,6 +595,9 @@ fi
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Wed Mar 07 2001 Simon Mudd <sjmudd@pobox.com>
+- postfix-20010228release-2, fix the awk dependency which is wrong
+
 * Mon Mar 05 2001 Simon Mudd <sjmudd@pobox.com>
 - build for postfix 20010228 release
 
