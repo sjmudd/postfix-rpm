@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.47 2003/04/30 20:10:13 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.48 2003/05/09 07:20:57 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -73,7 +73,7 @@
 %define official 1
 %define ver 2.0.9
 %define mail_release_date 20021219
-%define rel 2
+%define rel 3
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -214,7 +214,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.47 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.48 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -450,9 +450,9 @@ test -z "${GROUP}" && usermod -G mail postfix || :
 %install
 umask 022
 
-[ %{buildroot} != "/" ] && {
-    /bin/rm -rf   %{buildroot}
-    /bin/mkdir -p %{buildroot}
+[ -n "${RPM_BUILD_ROOT}" -a "${RPM_BUILD_ROOT}" != "/" ] && {
+    /bin/rm -rf   ${RPM_BUILD_ROOT}
+    /bin/mkdir -p ${RPM_BUILD_ROOT}
 }
 
 %{?!debug:strip -R .comment --strip-unneeded bin/* libexec/*}
@@ -464,9 +464,9 @@ mv man/man1/newaliases.1 man/man1/newaliases.postfix.1
 mv man/man1/sendmail.1   man/man1/sendmail.postfix.1
 mv man/man5/aliases.5    man/man5/aliases.postfix.5
 
-# install postfix into %{buildroot}
+# install postfix into build root
 sh postfix-install -non-interactive \
-       install_root=%{buildroot} \
+       install_root=${RPM_BUILD_ROOT} \
        config_directory=%{_sysconfdir}/postfix \
        daemon_directory=%{_libexecdir}/postfix \
        command_directory=%{_sbindir} \
@@ -482,7 +482,7 @@ sh postfix-install -non-interactive \
 
 # RPM compresses man pages automatically.  Edit postfix-files to reflect this,
 # so post-install won't get confused.
-ed %{buildroot}%{_sysconfdir}/postfix/postfix-files <<EOF || exit 1
+ed ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/postfix-files <<EOF || exit 1
 %s/\(\/man[158]\/.*\.[158]\):/\1%{mps}:/
 w
 q
@@ -490,43 +490,43 @@ EOF
 
 # Change alias_maps and alias_database default directory to use
 # %{_sysconfdir}/postfix
-bin/postconf -c %{buildroot}%{_sysconfdir}/postfix -e \
+bin/postconf -c ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix -e \
 	"alias_maps = hash:%{_sysconfdir}/postfix/aliases" \
 	"alias_database = hash:%{_sysconfdir}/postfix/aliases" \
 || exit 1
 
-# This installs into the /etc/rc.d/init.d directory
-/bin/mkdir -p %{buildroot}%{init_directory}
-install %{_sourcedir}/postfix-etc-init.d-postfix \
-                  %{buildroot}%{init_directory}/postfix
+# This installs into the "init" directory
+/bin/mkdir -p ${RPM_BUILD_ROOT}%{init_directory}
+install -c %{_sourcedir}/postfix-etc-init.d-postfix \
+                  ${RPM_BUILD_ROOT}%{init_directory}/postfix
 
 # Copy the Linux chroot setup script to %{_sysconfdir}/postfix, ready to use,
 # later, removing the 'postfix reload' call from this script
 %if ! %{disable_chroot}
 # These set up the chroot directory structure
-mkdir -p %{buildroot}%{_var}/spool/postfix/etc
-mkdir -p %{buildroot}%{_var}/spool/postfix/lib
-mkdir -p %{buildroot}%{_var}/spool/postfix/usr/lib/zoneinfo
+mkdir -p ${RPM_BUILD_ROOT}%{_var}/spool/postfix/etc
+mkdir -p ${RPM_BUILD_ROOT}%{_var}/spool/postfix/lib
+mkdir -p ${RPM_BUILD_ROOT}%{_var}/spool/postfix/usr/lib/zoneinfo
 %endif
 
-install auxiliary/rmail/rmail %{buildroot}%{rmail_path}
+install -c auxiliary/rmail/rmail ${RPM_BUILD_ROOT}%{rmail_path}
 
 # copy new aliases files and generate a ghost aliases.db file
-cp -f %{_sourcedir}/postfix-aliases %{buildroot}%{_sysconfdir}/postfix/aliases
-chmod 644 %{buildroot}%{_sysconfdir}/postfix/aliases
+cp -f %{_sourcedir}/postfix-aliases ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/aliases
+chmod 644 ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/aliases
 
-touch %{buildroot}/%{_sysconfdir}/postfix/aliases.db
+touch ${RPM_BUILD_ROOT}/%{_sysconfdir}/postfix/aliases.db
 
 for i in active bounce corrupt defer deferred flush incoming private saved; do
-    mkdir -p %{buildroot}%{_var}/spool/postfix/$i
+    mkdir -p ${RPM_BUILD_ROOT}%{_var}/spool/postfix/$i
 done
 for i in hold maildrop public pid; do
-    mkdir -p %{buildroot}%{_var}/spool/postfix/$i
+    mkdir -p ${RPM_BUILD_ROOT}%{_var}/spool/postfix/$i
 done
 
 # install qmqp-source, smtp-sink & smtp-source by hand
 for i in qmqp-source smtp-sink smtp-source; do
-  install -m 755 bin/$i %{buildroot}%{_sbindir}/$i
+  install -c -m 755 bin/$i ${RPM_BUILD_ROOT}%{_sbindir}/$i
 done
 
 # fix path to perl
@@ -875,7 +875,10 @@ if [ "$1" -ge 1 ]; then
 fi
 
 %clean
-/bin/rm -rf %{buildroot}
+umask 022
+[ -n "${RPM_BUILD_ROOT}" && "${RPM_BUILD_ROOT}" != "/" ] && {
+    /bin/rm -rf ${RPM_BUILD_ROOT}
+}
 
 %files
 %defattr(-, root, root)
@@ -1014,6 +1017,11 @@ fi
 #
 
 %changelog
+
+* Fri May 09 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.9-3
+  - change %{buildroot} macro back to ${RPM_BUILD_ROOT} as this is RH's
+    preferred method for defining the buildroot.
+  - for maximum compatibility add back install -c option
 
 * Wed Apr 30 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.9-2
   - TLS patch failed due to typo in change between 2.0.8-1 and 2.0.9-1
