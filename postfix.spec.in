@@ -1,5 +1,5 @@
 ##############################################################################
-# $Id: postfix.spec.in,v 2.9 2000/10/28 09:08:47 root Exp $
+# $Id: postfix.spec.in,v 2.10 2000/11/01 16:21:17 root Exp $
 #
 # Spec file for package postfix designed to be built on RedHat Linux.
 # Please send bugfixes and comments to the packager.
@@ -15,12 +15,12 @@ Copyright: IBM Public License -- see LICENSE for details
 PreReq: /sbin/chkconfig
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail
-Version: 20001005
-Release: 6
+Version: 20001030
+Release: 1
 Packager: Simon J Mudd <sjmudd@pobox.com> but see description below
 Vendor: None -- see packager
 Distribution: Experimental
-Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-20001005.tar.gz
+Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-20001030.tar.gz
 Source1: postfix-README_rpm.txt
 Source2: postfix-README_maildrop_security.txt
 Source3: postfix-init_script.sh
@@ -69,6 +69,7 @@ related to these platforms.
 %define mailq_path /usr/bin/mailq
 %define rmail_path /usr/bin/rmail
 %define uid 89
+# The gid needs to be unique for postfix use: RedHat's mail group isn't!
 %define gid 89
 
 %define init_directory /etc/rc.d/init.d
@@ -331,6 +332,9 @@ rm -rf ${RPM_BUILD_ROOT}
 #	Bennett Todd <bet@mordor.net>
 
 %changelog
+* Wed Nov 01 2000 Simon Mudd <sjmudd@pobox.com>
+- snapshot-20001030-1
+
 * Fri Oct 27 2000 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001005-6, include patch so will build on RedHat 7,
   provided by Jim Drash <jdrash@one.net>
