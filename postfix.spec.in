@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.107 2001/05/12 20:53:09 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.108 2001/05/13 18:01:46 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -52,8 +52,9 @@
 #Used when we have patchlevels, as can't include '-' in the package name
 #define version1 %{vers}-%{patchlevel}
 #define version2 %{vers}_%{patchlevel}
-%define rel  2
+%define rel  3
 %define tlsno pfixtls-0.7.2-snap20010502-0.9.6a
+%define distribution __DISTRIBUTION__
 
 Name: postfix
 Summary: Postfix Mail Transport Agent
@@ -148,7 +149,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.107 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.108 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -191,6 +192,41 @@ umask 022
 
 # stop build if something is wrong
 die(){ %whinge "$*"; exit 1; }
+
+# warn if the distribution this spec file was made for isn't the same as the
+# current distribution
+
+DISTRIBUTION = `rpm -qa | grep release | egrep '(redhat|mandrake)'`
+if [ "${DISTRIBUTION}" != "__DISTRIBUTION__" ]; then
+    cat <<ENDTEXT
+
+			W A R N I N G
+			=============
+
+This package's spec file was built for a different distribution to the
+version which you are using.  If the differences (shown below) are only
+a difference in MINOR version number this should not be a problem.
+
+Current Distribution:	${DISTRIBUTION}
+postfix.spec built for:	__DISTRIBUTION__
+
+If not it is advisable to rebuild the postfix.spec file as indicated below:
+
+To rebuild the spec file (and thus avoid this warning) follow the following
+steps:
+
+	cd ../SOURCES
+	sh make-postfix.spec	# to rebuild the spec file
+	cd ../SPECS
+	rpm -ba postfix.spec	# to build postfix
+
+If this procedure doesn't allow you to produce a working package, please
+adivse me so I can take appropriate steps.
+
+ENDTEXT
+	sleep 5
+fi
+
 
 # warn before we start if we aren't root
 if [ `id -u` != "0" ]; then
@@ -660,6 +696,8 @@ fi
   - configuration changes, used with make-postfix.spec
   - remove changelog entries before 01-01-2001
   - modifications to improve support with MySQL-3.23.36-1 
+  - add warning if rebuilding and haven't updated spec file from .spec.in
+    in ./SOURCES
 
 * Mon May 07 2001 Simon J Mudd <sjmudd@pobox.com>
 - snapshot-20010502-2, add smptd_check.c.patch from Wietse
