@@ -1,39 +1,31 @@
-##############################################################################
-#
-# $Id: postfix.spec.in,v 2.194.2.11 2002/02/03 10:05:20 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.12 2002/02/20 09:46:16 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
-#
 # Please send bugfixes and comments to the packager.
-#
-##############################################################################
 #
 # This spec file was built on distribution: __DISTRIBUTION__
 #
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
 # and regenerate the spec file.
 #
-# See the following files for more information:
+# See make-postfix.spec and postfix-build in %{_sourcedir} for more information.
 #
-#	%{_sourcedir}/make-postfix.spec
-#	%{_sourcedir}/postfix-build
-#
-##############################################################################
-#
-# defines according to our taste - values should be 0 (NO) or 1 (YES)
-#
-# LDAP         - include LDAP support
-# PCRE         - include pcre support
-# SASL         - include SASL/AUTH support
-# Choose at most ONE of the following:
-# MYSQL	       - include MySQL support using MySQL's (www.mysql.com) 'MySQL*.rpm'
-#                packages
-# REDHATMYSQL  - include MySQL support use RedHat's 'mysql*.rpm' packages
-# TLS          - include TLS support
-# TLSFIX       - include TLS fix (apparently needed for rh6.2)
-# POSTDROP_GID - enables the postdrop group, required by postfix to be modified from
-#                its standard value (of 90).
 
+# Information imported from postfix.spec.in
+#
+# LDAP                     - include LDAP support
+# MYSQL	                   - include www.mysql.com's MySQL rpms
+# REDHATMYSQL              - include RedHat's MySQL rpms
+# PCRE                     - include pcre support
+# SASL                     - include SASL/AUTH support
+# TLS                      - include TLS support
+# TLSFIX                   - include TLS fix (apparently needed for rh6.2)
+# REQUIRES_INIT_D          - Required by RedHat 7.x
+# REQUIRES_DB3             - used on RH 7.x and Mandrake 8.1
+# REQUIRES_DB4             - adding support for db4 (can be used on 7.2?)
+# SMTPD_MULTILINE_GREETING - my patch to allow multiline banner
+# POSTDROP_GID             - gid of postdrop group
+#
 %define distribution __DISTRIBUTION__
 %define LDAP __LDAP__
 %define MYSQL __MYSQL__
@@ -43,34 +35,32 @@
 %define TLS __TLS__
 %define TLSFIX __TLSFIX__
 %define REQUIRES_DB3 __REQUIRES_DB3__
+%define REQUIRES_DB4 0
 %define REQUIRES_INIT_D __REQUIRES_INIT_D__
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
 %define POSTDROP_GID __POSTDROP_GID__
 
+# Version information
+%define pflogno -1.0.3
+%define tlsno pfixtls-0.8.1-1.1.1-0.9.6c
+
 # If set to 1 if official version, 0 if snapshot
 %define official 1 
-%define major 1
-%define minor 1
-%define patchlevel 3
+%define ver 1.1.3
 %define releasedate 20020115
 %if %{official}
-%define version1 %{major}.%{minor}.%{patchlevel}
+%define version1 %{ver}
 %define ftp_directory official
 %else
-%define version1 %{major}.%{minor}.%{patchlevel}-%{releasedate}
+%define version1 %{ver}-%{releasedate}
 %define ftp_directory experimental
 %endif
-%define rel 1
+%define rel 2
 
-%define tlsno pfixtls-0.8.1-1.1.1-0.9.6c
-%define pflogno -1.0.3
-
-# Postfix requires one exlusive uid/gid and a 2nd exclusive gid for its own
-# use.  Let me know if the second gid collides with another package.
-# Be careful: Redhat's 'mail' user & group isn't unique!
+# Postfix requires one exlusive uid/gid,
+# and a 2nd exclusive gid for its own use.
 %define postfix_uid    89
 %define postfix_gid    89
-%define maildrop_group postdrop
 %define maildrop_gid   %{POSTDROP_GID}
 
 %define config_directory /etc/postfix
@@ -88,20 +78,20 @@
 
 %define whinge /usr/bin/logger -p mail.info -t postfix/rpm
 %define postfix_running %{daemon_directory}/master -t >/dev/null 2>&1; echo $?
+%define die_cmd die(){ %whinge "$*"; exit 1; }
+
+# Taken from bero@redhat.com's spec file, copy files by linking if on same partition or copy otherwise
+%define copy_cmd copy() { file="`ls --sort=time $1 |head -n 1`"; ln -f "$file" "$2" 2>/dev/null || cp -df "$file" "$2"; } 
 
 Name: postfix
 Group: System Environment/Daemons
 URL: http://www.postfix.org
-Copyright: IBM Public License
+License: IBM Public License
 PreReq: /sbin/chkconfig
-# Required by RedHat 7.x
 %if %{REQUIRES_INIT_D}
 PreReq: /etc/init.d, /sbin/service
 %endif
-# Tells rpm that this package is newer than the one with lower or no Serial at all.
-# Previous versions of postfix packages had versions according to date yyyymmdd, so
-# without this rpm thinks they are newer than this version.
-Serial: 2
+Epoch: 2
 Provides: MTA smtpd smtpdaemon
 Obsoletes: sendmail, exim, qmail, smail
 Version: %{version1}
@@ -120,29 +110,32 @@ Source8: make-postfix.spec
 Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{tlsno}.tar.gz
 Source10: http://jimsun.linxnet.com/downloads/pflogsumm%{pflogno}.pl
 Source11: postfix-build
+
+# Obligatory Patches
 Patch1: postfix-config.patch
 Patch2: postfix-smtp_sasl_proto.c.patch
 
-# Optional patches - set the appropriate environment variables to include
-#                    them when building the package/spec file
-
-# applied if %SMTPD_MULTILINE_GREETING=1
+# Optional patches
 Patch99: postfix-smtpd_multiline_greeting.patch
 
-BuildRoot: %{_tmppath}/%{name}-%{version1}-buildroot
+BuildRoot: %{_tmppath}/%{name}-buildroot
 
-# Determine the different packages required for building postfix
+# Determine packaging requirements
 BuildRequires: gawk, perl, sed, ed
 
-# Used on Red Hat 7.x, Mandrake 8.1 (?)
 %if %{REQUIRES_DB3}
 Requires: db3
-BuildRequires: db3, db3-devel
+BuildRequires: db3-devel
+%endif
+
+%if %{REQUIRES_DB4}
+Requires: db4
+BuildRequires: db4-devel
 %endif
 
 %if %{LDAP}
 Requires: openldap >= 1.2.9
-BuildRequires: openldap >= 1.2.9, openldap-devel >= 1.2.9
+BuildRequires: openldap-devel >= 1.2.9
 %endif
 
 %if %{PCRE}
@@ -154,6 +147,7 @@ BuildRequires: pcre, pcre-devel
 Requires: mysql, mysqlclient9
 BuildRequires: mysql, mysqlclient9, mysql-devel
 %endif
+
 %if %{MYSQL}
 Requires: MySQL-shared, zlib
 BuildRequires: MySQL-shared, MySQL-devel, zlib-devel
@@ -173,33 +167,31 @@ BuildRequires: openssl-devel
 Postfix is a Mail Transport Agent (MTA), intended to be an alternative
 to the widely-used sendmail.  This is a reasonably sophisticated package
 which includes optional support for LDAP, pcre, mysql, SMTP AUTH (SASL) and
-TLS; it sets up chroot for added security; and it starts and stops the
-daemon on install/remove.
+TLS; it sets up chroot for added security.
 
 See http://www.redhat.com/support/docs/faqs/RH-postfix-FAQ/book1.html,
-a slightly outdated FAQ, which covers steps which should be taken prior
-to and after the installation of Postfix.
+a slightly outdated FAQ, which covers the steps involved in installing
+and configuring postfix.
 
 The binary and source rpms I produce are currently stored on
-	http://www.pobox.com/~sjmudd/postfix
+	http://pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.11 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.12 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
 LDAP=%{LDAP}, SASL=%{SASL}, PCRE=%{PCRE}, TLS=%{TLS}, TLSFIX=%{TLSFIX}, MYSQL=%{MYSQL}, REDHATMYSQL=%{REDHATMYSQL}
-REQUIRES_DB3=%{REQUIRES_DB3}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}, POSTDROP_GID=%{POSTDROP_GID}
+REQUIRES_DB3=%{REQUIRES_DB3}, REQUIRES_DB4=%{REQUIRES_DB4}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}, POSTDROP_GID=%{POSTDROP_GID}
 
-If you need to use postfix with alternative options you will need to
-download the source package and rebuild the required binary package.
-Information on how to do this is included with the source package.
+To use postfix with alternative options download the source package and
+rebuild the binary package following the instructions in the source
+package or on my web page.
 
 
 %prep
 umask 022
 
-# stop build if something is wrong
-die(){ %whinge "$*"; exit 1; }
+%{die_cmd}
 
 # Warn if the distribution this spec file was made for isn't the same as
 # the current distribution
@@ -241,12 +233,10 @@ If this procedure doesn't allow you to produce a working package, please
 adivse me so I can take appropriate steps.
 
 ENDTEXT
-	sleep 5
-else
-	echo "postfix.spec seems ok"
+	sleep 10
 fi
 
-%setup -q -n %{name}-%{version1} -a 9
+%setup -q -n %{name} -a 9
 
 # Apply the TLS patch, must be at first, because the changes of master.cf
 %if %{TLS}
@@ -259,7 +249,6 @@ patch -p1 <%{tlsno}/pfixtls.diff
 
 # Apply optional patches
 
-# Apply my SMTPD Multiline greeting patch
 %if %{SMTPD_MULTILINE_GREETING}
 %patch99 -p1 -b .multiline
 %endif
@@ -277,8 +266,6 @@ done
 mv conf/master.cf conf/master.cf-nochroot
 awk -f %{_sourcedir}/postfix-chroot-setup.awk < conf/master.cf-nochroot > conf/master.cf
 
-# Copy README files allowing us to just go %doc below, and have rpm(1)
-# automatically tuck it in alongside the READMEs and COPYRIGHTs.
 cp %{_sourcedir}/postfix-new-RPM-packages postfix-new-RPM-packages
 
 %build
@@ -287,10 +274,7 @@ umask 022
 CCARGS=
 AUXLIBS=
 
-# Obtained this from SuSE's postfix.spec file
-# - can someone using these architectures please confirm that this works and
-#   is necessary?
-%ifarch s390 ppc
+%ifarch s390 s390x ppc
 CCARGS="${CCARGS} -fsigned-char"
 %endif
 
@@ -339,8 +323,7 @@ make DEBUG="" OPT="$RPM_OPT_FLAGS"
 %pre
 umask 022
 
-# stop install if something is wrong
-die(){ %whinge "$*"; exit 1; }
+%{die_cmd}
 
 # return 0 if hostname is a FQDN
 check_hostname() {
@@ -389,17 +372,17 @@ END
 check_myhostname || check_hostname || stop_install
 
 # create postfix user and group, and maildrop group on INSTALL machine if necessary
+# Use perl here rather than looking in /etc/passwd or /etc/group as this works
+# in a wider NIS environment
 
-# Add the maildrop group if not found
-perl -e '$gid=getgrnam("%{maildrop_group}"); exit 1 unless defined( $gid )' || {
+perl -e '$gid=getgrnam("postdrop"); exit 1 unless defined( $gid )' || {
     perl -e '$nam=getgrgid(%{maildrop_gid}); exit 1 unless defined( $nam )' && die \
             'gid collision, aborting install' \
-	    'either add "%{maildrop_group}" group or delete the group using GID %{maildrop_gid}'
-    %whinge "Adding %{maildrop_group} to /etc/group."
-    %{_sbindir}/groupadd -g %{maildrop_gid} -r %{maildrop_group}
+	    'either add "postdrop" group or delete the group using GID %{maildrop_gid}'
+    %whinge "Adding postdrop to /etc/group."
+    %{_sbindir}/groupadd -g %{maildrop_gid} -r postdrop
 }
 
-# Add the postfix group if not found
 perl -e '$gid=getgrnam("postfix"); exit 1 unless defined( $gid )' || {
     perl -e '$nam=getgrgid(%{postfix_gid}); exit 1 unless defined( $nam )' && die \
             'gid collision, aborting install' \
@@ -408,7 +391,6 @@ perl -e '$gid=getgrnam("postfix"); exit 1 unless defined( $gid )' || {
     %{_sbindir}/groupadd -g %{postfix_gid} -r postfix
 }
 
-# Add the postfix user if not found
 perl -e '$uid=getpwnam("postfix"); exit 1 unless defined( $uid )' || {
     perl -e '$nam=getpwuid(%{postfix_uid}); exit 1 unless defined( $nam )' && die \
           'uid collision, aborting install' \
@@ -416,13 +398,6 @@ perl -e '$uid=getpwnam("postfix"); exit 1 unless defined( $uid )' || {
     %whinge "Adding postfix to /etc/passwd."
     %{_sbindir}/useradd -d %{queue_directory} -s /bin/true -g postfix -M -r -u %{postfix_uid} postfix
 }
-
-# Due to a few of my previous packages adding a symbolic link (and not
-# removing it), ensure that any links to samples and README_FILES are removed
-# before installing # the package
-for i in samples README_FILES; do
-  test -L %{config_directory}/$i && rm %{config_directory}/$i || true
-done
 
 %install
 umask 022
@@ -445,7 +420,7 @@ sh postfix-install -non-interactive \
        newaliases_path=%{newaliases_path} \
        mailq_path=%{mailq_path} \
        mail_owner=postfix \
-       setgid_group=%{maildrop_group} \
+       setgid_group=postdrop \
        manpage_directory=%{_mandir} \
        sample_directory=%{config_directory}/samples \
        readme_directory=%{config_directory}/README_FILES || exit 1
@@ -470,15 +445,12 @@ bin/postconf -c %{buildroot}%{config_directory} -e \
 install -c %{_sourcedir}/postfix-etc-init.d-postfix \
                   %{buildroot}%{init_directory}/postfix
 
-# Copy the Linux chroot setup script to %{config_directory} so
-# we can use it to build the chroot environment during the install
-#
-# NOTE: we remove the 'postfix reload' call from this script
+# Copy the Linux chroot setup script to %{config_directory}, ready to use,
+# later, removing the 'postfix reload' call from this script
 sed '
 s;postfix reload;#postfix reload # - do not reenable - used by rpm;
 ' examples/chroot-setup/LINUX2 \
     > %{buildroot}%{config_directory}/chroot-setup-LINUX2
-
 chmod 0744 %{buildroot}%{config_directory}/chroot-setup-LINUX2
 
 # These set up the chroot directory structure
@@ -503,35 +475,28 @@ chmod 644 %{buildroot}%{config_directory}/aliases
 
 touch %{buildroot}/%{config_directory}/aliases.db
 
-# For me: Do I need to do this now?
-# -start-
 for i in active bounce corrupt defer deferred flush incoming private saved; do
     mkdir -p %{buildroot}%{queue_directory}/$i
 done
 for i in maildrop public pid; do
     mkdir -p %{buildroot}%{queue_directory}/$i
 done
-# -stop-
 
 # install smtp-sink/smtp-source by hand
 for i in smtp-sink smtp-source; do
   install -c -m 755 bin/$i %{buildroot}%{command_directory}/
 done
 
-##############################################################################
-# The post script executes after the package has been installed.  Here
-# we put things that invoke files we just installed, and populate the
-# directories we've created with local-dependent files.
+# Executed after the package has been installed.
+# - activate postfix, setup chroot environment
 %post
 umask 022
 
+%{copy_cmd}
+
 ldap_chroot_setup() {
-    for i in usr/lib/libldap.so.1 usr/lib/liblber.so.1 \
-             usr/lib/libldap.so.2 usr/lib/liblber.so.2; do
-        if [ -e /$i ]; then
-            cmp -s /$i %{queue_directory}/$i 2>/dev/null || \
-                install -c /$i %{queue_directory}/$i
-        fi
+    for i in /usr/lib/libldap*.so.? /usr/lib/liblber.so.?; do
+        [ -e /$i ] && copy $i %{queue_directory}
     done
 }
 
@@ -543,7 +508,7 @@ sh %{config_directory}/post-install \
 	daemon_directory=%{daemon_directory} \
 	command_directory=%{command_directory} \
 	mail_owner=postfix \
-	setgid_group=%{maildrop_group} \
+	setgid_group=postdrop \
 	manpage_directory=%{_mandir} \
 	sample_directory=%{config_directory}/samples \
 	readme_directory=%{config_directory}/README_FILES \
@@ -556,8 +521,6 @@ sh %{config_directory}/post-install \
 %{config_directory}/chroot-setup-LINUX2 || true
 
 %if %{LDAP}
-# setup chroot structure - when using LDAP
-# Note: not entirely sure this is ok: missing .so and .so.1.0.0
     ldap_chroot_setup
 %endif
 
@@ -574,11 +537,8 @@ stop_postfix () {
 }
 
 ldap_chroot_remove () {
-    for i in usr/lib/libldap.so.1 usr/lib/liblber.so.1 \
-             usr/lib/libldap.so.2 usr/lib/liblber.so.2; do
-        test -f %{queue_directory}/$i && \
-            /bin/rm -f %{queue_directory}/$i
-    done
+    /bin/rm -f %{queue_directory}/usr/lib/libldap*.so.? || true
+    /bin/rm -f %{queue_directory}/usr/lib/liblber.so.?  || true
 }
 
 # remove chroot jail when uninstalling the package
@@ -626,22 +586,12 @@ queue_directory_remove () {
 }
 
 if [ "$1" = 0 ]; then
-    # stop postfix silently, but only if it's running
-    if [ `%{postfix_running}` -eq 1 ]; then
-        stop_postfix
-    else
-        true
-    fi
-
+    /sbin/service postfix stop &>/dev/null
     /sbin/chkconfig --del postfix
 
     # userdel also deletes the user's group
-    userdel postfix || %whinge "WARNING: failed to remove user postfix"
-
-    # safety check
-    test "%{queue_directory}" = "" && \
-        %whinge "WARNING: chroot removal in postfix.spec may be buggy (preun) - please inform packager" && \
-        exit 0
+    userdel postfix   || %whinge "WARNING: failed to remove user postfix"
+    groupdel postdrop || %whinge "WARNING: failed to remove group postdrop"
 
     cd %{queue_directory} && {
 %if %{LDAP}
@@ -653,31 +603,9 @@ if [ "$1" = 0 ]; then
     true # to ensure we exit safely
 fi
 
-# Remove unneeded symbolic links
-for i in samples README_FILES; do
-  test -L %{config_directory}/$i && rm %{config_directory}/$i || true
-done
-
 # ---
 # Request by Wietse: if there is a /usr/lib/sendmail file (ie not symbolic link), not owned by
 # a package then replace it with a symbolic link to /usr/sbin/sendmail.
-# ---
-# Date: Sun, 20 Jan 2002 16:47:34 -0500 (EST)
-# From: Wietse Venema <wietse@porcupine.org>
-# To: Simon J Mudd <sjmudd@pobox.com>
-# Cc: Wietse Venema <wietse@porcupine.org>
-# Subject: Re: Gotcha when installing Postfix from RPM
-#  
-# Simon J Mudd:
-# > I've just checked that RedHat's sendmail still includes the symlink,
-# > but this symlink is to /usr/sbin/sendmail.  So there should never be
-# > conflicts.
-#  
-# However, old Postfix versions (from me, not RPMS) installed as
-# /usr/lib/sendmail, not knowing that it was supposed to be a symlink.
-# Those folks will be surprised when they install the RPM. In that
-# case, replacing the /usr/lib/sendmail *file* by a symlink avoids
-# surprises, if nothing else "owns" it.
 # ---
 
 SENDMAIL=/usr/lib/sendmail
@@ -687,26 +615,8 @@ test -f ${SENDMAIL} && {
 
 %postun
 umask 022
-
-restart_postfix () {
-    echo "Stopping   the Postfix mail system"
-    if [ -f %{queue_directory}/pid/master.pid ]; then
-        kill `sed 1q %{queue_directory}/pid/master.pid` >/dev/null 2>&1 || true
-    else
-        echo "BUG: postfix.spec (postun) - please inform packager"
-    fi
-    sleep 2 # to give things time to stop
-    %{daemon_directory}/master &
-    echo "Restarting the Postfix mail system"
-}
-
 if [ "$1" != 0 ]; then
-    # restart postfix, but only if it was running
-    if [ `%{postfix_running}` -eq 1 ]; then
-        restart_postfix
-    else
-        true
-    fi
+    /sbin/service postfix condrestart 
 fi
 
 %clean
@@ -756,8 +666,8 @@ fi
 %dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_directory}/private
 %dir %attr(0700, postfix, root)     %verify(not md5 size mtime) %{queue_directory}/saved
 
-%dir %attr(0730, postfix, %{maildrop_group}) %verify(not md5 size mtime) %{queue_directory}/maildrop
-%dir %attr(0710, postfix, %{maildrop_group}) %verify(not md5 size mtime) %{queue_directory}/public
+%dir %attr(0730, postfix, postdrop) %verify(not md5 size mtime) %{queue_directory}/maildrop
+%dir %attr(0710, postfix, postdrop) %verify(not md5 size mtime) %{queue_directory}/public
 
 %dir %attr(0755, root, root)        %verify(not md5 size mtime) %{queue_directory}/pid
 
@@ -812,8 +722,8 @@ fi
 %{command_directory}/postalias
 %{command_directory}/postcat
 %{command_directory}/postconf
-%attr(2755,root,%{maildrop_group}) %{command_directory}/postdrop
-%attr(2755,root,%{maildrop_group}) %{command_directory}/postqueue
+%attr(2755,root,postdrop) %{command_directory}/postdrop
+%attr(2755,root,postdrop) %{command_directory}/postqueue
 %{command_directory}/postfix
 %{command_directory}/postkick
 %{command_directory}/postlock
@@ -841,6 +751,10 @@ fi
 #
 
 %changelog
+
+* Wed Feb 20 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.3-2
+  - after looking at Bero's version of my rpm make some mainly cosmetic
+    changes
 
 * Sun Feb 03 2002 Simon J Mudd <sjmudd@pobox.com>
 - postfix-1.1.3-1
