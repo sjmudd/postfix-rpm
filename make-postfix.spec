@@ -1,12 +1,11 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.24 2001/05/12 20:53:09 sjmudd Exp $
+#  $Id: make-postfix.spec,v 1.25 2001/05/13 18:01:46 sjmudd Exp $
 #
 
 SUFFIX=
 REQUIRES=
 BUILDREQUIRES=
-DISTRIBUTION_PREREQ=
 DISTRIBUTION='Unknown Linux Distribution'
 REQUIRES_DB3=
 
@@ -68,7 +67,7 @@ if [ `rpm -q redhat-release` ]; then
 	REQUIRES_INIT_D=1
         REQUIRES_DB3=1
     fi
-    DISTRIBUTION=`rpm -q redhat-release` 
+    DISTRIBUTION=`rpm -qa | grep release | egrep '(redhat|mandrake)'` 
     # check for RedHat 6 and change SUFFIX to avoid package name conflicts
     A=`rpm -q redhat-release | grep -q 6; echo $?`
     if [ "$A" = 0 ]; then

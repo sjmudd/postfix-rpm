@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.108 2001/05/13 18:01:46 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.110 2001/05/13 18:04:06 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -149,7 +149,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.108 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.110 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -196,7 +196,7 @@ die(){ %whinge "$*"; exit 1; }
 # warn if the distribution this spec file was made for isn't the same as the
 # current distribution
 
-DISTRIBUTION = `rpm -qa | grep release | egrep '(redhat|mandrake)'`
+DISTRIBUTION=`rpm -qa | grep release | egrep '(redhat|mandrake)'`
 if [ "${DISTRIBUTION}" != "__DISTRIBUTION__" ]; then
     cat <<ENDTEXT
 
@@ -225,6 +225,8 @@ adivse me so I can take appropriate steps.
 
 ENDTEXT
 	sleep 5
+else
+	echo "postfix.spec seems ok"
 fi
 
 
