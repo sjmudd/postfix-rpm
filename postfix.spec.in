@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.21 2003/02/17 11:02:32 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.22 2003/02/17 13:03:21 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -70,7 +70,7 @@
 %define official 1
 %define ver 2.0.3
 %define mail_release_date 20021219
-%define rel 3.1
+%define rel 3.2
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -214,7 +214,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.21 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.22 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -322,7 +322,9 @@ w
 q
 EOF
 
-cp %{_sourcedir}/postfix-RPM-new-packages postfix-RPM-new-packages
+for i in postfix-RPM-new-packages postfix-RPM-TODO; do
+    cp %{_sourcedir}/$i $i
+done
 
 %build
 umask 022
@@ -885,7 +887,8 @@ fi
 %doc PGSQL_README
 %endif
 
-%doc postfix-new-RPM-packages
+%doc postfix-RPM-new-packages
+%doc postfix-RPM-TODO
 
 %if %{tls}
 %doc ACKNOWLEDGEMENTS.TLS
@@ -960,10 +963,11 @@ fi
 
 %changelog
 
-* Mon Feb 17 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.3-3.1
+* Mon Feb 17 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.3-3.2
   - Internal stuff, don't allow building on another distribution
     other than the one the spec file has been built for.  You must
     now rerun sh make-postfix.spec first.
+  - fix postfix-RPM-new-packages and postfix-RPM-TODO not in %files
 
 * Thu Feb 13 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.3-3
   - correct URL shown in spec file.
