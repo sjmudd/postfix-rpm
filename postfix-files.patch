@@ -3,8 +3,8 @@ Ensure that postfix-files is *NOT* marked as a configuration file as this is
 used to install the files in their correct locations.  Marking it as such will
 mean that RPM may not overwrite the current file with the *needed* new file
 location list.
---- postfix-2.0.0-20021223/postfix-files.orig	2002-12-22 07:23:42.000000000 +0900
-+++ postfix-2.0.0-20021223/postfix-files	2002-12-31 18:51:28.000000000 +0900
+--- postfix-2.0.0-20021223/conf/postfix-files.orig	2002-12-22 07:23:42.000000000 +0900
++++ postfix-2.0.0-20021223/conf/postfix-files	2002-12-31 18:51:28.000000000 +0900
 @@ -102,8 +102,8 @@
  $config_directory/virtual:f:root:-:644:p
  $config_directory/postfix-script:f:root:-:755
