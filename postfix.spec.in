@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.38 2002/07/03 09:23:30 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.39 2002/07/04 21:17:52 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -62,7 +62,7 @@
 %define official 1 
 %define ver 1.1.11
 %define mail_release_date 20020115
-%define rel 2pre4
+%define rel 2pre6
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -95,7 +95,7 @@
 # Link source file to destination directory if possible. If the link is a
 # symbolic link, make a copy in the destination directory, otherwise copy
 # the file.  For the moment log to /var/log/maillog what we are doing.
-%define copy_cmd copy() { %{whinge} "copying $1 to $2"; file=`basename $1`; ln -f $1 $2/$file 2>/dev/null || { test -L $1 2>/dev/null && { dest=`ls -l $1| awk '{print $11}'`; ln -sf $dest $2/$file; } || cp -dpf $1 $2/$file; }; }
+%define copy_cmd copy() { %{whinge} "copy $1 to $2"; file=`basename $1`; ln -f $1 $2/$file 2>/dev/null || { test -L $1 2>/dev/null && { dest=`ls -l $1| awk '{print $11}'`; ln -sf $dest $2/$file; } || cp -dpf $1 $2/$file; }; }
 
 Name: postfix
 Group: System Environment/Daemons
@@ -204,7 +204,7 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.38 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.39 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, VDA=%{VDA}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -379,7 +379,7 @@ umask 022
 %{die_cmd}
 
 # create postfix user and group, and maildrop group if necessary.
-# Use perl here rather than looking in /etc/passwd or /etc/group as this works
+# Use perl rather than looking in /etc/passwd or /etc/group as this works
 # in a wider NIS or LDAP environment
 
 perl -e '$gid=getgrnam("postdrop"); exit 1 if ! defined( $gid )' || {
@@ -430,9 +430,8 @@ sh postfix-install -non-interactive \
        sample_directory=%{sample_dir} \
        readme_directory=%{readme_dir} || exit 1
 
-# RPM compresses man pages automatically.
-# - Edit postfix-files to reflect this, so post-install won't get confused
-#   when called during package installation.
+# RPM compresses man pages automatically.  Edit postfix-files to reflect this,
+# so post-install won't get confused.
 ed %{buildroot}%{config_dir}/postfix-files <<EOF || exit 1
 %s/\(\/man[158]\/.*\.[158]\):/\1.gz:/
 w
@@ -488,8 +487,6 @@ for i in qmqp-source smtp-sink smtp-source; do
   install -m 755 bin/$i %{buildroot}%{_sbindir}/$i
 done
 
-# Executed after the package has been installed.
-# - activate postfix, setup chroot environment if necessary
 %post
 umask 022
 
@@ -507,8 +504,6 @@ sh %{config_dir}/post-install upgrade-package \
 	readme_directory=%{readme_dir} \
 || :
 
-
-# build the aliases.db file on the INSTALL machine
 %{_sbindir}/postalias %{config_dir}/aliases
 %{_sbindir}/postfix check || :
 
@@ -529,7 +524,38 @@ smtps		465/tcp			# SMTP over SSL (TLS)
 EOF
 fi
 
-# Start of trigger scripts ------------------------------------------------
+# Apply the alternatives scripts ONLY if installing (not upgrading) to
+# ensure a link exists from # %{_sbindir}/sendmail to
+# %{_sbindir}/sendmail.postfix (and other files).
+#
+# If performing an upgrade this MUST be done in the trigger scripts.
+# (old postfix packages, pre-alternatives have a /usr/sbin/sendmail and this
+# gets removed _AFTER_ the %post stage when the old package is removed)
+
+[ "$1" = 1 ] || exit 0
+
+if [ -x %{_sbindir}/alternatives ]; then
+    %whinge "Fresh Postfix Install: using RH alternatives"
+    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{_sbindir}/sendmail.postfix 30 \
+        --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
+        --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
+        --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
+        --slave %{_mandir}/man1/mailq.1.gz mta-mailqman %{_mandir}/man1/mailq.postfix.1.gz \
+        --slave %{_mandir}/man1/newaliases.1.gz mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1.gz \
+        --slave %{_mandir}/man5/aliases.5.gz mta-aliasesman %{_mandir}/man5/aliases.postfix.5.gz
+        --initscript postfix
+else
+    if [ ! -e %{_sbindir}/sendmail ]; then
+        %whinge "Fresh Postfix Install, no %{_sbindir}/sendmail present: simulating RH alternatives"
+        ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
+        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
+        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
+        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
+        ln -sf %{_mandir}/man1/mailq.postfix.1.gz      %{_mandir}/man1/mailq.1.gz 
+        ln -sf %{_mandir}/man1/newaliases.postfix.1.gz %{_mandir}/man1/newaliases.1.gz 
+        ln -sf %{_mandir}/man5/aliases.postfix.5.gz    %{_mandir}/man5/aliases.5.gz
+    fi
+fi
 
 %triggerpostun -- sendmail
 
@@ -538,8 +564,6 @@ fi
 [ $2 = 0 ] || exit 0
 
 if [ -x %{_sbindir}/alternatives ]; then
-    # DOUBT: should I _always be doing this or only if /usr/sbin/sendmail doesn't exist?
-    # For the moment do it always.
     %whinge "Uninstalling sendmail, so setup Postfix: using RH alternatives"
     %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{_sbindir}/sendmail.postfix 30 \
         --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
@@ -548,8 +572,8 @@ if [ -x %{_sbindir}/alternatives ]; then
         --slave %{_mandir}/man1/mailq.1.gz mta-mailqman %{_mandir}/man1/mailq.postfix.1.gz \
         --slave %{_mandir}/man1/newaliases.1.gz mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1.gz \
         --slave %{_mandir}/man5/aliases.5.gz mta-aliasesman %{_mandir}/man5/aliases.postfix.5.gz
+        --initscript postfix
 else
-#   %whinge "triggerpostun -- sendmail: no alternatives"
     if [ ! -e %{_sbindir}/sendmail ]; then
         %whinge "Uninstalling sendmail, no %{_sbindir}/sendmail present: simulating RH alternatives"
         ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
@@ -559,8 +583,6 @@ else
         ln -sf %{_mandir}/man1/mailq.postfix.1.gz      %{_mandir}/man1/mailq.1.gz 
         ln -sf %{_mandir}/man1/newaliases.postfix.1.gz %{_mandir}/man1/newaliases.1.gz 
         ln -sf %{_mandir}/man5/aliases.postfix.5.gz    %{_mandir}/man5/aliases.5.gz
-#    else
-#        %whinge "%{_sbindir}/sendmail present: do nothing"
     fi
 fi
 
@@ -576,8 +598,6 @@ fi
 # functionality by hand if needed.
 
 if [ -x %{_sbindir}/alternatives ]; then
-    # DOUBT: should I _always be doing this or only if /usr/sbin/sendmail doesn't exist?
-    # For the moment do it always.
     %whinge "Upgrading Postfix: using RH alternatives"
     %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{_sbindir}/sendmail.postfix 30 \
         --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
@@ -586,6 +606,7 @@ if [ -x %{_sbindir}/alternatives ]; then
         --slave %{_mandir}/man1/mailq.1.gz mta-mailqman %{_mandir}/man1/mailq.postfix.1.gz \
         --slave %{_mandir}/man1/newaliases.1.gz mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1.gz \
         --slave %{_mandir}/man5/aliases.5.gz mta-aliasesman %{_mandir}/man5/aliases.postfix.5.gz
+        --initscript postfix
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
         %whinge "Upgrading Postfix, no %{_sbindir}/sendmail present: simulating RH alternatives"
@@ -596,8 +617,6 @@ else
         ln -sf %{_mandir}/man1/mailq.postfix.1.gz      %{_mandir}/man1/mailq.1.gz 
         ln -sf %{_mandir}/man1/newaliases.postfix.1.gz %{_mandir}/man1/newaliases.1.gz 
         ln -sf %{_mandir}/man5/aliases.postfix.5.gz    %{_mandir}/man5/aliases.5.gz
-#   else
-#       %whinge "%{_sbindir}/sendmail present: do nothing"
     fi
 fi
 
@@ -679,19 +698,8 @@ rm -f %{queue_dir}%{_sysconfdir}/services
 copy %{_sysconfdir}/services %{queue_dir}%{_sysconfdir}
 %endif
 
-# end of trigger scripts --------------------------------------------------
-
 %preun
 umask 022
-
-stop_postfix () {
-    echo "Stopping the Postfix mail system"
-    if [ -f %{queue_dir}/pid/master.pid ]; then
-        kill `sed 1q %{queue_dir}/pid/master.pid` >/dev/null 2>&1 || :
-    else
-        echo "BUG: postfix.spec (preun) - please inform packager"
-    fi
-}
 
 # remove chroot jail when uninstalling the package
 # WE MUST BE IN /var/spool/postfix before calling this routine
@@ -749,7 +757,7 @@ queue_directory_remove () {
 }
 
 if [ "$1" = 0 ]; then
-    /sbin/service postfix stop &>/dev/null
+    /sbin/service postfix stop >/dev/null 2>&1
     /sbin/chkconfig --del postfix
 
     if [ -x %{_sbindir}/alternatives ]; then
@@ -778,8 +786,7 @@ if [ "$1" = 0 ]; then
         %endif
         
         queue_directory_remove
-    }
-    true # to ensure we exit safely
+    } || :
 fi
 
 # ---
@@ -800,7 +807,6 @@ fi
 
 %clean
 /bin/rm -rf %{buildroot}
-
 
 %files
 %defattr(-, root, root)
