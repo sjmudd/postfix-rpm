@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.68 2003/07/10 21:00:54 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.69 2003/07/10 21:29:34 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -230,7 +230,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.68 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.69 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -735,9 +735,9 @@ fi
 # into the chroot.  The proxymap daemon now makes this unnecessary, so remove
 # the chrooted password file if it exists.
 [ `postconf -h local_recipient_maps | grep -q proxy:unix:passwd.byname; echo $?` = 0 ] && \
-    %whinge "remove /etc/passwd from chroot: no longer needed as proxymap enabled" && \
-    file=`postconf -h queue_directory`/etc/passwd && \
-    [ ${file} != /etc/passwd ] && \
+    dir=`postconf -h queue_directory` && [ -n "${dir}" ] && \
+    file=${dir}/etc/passwd && \
+    %whinge "remove etc/passwd from chroot ${dir}: no longer needed as proxymap enabled" && \
     [ -e ${file} ] && rm -f ${file}
 
 # Generate chroot jails on the fly when needed things are installed/upgraded
