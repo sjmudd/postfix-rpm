@@ -35,6 +35,7 @@ case "$1" in
 	/usr/sbin/postfix start
 	RETVAL=$?
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/postfix
+        echo 
 	;;
   stop)
 	# Stop daemons.
