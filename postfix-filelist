@@ -12,7 +12,6 @@ postfix-config.patch
 postfix-etc-cron.daily-postfix
 postfix-etc-init.d-postfix
 postfix-fallback_relay.patch
-postfix-filelist
 postfix-makedefs.patch
 postfix-smtpd_multiline_greeting.patch
 postfix.spec.in
