@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.73 2001/11/19 09:25:50 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.74 2001/11/29 18:33:12 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -46,7 +46,7 @@
 %define patchlevel pl08
 %define version1 %{vers}-%{patchlevel}
 %define version2 %{vers}_%{patchlevel}
-%define rel 2
+%define rel 3
 
 %define tlsno pfixtls-0.7.13-20010228-pl08-0.9.6b
 %define pflogno -1.0.3
@@ -145,14 +145,12 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.73 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.74 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
-LDAP=%{LDAP}		SASL=%{SASL}
-PCRE=%{PCRE}		TLS=%{TLS}
-MYSQL=%{MYSQL}		REDHATMYSQL=%{REDHATMYSQL}
-REQUIRES_DB3=%{REQUIRES_DB3}	REQUIRES_INIT_D=%{REQUIRES_INIT_D}
+LDAP=%{LDAP}, SASL=%{SASL}, PCRE=%{PCRE}, TLS=%{TLS}, MYSQL=%{MYSQL}, REDHATMYSQL=%{REDHATMYSQL}
+REQUIRES_DB3=%{REQUIRES_DB3}, REQUIRES_INIT_D=%{REQUIRES_INIT_D}
 
 If you need to use postfix with alternative options you will need to
 download the source package and rebuild the required binary package.
@@ -177,7 +175,7 @@ Information on how to do this is included with the source package.
 %define init_directory /etc/rc.d/init.d
 %define cron_directory /etc/cron.daily
 
-%define whinge logger -p mail.info -t postfix/rpm
+%define whinge /usr/bin/logger -p mail.info -t postfix/rpm
 %define postfix_running %{daemon_directory}/master -t >/dev/null 2>&1; echo $?
 
 %prep
@@ -323,6 +321,52 @@ umask 022
 
 # stop install if something is wrong
 die(){ %whinge "$*"; exit 1; }
+
+# return 0 if hostname is a FQDN
+check_hostname() {
+    if [ "`hostname | grep -c '\.'`" = "1" ]; then
+        ok=0
+    else
+        ok=1
+    fi
+    return ${ok}
+}
+
+# return 0 if myhostname is a FQDN
+check_myhostname() {
+    ok=1
+    test -f %{config_directory}/main.cf && \
+        test -x %{command_directory}/postconf && \
+        %{command_directory}/postconf myhostname >/dev/null 2>&1 && \
+        test "`%{command_directory}/postconf myhostname | grep -c '\.'`" = "1" && \
+        ok=0
+    return ${ok}
+}
+
+stop_install() {
+    cat <<END
+ERROR: Postfix can't be installed - Please set your hostname to a FQDN.
+
+For postfix to work correctly your hostname must be a fully-qualified domain
+name or %{config_directory}/main.cf must have the myhostname parameter set
+to a FQDN.
+
+Part of the package installation requires several postfix commands to be
+executed, and these will fail if these conditions are not met.
+
+Please set the hostname to a fully-qualified hostname to enable the package
+to be installed correctly.
+END
+    die "Error - To install the postfix rpm please set your hostname to a FQDN"
+}
+
+# The 'post' phase of installation requires use of various postfix commands:
+# postalias, postcheck and postconf.  These all require that the hostname
+# is a FQDN or that main.cf (if upgrading) has myhostname set to a FQDN.
+# To avoid problems with the package installation failing in the %post phase
+# we check the hostname and myhostname (if upgrading) and warn the user if
+# the conditions are not met.
+check_myhostname || check_hostname || stop_install
 
 # create postfix user and group on INSTALL machine if necessary
 
@@ -710,6 +754,10 @@ fi
 #
 
 %changelog
+
+* Thu Nov 29 2001 Simon J Mudd <sjmudd@pobox.com>
+- postfix-20010228-pl08-3
+  - update package so it complains if hostname is not fully qualified
 
 * Thu Nov 19 2001 Simon J Mudd <sjmudd@pobox.com>
 - postfix-20010228-pl08-2

@@ -2,17 +2,45 @@
 
 echo Building postfix...
 
+
+echo "Checking for Source file..."
+
+# Long-winded way of finding the source file from the postfix.spec file
+# so we can automatically download it if necessary.
+XNAME=`grep "^Name: " postfix.spec.in | awk '{print $2 }'`
+XVERS=`grep "^%define vers " postfix.spec.in | awk '{ print $3 }'`
+XPATCHLVL=`grep "^%define patchlevel " postfix.spec.in | awk '{ print $3 }'`
+XVERSION1=`sed -e "s;%{vers};${XVERS};" \
+               -e "s;%{patchlevel};${XPATCHLVL};" < postfix.spec.in | grep "^%define version1" | awk '{ print $3 }'`
+XBRANCH=`sed -e "s;%{version1};${XVERS};" < postfix.spec.in | grep "^%define branch" | awk '{ print $3 }'`
+SOURCE0=`sed -e "s;%{name};${XNAME};" \
+             -e "s;%{branch};${XBRANCH};" \
+             -e "s;%{version1};${XVERSION1};" < postfix.spec.in | grep "^Source0:" | awk '{ print $2 } '`
+XFILE=`echo ${SOURCE0} | sed -e 's;.*/;;'`
+XBASE=`dirname ${SOURCE0}`
+XSRCDIR=`rpm --eval '%{_sourcedir}'`
+XSPECDIR=`rpm --eval '%{_specdir}'`
+
+if [ ! -f "${XSRCDIR}/${XFILE}" ]; then
+    echo "  ${XFILE} not found, downloading to ${XSRCDIR}"
+    echo "  from ${XBASE}..."
+    ( cd ${XSRCDIR} && wget ${SOURCE0} || ( echo Failed!; exit 1 ) )
+else
+    echo "  ${XFILE} found"
+fi
+echo ""
+
 HERE=`pwd`
 
 cvs diff 2>&1 >/dev/null || { echo "WARNING please commit changes before building"; exit 1; }
 
 ./makelinks
-( cd `rpm --eval '%{_sourcedir}'` && \
+( cd ${XSRCDIR} && \
   sh make-postfix.spec && \
-  cd `rpm --eval '%{_specdir}'` && \
+  cd ${XSPECDIR} && \
   (( grep Name:		postfix.spec | awk '{ print $2 }' ) || true ) && \
-  (( grep "define vers"	postfix.spec | awk '{ print $3 }' ) || true ) && \
-  (( grep "define rel"	postfix.spec | awk '{ print $3 }' ) || true ) && \
+  (( grep "^%define vers"	postfix.spec | awk '{ print $3 }' ) || true ) && \
+  (( grep "^%define rel"	postfix.spec | awk '{ print $3 }' ) || true ) && \
   sleep 2 && \
   rpm -ba --sign postfix.spec ) 2>&1 | tee build-output
 ./removelinks
