@@ -1,17 +1,36 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.22.2.2 2001/04/03 13:05:09 sjmudd Exp $
+#  $Id: make-postfix.spec,v 1.22.2.3 2001/05/15 09:26:11 sjmudd Exp $
 #
+# Script to create the postfix.spec file from postfix.spec.in
+#
+# It's behaviour depends on the version of redhat-linux it is running
+# on, but this could be extended to other non-redhat distributions.
+# 
+# The following external variables if set to 1 affect the behaviour
+#
+# POSTFIX_REDHAT_MYSQL	include support for RedHat's mysql packages
+# POSTFIX_MYSQL		include support for MySQL's  MySQL packages
+# POSTFIX_LDAP		include support for openldap packages
+# POSTFIX_PCRE		include support for pcre maps
+# POSTFIX_SASL		include support for SASL
+# POSTFIX_TLS		include support for TLS
+# POSTFIX_SMTPD_MULTILINE_GREETING
+#			include support for multitline SMTP banner
+#
+# Red Hat Linux 7.x (at the moment) specific requirements
+#
+# REQUIRES_DB3		add db3 package to requires list
+# REQUIRES_INIT_D	add /etc/init.d/ to requires list
 
 SUFFIX=
-REQUIRES=
-BUILDREQUIRES=
-DISTRIBUTION_PREREQ=
+REQUIRES_DB3=
+REQUIRES_INIT_D=
 DISTRIBUTION='Unknown Linux Distribution'
 
 # Ensure only one of POSTFIX_MYSQL and POSTFIX_REDHAT_MYSQL are defined
-test -n "$POSTFIX_MYSQL" && \
-  test -n "$POSTFIX_REDHAT_MYSQL" && {
+[ -n "$POSTFIX_MYSQL" ] && \
+[ -n "$POSTFIX_REDHAT_MYSQL" ] && {
     cat <<EOF
 Postfix MySQL support
 ---------------------
@@ -32,7 +51,8 @@ EOF
 # For this reason LDAP support is not compiled by default
 
 echo ""
-echo "Generating Postfix spec file: ../SPECS/postfix.spec"
+echo "Creating Postfix spec file: ../SPECS/postfix.spec"
+
 if [ "$POSTFIX_LDAP" = 1 ]; then
     echo "  adding LDAP  support to spec file"
     SUFFIX="${SUFFIX}+ldap"
@@ -60,17 +80,14 @@ if [ "$POSTFIX_TLS" = 1 ]; then
     SUFFIX="${SUFFIX}+tls"
 fi
 
-# rh7 db3 crap - this is rather ugly
+# Determine the correct db files to use. RedHat 7 requires db3
 if [ `rpm -q redhat-release` ]; then
-    # We are running RedHat Linux
-    # check for RedHat 7 and change Requires for new db3 if necessary
     A=`rpm -q redhat-release | grep -q 7; echo $?`
     if [ "$A" = 0 ]; then
-        REQUIRES="Requires: db3"
-        BUILDREQUIRES="BuildRequires: db3, db3-devel"
-        DISTRIBUTION_PREREQ=', /etc/init.d, /sbin/service'
+	REQUIRES_INIT_D=1
+        REQUIRES_DB3=1
     fi
-    DISTRIBUTION=`rpm -q redhat-release` 
+    DISTRIBUTION=`rpm -qa | grep release | egrep '(redhat|mandrake)'` 
     # check for RedHat 6 and change SUFFIX to avoid package name conflicts
     A=`rpm -q redhat-release | grep -q 6; echo $?`
     if [ "$A" = 0 ]; then
@@ -79,27 +96,16 @@ if [ `rpm -q redhat-release` ]; then
 fi
 
 # ensure if undefined the value is 0
-if [ -z "$POSTFIX_LDAP" ]; then
-    POSTFIX_LDAP=0
-fi
-if [ -z "$POSTFIX_MYSQL" ]; then
-    POSTFIX_MYSQL=0
-fi
-if [ -z "$POSTFIX_REDHAT_MYSQL" ]; then
-    POSTFIX_REDHAT_MYSQL=0
-fi
-if [ -z "$POSTFIX_PCRE" ]; then
-    POSTFIX_PCRE=0
-fi
-if [ -z "$POSTFIX_SASL" ]; then
-    POSTFIX_SASL=0
-fi
-if [ -z "$POSTFIX_TLS" ]; then
-    POSTFIX_TLS=0
-fi
-if [ -z "$POSTFIX_SMTPD_MULTILINE_GREETING" ]; then
-    POSTFIX_SMTPD_MULTILINE_GREETING=0
-fi
+
+[ -z "$REQUIRES_DB3" ]			&& REQUIRES_DB3=0
+[ -z "$REQUIRES_INIT_D" ]		&& REQUIRES_INIT_D=0
+[ -z "$POSTFIX_LDAP" ]			&& POSTFIX_LDAP=0
+[ -z "$POSTFIX_MYSQL" ]			&& POSTFIX_MYSQL=0
+[ -z "$POSTFIX_REDHAT_MYSQL" ]		&& POSTFIX_REDHAT_MYSQL=0
+[ -z "$POSTFIX_PCRE" ]			&& POSTFIX_PCRE=0
+[ -z "$POSTFIX_SASL" ]			&& POSTFIX_SASL=0
+[ -z "$POSTFIX_TLS" ]			&& POSTFIX_TLS=0
+[ -z "$POSTFIX_SMTPD_MULTILINE_GREETING" ] && POSTFIX_SMTPD_MULTILINE_GREETING=0
 
 # Remove leading '+' from package suffix (if exists)
 SUFFIX=`echo "${SUFFIX}" | sed -e 's;^\+;;'`
@@ -113,13 +119,11 @@ cat > ../SPECS/postfix.spec <<EOF
 #
 EOF
 sed "
-s!__DISTRIBUTION_PREREQ__!$DISTRIBUTION_PREREQ!g
+s!__REQUIRES_DB3__!$REQUIRES_DB3!g
+s!__REQUIRES_INIT_D__!$REQUIRES_INIT_D!g
 s!__DISTRIBUTION__!$DISTRIBUTION!g
 
 s!__SMTPD_MULTILINE_GREETING__!$POSTFIX_SMTPD_MULTILINE_GREETING!g
-
-s!__REQUIRES__!$REQUIRES!g
-s!__BUILDREQUIRES__!$BUILDREQUIRES!g
 
 s!__SUFFIX__!$SUFFIX!g
 

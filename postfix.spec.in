@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.38 2001/05/07 19:49:49 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.39 2001/05/15 09:26:11 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -14,12 +14,12 @@
 # Built on __DISTRIBUTION__
 # 
 # If you need to make changes do them to the postfix.spec.in file and
-# regenerate the spec file with:
+# regenerate the spec file.  See
 #
-#     cd ../SOURCES
-#     sh make-postfix.spec
+#	SOURCES/make-postfix.spec
+#	SOURCES/postfix-build
 #
-# after defining the relevent options you wish to use.
+# for more information.
 #
 ##############################################################################
 
@@ -39,6 +39,8 @@
 %define PCRE __PCRE__
 %define SASL __SASL__
 %define TLS __TLS__
+%define REQUIRES_DB3 __REQUIRES_DB3__
+%define REQUIRES_INIT_D __REQUIRES_INIT_D__
 
 %define SMTPD_MULTILINE_GREETING __SMTPD_MULTILINE_GREETING__
 
@@ -47,20 +49,26 @@
 %define patchlevel pl02
 %define version1 %{vers}-%{patchlevel}
 %define version2 %{vers}_%{patchlevel}
-%define rel  4
+%define rel  5
 %define tlsno pfixtls-0.7.2-20010228-pl02-0.9.6a
+%define distribution __DISTRIBUTION__
 
 Name: postfix
 Summary: Postfix Mail Transport Agent
 Group: System Environment/Daemons
 URL: http://www.postfix.org
 Copyright: IBM Public License
-PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
+PreReq: /sbin/chkconfig
+# Required by RedHat 7.x
+%if %{REQUIRES_INIT_D}
+PreReq: /etc/init.d, /sbin/service
+%endif
 Provides: MTA smtpd smtpdaemon
 Conflicts: sendmail, exim, qmail, smail
 Version: %{version2}%{branch}
 Release: %{rel}__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
+Summary: Postfix Mail Server
 Vendor: Built on __DISTRIBUTION__
 Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version1}.tar.gz
 Source1: postfix-README_rpm.txt
@@ -73,6 +81,7 @@ Source7: postfix.spec.in
 Source8: make-postfix.spec
 Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{tlsno}.tar.gz
 Source10: http://jimsun.linxnet.com/downloads/pflogsumm.pl
+Source11: postfix-build
 Patch1:  postfix-config.patch
 Patch2:  postfix-chroot_chk.patch
 # required to install smtp-sink and smtp-source
@@ -92,10 +101,11 @@ BuildRoot: %{_tmppath}/%{name}-%{version1}-root
 # Determine the different packages required for building postfix
 BuildRequires: gawk, perl, sed
 
-# Requires for different packages - added automatically (optional)
-__REQUIRES__
-# BuildRequires for different packages - added automatically (optional)
-__BUILDREQUIRES__
+# Used on Red Hat 7.x
+%if %{REQUIRES_DB3}
+Requires: db3
+BuildRequires: db3, db3-devel
+%endif
 
 %if %{LDAP}
 Requires: openldap >= 1.2.9
@@ -112,8 +122,8 @@ Requires: mysql, mysqlclient9
 BuildRequires: mysql, mysqlclient9, mysql-devel
 %endif
 %if %{MYSQL}
-Requires: MySQL, MySQL-client, zlib
-BuildRequires: MySQL, MySQL-client, MySQL-devel, zlib-devel
+Requires: MySQL-shared, zlib
+BuildRequires: MySQL-shared, MySQL-devel, zlib-devel
 %endif
 
 %if %{SASL}
@@ -140,22 +150,17 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.38 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.39 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
-LDAP=__LDAP__
-PCRE=__PCRE__
-MYSQL=__MYSQL__
-REDHATMYSQL=__REDHAT_MYSQL__
-SASL=__SASL__
-TLS=__TLS__
+LDAP=__LDAP__		SASL=__SASL__
+PCRE=__PCRE__		TLS=__TLS__
+MYSQL=__MYSQL__		REDHATMYSQL=__REDHAT_MYSQL__
+REQUIRES_DB3 __REQUIRES_DB3__	REQUIRES_INIT_D __REQUIRES_INIT_D__
 
 The source package contains information about rebuilding with alternative
 options.
-
-An alternative simpler postfix rpm is available from Todd Bennett, for
-download at http://people.oven.com/bet/bent/.
 
 
 %define config_directory /etc/postfix
@@ -183,6 +188,51 @@ umask 022
 
 # stop build if something is wrong
 die(){ %whinge "$*"; exit 1; }
+
+# Warn if the distribution this spec file was made for isn't the same as
+# the current distribution
+# possible distributions are variants of:
+#	'redhat-release-7.0-1' or 'mandrake-release-7.1-1mdk'
+# It would be nice to convert these to:
+#	'redhat-release-7.0' and 'mandrake-release-7.1'
+# or even
+#	'redhat-release-7' and 'mandrake-release-7'
+# and make the comparison at these levels.
+
+CURRDIST=`rpm -qa | grep release | egrep '(redhat-|mandrake-)'`
+SPECDIST="__DISTRIBUTION__"
+
+if [ "${CURRDIST}" != "${SPECDIST}" ]; then
+    cat <<ENDTEXT
+
+			W A R N I N G
+			=============
+
+This package's spec file was built for a different distribution to the
+version which you are using.  If the differences (shown below) are only
+a difference in MINOR version number this should not be a problem.
+
+Current Distribution:	${CURRDIST}
+postfix.spec built for:	${SPECDIST}
+
+If not it is advisable to rebuild the postfix.spec file as indicated below:
+
+To rebuild the spec file (and thus avoid this warning) follow the following
+steps:
+
+	cd ../SOURCES
+	sh make-postfix.spec	# to rebuild the spec file
+	cd ../SPECS
+	rpm -ba postfix.spec	# to build postfix
+
+If this procedure doesn't allow you to produce a working package, please
+adivse me so I can take appropriate steps.
+
+ENDTEXT
+	sleep 5
+else
+	echo "postfix.spec seems ok"
+fi
 
 # warn before we start if we aren't root
 if [ `id -u` != "0" ]; then
@@ -646,6 +696,14 @@ fi
 #
 
 %changelog
+
+* Mon May 15 2001 Simon Mudd <sjmudd@pobox.com>
+- postfix-20010228_pl02release-5
+  - change make-postfix.spec
+  - update support for MySQL packages
+  - add Summary: line
+  - generate a warning if building on a different distribution than the
+    one the postfix.spec file was made for.
 
 * Mon May 07 2001 Simon Mudd <sjmudd@pobox.com>
 - postfix-20010228_pl02release-4, add smtpd_check.c.patch
