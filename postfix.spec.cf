@@ -1,4 +1,4 @@
-# NOTE: $Id: postfix.spec.cf,v 1.1.2.2 2004/08/24 17:57:23 sjmudd Exp $
+# NOTE: $Id: postfix.spec.cf,v 1.1.2.3 2004/08/24 18:19:17 sjmudd Exp $
 # NOTE:
 # NOTE: (C) 2004 Simon J Mudd <sjmudd@pobox.com>
 # NOTE:
@@ -17,7 +17,7 @@
 # NOTE: Lines starting with # NOTE: will be trimmed from the installed
 # NOTE: postfix.spec.cf file.
 #
-# $Id: postfix.spec.cf,v 1.1.2.2 2004/08/24 17:57:23 sjmudd Exp $
+# $Id: postfix.spec.cf,v 1.1.2.3 2004/08/24 18:19:17 sjmudd Exp $
 #
 # 2. POSTFIX RPM [RE-]BUILDING INSTRUCTIONS
 #
@@ -33,7 +33,7 @@
 #	SRC=`rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;'`
 #
 #	# Build the rpm
-#	${SRC}/make-postfix.rpm -cu
+#	sh ${SRC}/make-postfix.rpm -cu
 #
 # 2.2 Upgrading the build with the same options as another running system
 #
@@ -41,7 +41,7 @@
 #	SRC=`rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;'`
 #
 #	# Build the rpm
-#	${SRC}/make-postfix.rpm -cf /path/to/postfix.spec.cf
+#	sh ${SRC}/make-postfix.rpm -cf /path/to/postfix.spec.cf
 #
 # 2.3 Building postfix with specific options
 #
@@ -53,7 +53,7 @@
 #	export POSTFIX_PCRE=1       # for example
 #
 #	# Build the rpm
-#	${SRC}/make-postfix.rpm
+#	sh ${SRC}/make-postfix.rpm
 #
 # In all cases the result is a new source and binary rpm suitable for
 # the distribution you are using.
