@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.277 2004/04/17 20:32:57 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.278 2004/04/18 07:26:01 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -86,7 +86,7 @@
 %define official 0
 %define ver 2.1
 %define mail_release_date RC3-20040414
-%define rel 0.3%{suffix}
+%define rel 0.5%{suffix}
 %if %{official}
 %define tarball_version %{ver}
 %define ftp_dir official
@@ -105,7 +105,7 @@
 # we have installed files to it. (standard part of %doc processing!)
 #
 #define docdir %{_docdir}/%{name}-%{version}
-%define docdir %{_docdir}/%{name}-docs
+%define docdir %{_docdir}/%{name}-%{ver}-documentation
 %define readme_dir %{docdir}/readme
 %define html_dir   %{docdir}/html
 
@@ -242,7 +242,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.277 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.278 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -542,13 +542,24 @@ done
 install -c -m 755 %{_sourcedir}/%{postfinger} ${RPM_BUILD_ROOT}%{_bindir}/postfinger
 install -c -m 755 %{_sourcedir}/postfix-chroot.sh ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/
 
-[ -d "${RPM_BUILD_ROOT}%{docdir}/html" ]         || mkdir -p ${RPM_BUILD_ROOT}%{docdir}/html
-[ -d "${RPM_BUILD_ROOT}%{docdir}/README_FILES" ] || mkdir -p ${RPM_BUILD_ROOT}%{docdir}/README_FILES
-install -c -m 644 %{_sourcedir}/README-Postfix-SASL-RedHat.txt ${RPM_BUILD_ROOT}%{docdir}/README_FILES
+[ -d "${RPM_BUILD_ROOT}%{html_dir}" ]   || mkdir -p ${RPM_BUILD_ROOT}%{html_dir}
+[ -d "${RPM_BUILD_ROOT}%{readme_dir}" ] || mkdir -p ${RPM_BUILD_ROOT}%{readme_dir}
+install -c -m 644 %{_sourcedir}/README-Postfix-SASL-RedHat.txt ${RPM_BUILD_ROOT}%{readme_dir}/
+
+# Install odd documentation files
+for file in AAAREADME COMPATIBILITY COPYRIGHT HISTORY LICENSE PORTING \
+	RELEASE_NOTES RELEASE_NOTES-1.1 RELEASE_NOTES-2.0 TODO-BEFORE-RELEASE \
+	US_PATENT_63212670
+do
+	install -c -m 644 %{_sourcedir}/$file ${RPM_BUILD_ROOT}%{docdir}/
+done
+cat <<EOF >${RPM_BUILD_ROOT}%{docdir}/SEE_ALSO
+%{_docdir}/%{name}-%{version} may contain other documentation files.
+EOF
 
 # added for convenience
-ln -sf %{docdir}/html         ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/html
-ln -sf %{docdir}/README_FILES ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/readme
+ln -sf %{html_dir}   ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/html
+ln -sf %{readme_dir} ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/readme
 
 # Install the smtpd.conf file for SASL support.
 %if %{sasl}
@@ -578,8 +589,8 @@ README.rpm
 Documentation
 -------------
 
-Postfix documentation should be available in the standard directory
-%{docdir}/.  I have also added a symbolic link to the readme_files and html
+Postfix documentation should be available in the directory %{docdir}/.
+I have also added a symbolic link to the readme_files and html
 directories from %{_sysconfdir}/postfix.
 
 The main Postfix web site is http://www.postfix.org.
@@ -640,7 +651,7 @@ cat <<EOF > ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/postfix.spec.cf
 #	rpmbuild -ba postfix.spec
 #
 # Package built on: %{build_dist_full} (%{build_dist})
-#
+
 POSTFIX_MYSQL=%{mysql}
 POSTFIX_MYSQL_PATHS=%{mysql_paths}
 POSTFIX_MYSQL_REDHAT=%{mysql_redhat}
@@ -666,6 +677,9 @@ POSTFIX_CDB=%{cdb}
 # - requires_zlib=%{requires_zlib},
 # - sasl_library=%{sasl_library}
 # - tlsfix=%{tlsfix}
+#
+# %{_sysconfdir}/postfix/makedefs.out is also produced by the build and may be of
+# interest if you are building Postfix by hand.
 EOF
 
 %post
@@ -710,7 +724,7 @@ fi
 
 # Apply the alternatives scripts ONLY if installing (not upgrading) to
 # ensure a link exists from %{_sbindir}/sendmail to
-# %{_sbindir}/sendmail.postfix (and other files).
+# %{sendmail_path} (and other files).
 #
 # If performing an upgrade this MUST be done in the trigger scripts.
 # (old postfix packages, pre-alternatives have a /usr/sbin/sendmail and this
@@ -720,10 +734,10 @@ fi
 
 if [ -x %{_sbindir}/alternatives ]; then
     %whinge "Fresh Postfix Install: using RH alternatives"
-    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{_sbindir}/sendmail.postfix 30 \
-        --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
-        --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
-        --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
+    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{sendmail_path} 30 \
+        --slave %{_bindir}/mailq mta-mailq %{mailq_path} \
+        --slave %{_bindir}/newaliases mta-newaliases %{newaliases_path} \
+        --slave %{_bindir}/rmail mta-rmail %{rmail_path} \
         --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
         --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
         --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
@@ -732,10 +746,10 @@ if [ -x %{_sbindir}/alternatives ]; then
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
         %whinge "Fresh Postfix Install, no %{_sbindir}/sendmail present: simulating RH alternatives"
-        ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
-        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
-        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
-        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
+        ln -sf %{sendmail_path}             %{_sbindir}/sendmail
+        ln -sf %{mailq_path}                %{_bindir}/mailq 
+        ln -sf %{newaliases_path}           %{_bindir}/newaliases 
+        ln -sf %{rmail_path}                %{_bindir}/rmail 
         ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps} 
         ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
         ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
@@ -760,10 +774,10 @@ test -f /usr/lib/sendmail && {
 
 if [ -x %{_sbindir}/alternatives ]; then
     %whinge "Uninstalling sendmail, so setup Postfix: using RH alternatives"
-    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{_sbindir}/sendmail.postfix 30 \
-        --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
-        --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
-        --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
+    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{sendmail_path} 30 \
+        --slave %{_bindir}/mailq mta-mailq %{mailq_path} \
+        --slave %{_bindir}/newaliases mta-newaliases %{newaliases_path} \
+        --slave %{_bindir}/rmail mta-rmail %{rmail_path} \
         --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
         --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
         --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
@@ -772,10 +786,10 @@ if [ -x %{_sbindir}/alternatives ]; then
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
         %whinge "Uninstalling sendmail, no %{_sbindir}/sendmail present: simulating RH alternatives"
-        ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
-        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
-        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
-        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
+        ln -sf %{sendmail_path}             %{_sbindir}/sendmail
+        ln -sf %{mailq_path}                %{_bindir}/mailq 
+        ln -sf %{newaliases_path}           %{_bindir}/newaliases 
+        ln -sf %{rmail_path}                %{_bindir}/rmail 
         ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps} 
         ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
         ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
@@ -795,10 +809,10 @@ fi
 
 if [ -x %{_sbindir}/alternatives ]; then
     %whinge "Upgrading Postfix: using RH alternatives"
-    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{_sbindir}/sendmail.postfix 30 \
-        --slave %{_bindir}/mailq mta-mailq %{_bindir}/mailq.postfix \
-        --slave %{_bindir}/newaliases mta-newaliases %{_bindir}/newaliases.postfix \
-        --slave %{_bindir}/rmail mta-rmail %{_bindir}/rmail.postfix \
+    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{sendmail_path} 30 \
+        --slave %{_bindir}/mailq mta-mailq %{mailq_path} \
+        --slave %{_bindir}/newaliases mta-newaliases %{newaliases_path} \
+        --slave %{_bindir}/rmail mta-rmail %{rmail_path} \
         --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
         --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
         --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
@@ -807,10 +821,10 @@ if [ -x %{_sbindir}/alternatives ]; then
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
         %whinge "Upgrading Postfix, no %{_sbindir}/sendmail present: simulating RH alternatives"
-        ln -sf %{_sbindir}/sendmail.postfix            %{_sbindir}/sendmail
-        ln -sf %{_bindir}/mailq.postfix                %{_bindir}/mailq 
-        ln -sf %{_bindir}/newaliases.postfix           %{_bindir}/newaliases 
-        ln -sf %{_bindir}/rmail.postfix                %{_bindir}/rmail 
+        ln -sf %{sendmail_path}                           %{_sbindir}/sendmail
+        ln -sf %{mailq_path}                              %{_bindir}/mailq 
+        ln -sf %{newaliases_path}                         %{_bindir}/newaliases 
+        ln -sf %{rmail_path}                              %{_bindir}/rmail 
         ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps} 
         ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
         ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
@@ -869,10 +883,10 @@ queue_directory_remove () {
     chkconfig --del postfix
 
     if [ -x %{_sbindir}/alternatives ]; then
-        %{_sbindir}/alternatives --remove mta %{_sbindir}/sendmail.postfix
+        %{_sbindir}/alternatives --remove mta %{sendmail_path}
     elif [ -L %{_sbindir}/sendmail} ]; then
         # check that symbolic link belongs to postfix
-        if [ `ls -l %{_sbindir}/sendmail | awk '{print $11}'` = %{_sbindir}/sendmail.postfix ]; then
+        if [ `ls -l %{_sbindir}/sendmail | awk '{print $11}'` = %{sendmail_path} ]; then
             # remove files
             rm -f %{_sbindir}/sendmail
             rm -f %{_bindir}/mailq
@@ -965,21 +979,22 @@ umask 022
 %dir %attr(0710, postfix, postdrop) %verify(not md5 size mtime) %{_var}/spool/postfix/public
 %dir %attr(0755, root, root)        %verify(not md5 size mtime) %{_var}/spool/postfix/pid
 
+%doc %{docdir}/AAAREADME
+%doc %{docdir}/COMPATIBILITY
+%doc %{docdir}/COPYRIGHT
+%doc %{docdir}/HISTORY
+%doc %{docdir}/PORTING
+%doc %{docdir}/RELEASE_NOTES
+%doc %{docdir}/RELEASE_NOTES-1.1
+%doc %{docdir}/RELEASE_NOTES-2.0
+%doc %{docdir}/SEE-ALSO
+%doc %{docdir}/TODO-BEFORE-RELEASE
+%doc %{docdir}/US_PATENT_6321267
+
 %doc %dir %{readme_dir}
 %doc %{readme_dir}/*
 %doc %dir %{html_dir}
 %doc %{html_dir}/*
-
-%doc COPYRIGHT
-%doc COMPATIBILITY
-%doc HISTORY
-%doc INSTALL
-%doc PORTING
-%doc RELEASE_NOTES
-%doc RELEASE_NOTES-1.1
-%doc RELEASE_NOTES-2.0
-%doc TODO-BEFORE-RELEASE
-%doc US_PATENT_6321267
 
 %if %{tls}
 %doc ACKNOWLEDGEMENTS.TLS
@@ -1054,6 +1069,10 @@ umask 022
 #
 
 %changelog
+
+* Sun Apr 18 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC3.20040414-0.5
+- put documentation in %{_docdir}/%{name}-{ver}-documentation as can
+  not use %{name}-%{version} as rpm's %file parsing removes this.
 
 * Sat Apr 17 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC3.20040414-0.3
 - update to RC3
