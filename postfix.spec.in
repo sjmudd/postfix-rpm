@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.205 2002/11/26 10:11:06 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.206 2002/11/26 11:11:10 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -213,7 +213,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.205 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.206 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -976,6 +976,7 @@ fi
     .db0 suffix.
   - Add AutoReq: no to avoid perl Date::Calc dependencies
   - update to 1.1.12-20021124-1
+  - rename multiline-greeting patch, and add URL to its location
 
 * Fri Nov 22 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-20021115-1
   - first build for a while on a snapshot.
