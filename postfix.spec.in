@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.100 2001/04/23 22:11:29 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.101 2001/04/30 22:09:20 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -142,7 +142,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.100 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.101 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -371,6 +371,15 @@ chmod 0744 ${RPM_BUILD_ROOT}%{config_directory}/chroot-setup-LINUX2
 /bin/mkdir -p ${RPM_BUILD_ROOT}%{cron_directory}
 
 install -c ${RPM_SOURCE_DIR}/postfix-etc-cron.daily-postfix ${RPM_BUILD_ROOT}%{cron_directory}/postfix
+
+# install pflogsumm.pl into %{command_directory} used by cron daily
+#
+( set -e; sed -e '/# ---Begin:/,/# ---End:/d' \
+  < ${RPM_SOURCE_DIR}/pflogsumm.pl; \
+  echo -e "#\n# This version modified for RedHat RPM: postfix-%{version}-%{release}\n#" \
+) > ${RPM_BUILD_ROOT}%{command_directory}/pflogsumm.pl
+chmod u=rx,go= ${RPM_BUILD_ROOT}%{command_directory}/pflogsumm.pl
+
 install -c auxiliary/rmail/rmail ${RPM_BUILD_ROOT}%{rmail_path}
 
 #
@@ -550,7 +559,7 @@ fi
 
 %attr(0755, root, root) %config %{init_directory}/postfix
 %attr(-, postfix, root) %verify(not md5 size mtime) %{queue_directory}
-%attr(0755, root, root) %{cron_directory}/postfix
+%attr(0755, root, root) %verify(not md5 size mtime) %config(noreplace) %{cron_directory}/postfix
 
 %doc 0README
 %doc COMPATIBILITY
@@ -626,6 +635,8 @@ fi
 
 %{command_directory}/smtp-sink
 %{command_directory}/smtp-source
+
+%{command_directory}/pflogsumm.pl
 
 %{sendmail_path}
 %{mailq_path}

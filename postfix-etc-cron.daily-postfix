@@ -1,7 +1,27 @@
 #!/bin/sh
+#
+# /etc/cron.daily/postfix
+#
+# This file is run on a daily basis to perform basic checks on your postfix
+# configuration.
+#
+# This file is flagged by rpm as a configuration file.
+#
+# If you modify this file, further upgrades to postfix will not overwrite
+# the file.
+#
+# uncomment this line to disable the daily cronjob
+# exit 0
 
 [ -x /usr/sbin/postfix ] || exit 0
 /usr/sbin/postfix check
 
 # Add the check suggested by /usr/share/doc/postfix-<version>/INSTALL
-/bin/egrep '(reject|warning|error|fatal|panic):' /var/log/maillog
+#/bin/egrep '(reject|warning|error|fatal|panic):' /var/log/maillog
+
+# Invoke pflogsumm.pl to gather statistics
+# see http://jimsun.linxnet.com/postfix_contrib.html for further info.
+#
+[ -x /usr/sbin/pflogsumm.pl ] || exit 0
+
+/usr/sbin/pflogsumm.pl < /var/log/maillog
