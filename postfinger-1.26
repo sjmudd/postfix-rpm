@@ -8,7 +8,8 @@
 #      Victor Duchovni <Victor.Duchovni@morganstanley.com>
 #      Sasa Babic <sasab@hygia.pharmacy.bg.ac.yu>
 #      Iñaki Arenaza <iarenaza@escomposlinux.org>
-#    $Revision: 1.25 $
+#      Jorge Gordoy <gordoy@g2ctech.com>
+#    $Revision: 1.1.2.1 $
 #
 # License:
 #    This program is free software; you can redistribute it and/or
@@ -29,8 +30,10 @@
 #    An on-line copy of the GNU General Public License can be found
 #    http://www.fsf.org/copyleft/gpl.html.
 
+version_number=1.26
+version="version: ${version_number}"
 BACKUP_IFS=$IFS
-USAGE="Postfinger $Revision: 1.25 $: a Postfix configuration extraction utility
+usage="postfinger ${version}: a Postfix configuration extraction utility
 Usage: postfinger [options]
 
 Options can be any of:
@@ -50,6 +53,7 @@ Options can be any of:
     --nomaster		Do not show master.cf configuration
     --nowarn		Do not warn about private information being leaked to
 			outsiders
+    --version		print the version of postfinger being used and exit
 
 Mail bug reports and suggestions to <postfinger@WL0.org>".
 
@@ -58,6 +62,7 @@ system=1; package=1; locking=; tables=; main=1; master=1; permissions=; librarie
 for arg
 do
     case $arg in
+      --version) echo "postfinger ${version}"; exit 0;;
       --all) system=1; package=1; locking=1; tables=1; main=1; master=1; permissions=1; libraries=1; warn=1;;
       --system) system=1;;
       --package) package=1;;
@@ -72,19 +77,19 @@ do
       --nomain) main=;;
       --nomaster) master=;;
       --nowarn) warn=;;
-      --help) echo "$USAGE"; exit 0;;
-           *) echo "Error: $USAGE" 1>&2; exit 1;;
+      --help) echo "${usage}"; exit 0;;
+           *) echo "Error: ${usage}" 1>&2; exit 1;;
     esac
     shift
 done
 
-echo "Postfinger - Postfix Configuration on `LANG=C date`"
-echo '$Revision: 1.25 $'
+echo "postfinger - postfix configuration on `LANG=C date`"
+echo ${version}
 echo ''
 
-[ "$warn" = 1 ] && {
+[ "${warn}" = 1 ] && {
 cat <<END
-Warning: Postfinger output may show private configuration information,
+Warning: postfinger output may show private configuration information,
 such as ip addresses and/or domain names which you do not want to show
 to the public.  If this is the case it is your responsibility to modify
 the output to hide this private information.  [Remove this warning with
@@ -93,65 +98,66 @@ the --nowarn option.]
 END
 }
 
-# Look for postconf, using environment value if given
-[ -n "$POSTCONF" ] && [ ! -x "$POSTCONF" ] && POSTCONF=
-[ -z "$POSTCONF" ] && [ -x /usr/sbin/postconf ] && POSTCONF=/usr/sbin/postconf
-[ -z "$POSTCONF" ] && [ -x /usr/local/sbin/postconf ] && POSTCONF=/usr/local/sbin/postconf
-[ -z "$POSTCONF" ] && {
+# Look for postconf, using environment variable if given
+[ -n "${POSTCONF}" ] && [ ! -x "${POSTCONF}" ] && POSTCONF=
+[ -z "${POSTCONF}" ] && [ -x /usr/sbin/postconf ] && POSTCONF=/usr/sbin/postconf
+[ -z "${POSTCONF}" ] && [ -x /usr/local/sbin/postconf ] && POSTCONF=/usr/local/sbin/postconf
+[ -z "${POSTCONF}" ] && {
     echo "$0: can not find postconf"
     echo "set POSTCONF to postconf's location and try again"
     exit 1
 }
 
-# Look for smtpd, using environment value if given
-[ -z "$SMTPD" ] && {
-    SMTPD=`$POSTCONF -h daemon_directory`/smtpd
-    [ -d "$SMTPD" -o ! -x "$SMTPD" ] && SMTPD=
+# Look for smtpd, using environment variable if given
+[ -z "${SMTPD}" ] && {
+    SMTPD=`${POSTCONF} -h daemon_directory`/smtpd
+    [ -d "${SMTPD}" -o ! -x "${SMTPD}" ] && SMTPD=
 }
-[ -z "$SMTPD" ] && {
+[ -z "${SMTPD}" ] && {
     echo "$0: can not find smtpd"
     echo "set SMTPD to smtpd's location and try again"
     exit 1
 }
 
-[ "$system" = 1 ] && {
+[ "${system}" = 1 ] && {
     echo '--System Parameters--'
-    $POSTCONF -d mail_version
+    ${POSTCONF} -d mail_version
     echo "hostname = `hostname`"
     echo "uname = `uname -a`"
     echo ""
 }
 
-# check for different packaging systems and try and identify if this postfix
-# comes from a package.  I would like help to try and look for other packaging
+# check for different packaging systems and try to identify if this postfix
+# (smtpd) comes from a package.
+# I would appreciate help in adapting this part to include other packaging
 # systems.
-[ "$package" = 1 ] && {
+[ "${package}" = 1 ] && {
     echo "--Packaging information--"
 
     DPKG=
     [ -x /usr/bin/dpkg ] && DPKG=/usr/bin/dpkg
-    [ -z "$DPKG" ] && [ -x /usr/local/bin/dpkg ] && DPKG=/usr/local/bin/dpkg
-    [ -n "$DPKG" ] && {
-        $DPKG -S $SMTPD >/dev/null 2>/dev/null && {
-	    PACKAGE=`$DPKG -S $SMTPD | awk  -F: '{print $1}' | head -n 1`
-            PACKAGE_VER=`COLUMNS=132 $DPKG -l $PACKAGE | grep ii | awk '{print $3}'`
-            echo "looks like this postfix comes from a deb package: $PACKAGE-$PACKAGE_VER"
+    [ -z "${DPKG}" ] && [ -x /usr/local/bin/dpkg ] && DPKG=/usr/local/bin/dpkg
+    [ -n "${DPKG}" ] && {
+        ${DPKG} -S ${SMTPD} >/dev/null 2>/dev/null && {
+	    package=`${DPKG} -S ${SMTPD} | awk  -F: '{print $1}' | head -n 1`
+            package_ver=`COLUMNS=132 ${DPKG} -l ${package} | grep ii | awk '{print $3}'`
+            echo "looks like this postfix comes from deb package: ${package}-${package_ver}"
         }
     }
 
     RPM=
     [ -x /bin/rpm ] && RPM=/bin/rpm
-    [ -z "$RPM" ] && [ -x /usr/local/bin/rpm ] && RPM=/usr/local/bin/rpm
-    [ -n "$RPM" ] && {
-        $RPM -qf $SMTPD >/dev/null 2>/dev/null && \
-            echo "looks like this postfix comes from a RPM package: `$RPM -qf $SMTPD`"
+    [ -z "${RPM}" ] && [ -x /usr/local/bin/rpm ] && RPM=/usr/local/bin/rpm
+    [ -n "${RPM}" ] && {
+        ${RPM} -qf ${SMTPD} >/dev/null 2>/dev/null && \
+            echo "looks like this postfix comes from RPM package: `${RPM} -qf ${SMTPD}`"
     }
 
     BSDPKG=
     [ -x /usr/sbin/pkg_info ] && BSDPKG=/usr/sbin/pkg_info
-    [ -n "$BSDPKG" ] && {
-	$BSDPKG -q -W $SMTPD >/dev/null 2>/dev/null && \
-	    echo "looks like this postfix comes from a BSD package: `$BSDPKG -q -W $SMTPD`"
+    [ -n "${BSDPKG}" ] && {
+	${BSDPKG} -q -W ${SMTPD} >/dev/null 2>/dev/null && \
+	    echo "looks like this postfix comes from BSD package: `${BSDPKG} -q -W ${SMTPD}`"
     }
 
     echo ""
@@ -159,22 +165,21 @@ END
 
 IFS="
 "
-
-[ "$locking" = 1 ] && {
+[ "${locking}" = 1 ] && {
     echo "--Mailbox locking methods--"
-    locking_methods=`$POSTCONF -l`
+    locking_methods=`${POSTCONF} -l`
     echo $locking_methods
     echo ""
 }
 
-[ "$tables" = 1 ] && {
+[ "${tables}" = 1 ] && {
     echo "--Supported Lookup tables--"
-    lookup_tables=`$POSTCONF -m`
+    lookup_tables=`${POSTCONF} -m`
     echo $lookup_tables
     echo ""
 }
 
-[ "$main" = 1 -o "$defaultsinmain" = 1 ] && {
+[ "${main}" = 1 -o "${defaultsinmain}" = 1 ] && {
     if [ "x`find . -prune  \( -perm 020 -o -perm 002 \) -print`" != "x" ]
     then
        echo 2>&2 "Do not run this in a public- or group-writable directory"
@@ -182,8 +187,8 @@ IFS="
     fi
 
     rm -f postfinger.$$.d postfinger.$$.n
-    $POSTCONF -d | sort > postfinger.$$.d
-    $POSTCONF -n | sort > postfinger.$$.n
+    ${POSTCONF} -d | tr -s [:blank:] | sort > postfinger.$$.d
+    ${POSTCONF} -n | tr -s [:blank:] | sort > postfinger.$$.n
 
     [ "$main" = 1 ] && {
         echo "--main.cf non-default parameters--"
@@ -191,7 +196,7 @@ IFS="
         echo ""
     }
 
-    [ "$defaultsinmain" = 1 ] && {
+    [ "${defaultsinmain}" = 1 ] && {
         echo "--main.cf parameters defined as per defaults--"
         comm -12 postfinger.$$.d postfinger.$$.n
         echo ""
@@ -200,38 +205,38 @@ IFS="
     rm -f postfinger.$$.d postfinger.$$.n
 }
 
-[ "$master" = 1 ] && {
+[ "${master}" = 1 ] && {
     echo "--master.cf--"
     # Remove blank and commented lines to reduce the output
     # Note: the second grep contains a space followed by a tab character
-    cat `$POSTCONF -h config_directory`/master.cf | \
+    cat `${POSTCONF} -h config_directory`/master.cf | \
 	grep -v '^#' | \
 	grep -v '^[ 	]*$'
     echo ""
 }
 
-[ "$permissions" = 1 ] && {
+[ "${permissions}" = 1 ] && {
     echo "--Specific file and directory permissions--"
-    ls -ld `$POSTCONF -h queue_directory`/maildrop
-    ls -ld `$POSTCONF -h queue_directory`/public
-    ls -l  `$POSTCONF -h queue_directory`/public 2>/dev/null || {
+    ls -ld `${POSTCONF} -h queue_directory`/maildrop
+    ls -ld `${POSTCONF} -h queue_directory`/public
+    ls -l  `${POSTCONF} -h queue_directory`/public 2>/dev/null || {
         echo 'WARNING: No access to $queue_directory/public'
         echo '  Try running postfinger as user root or postfix'
     }
-    ls -ld `$POSTCONF -h queue_directory`/private
-    ls -l  `$POSTCONF -h queue_directory`/private 2>/dev/null || {
+    ls -ld `${POSTCONF} -h queue_directory`/private
+    ls -l  `${POSTCONF} -h queue_directory`/private 2>/dev/null || {
         echo 'WARNING: No access to $queue_directory/private'
         echo '  Try running postfinger as user root or postfix'
     }
-    ls -l `$POSTCONF -h command_directory`/postdrop
-    ls -l `$POSTCONF -h command_directory`/postqueue
+    ls -l `${POSTCONF} -h command_directory`/postdrop
+    ls -l `${POSTCONF} -h command_directory`/postqueue
     echo ""
 }
 
-[ "$libraries" = 1 ] && {
+[ "${libraries}" = 1 ] && {
     echo "--Library dependencies--"
-    echo "$SMTPD:"
-    ldd $SMTPD  || echo "WARNING: Can not find ldd.  Check you have it installed and in your path"
+    echo "${SMTPD}:"
+    ldd ${SMTPD}  || echo "WARNING: Can not find ldd.  Check you have it installed and in your path"
 }
 
-echo "-- end of Postfinger output --"
+echo "-- end of postfinger output --"
