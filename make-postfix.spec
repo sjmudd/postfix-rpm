@@ -1,12 +1,14 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.8 2000/12/22 22:08:28 root Exp $
+#  $Id: make-postfix.spec,v 1.9 2000/12/22 22:54:49 root Exp $
+#
 
 POSTFIX_SUFFIX=
 POSTFIX_CCARGS=
 POSTFIX_AUXLIBS=
 POSTFIX_REQUIRES=
-REDHAT_RELEASE='Unknown linux version'
+REDHAT_PREREQ=
+REDHAT_RELEASE='Unknown Linux Distribution'
 
 # supposedly redhat now include LDAP libraries in the default install, so
 # include LDAP support by default
@@ -16,7 +18,7 @@ echo ""
 echo "Generating Postfix spec file: ../postfix.spec"
 if [ "X$POSTFIX_LDAP" = "X1" ]; then
     echo "  adding LDAP support to spec file"
-#   if it's the default don't add it to the name
+#   as it's the default don't add it to the name
 #   POSTFIX_SUFFIX="${POSTFIX_SUFFIX}+ldap"
     POSTFIX_CCARGS="${POSTFIX_CCARGS} -DHAS_LDAP"
     POSTFIX_AUXLIBS="${POSTFIX_AUXLIBS} -L/usr/lib -lldap -llber"
@@ -56,6 +58,7 @@ if [ `rpm -q redhat-release` ]; then
     if [ "X$A" = "X0" ]; then
         POSTFIX_REQUIRES="${POSTFIX_REQUIRES},db3"
         POSTFIX_BUILDREQUIRES="${POSTFIX_BUILDREQUIRES},db3,db3-devel"
+        REDHAT_PREREQ=', /etc/init.d'
     fi
     REDHAT_RELEASE=`rpm -q redhat-release` 
 fi
@@ -91,12 +94,13 @@ cat > ../SPECS/postfix.spec <<EOF
 #
 EOF
 sed "
-s!XX_POSTFIX_SUFFIX!$POSTFIX_SUFFIX!g
-s!XX_POSTFIX_CCARGS!$POSTFIX_CCARGS!g
-s!XX_POSTFIX_AUXLIBS!$POSTFIX_AUXLIBS!g
-s!XX_POSTFIX_REQUIRES!$POSTFIX_REQUIRES!g
-s!XX_POSTFIX_BUILDREQUIRES!$POSTFIX_BUILDREQUIRES!g
-s!XX_REDHAT_RELEASE!$REDHAT_RELEASE!g
+s!__POSTFIX_SUFFIX__!$POSTFIX_SUFFIX!g
+s!__POSTFIX_CCARGS__!$POSTFIX_CCARGS!g
+s!__POSTFIX_AUXLIBS__!$POSTFIX_AUXLIBS!g
+s!__POSTFIX_REQUIRES__!$POSTFIX_REQUIRES!g
+s!__POSTFIX_BUILDREQUIRES__!$POSTFIX_BUILDREQUIRES!g
+s!__REDHAT_RELEASE__!$REDHAT_RELEASE!g
+s!__REDHAT_PREREQ__!$REDHAT_PREREQ!g
 " postfix.spec.in >> ../SPECS/postfix.spec
 
 echo " "
