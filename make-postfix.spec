@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.7.2.10 2003/04/07 09:59:17 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.7.2.11 2003/04/09 15:52:27 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -53,8 +53,9 @@
 # REQUIRES_INIT_D	add /etc/init.d/ to requires list
 # POSTFIX_DB=3		add db3 package to requires list
 #
-# Red Hat Linux 6.x MAY require (according to configuration)
-# TLSFIX		enable a fix for TLS support on RH 6.2 (see spec file)
+# Red Hat Linux MAY require (according to configuration)
+# TLSFIX=1		enable a fix for TLS support on RH 6.2 (see spec file)
+# TLSFIX=2      	enable a fix for TLS support on RH 9 (see spec file)
 # POSTFIX_DB=3		add db3 package to requires list
 # POSTFIX_INCLUDE_DB=1	add /usr/include/db3 to the includes list
 #			and the db-3.1 library to the build instructions
@@ -196,9 +197,9 @@ if [ "$POSTFIX_TLS" = 1 ]; then
     echo "  adding TLS support to spec file"
     SUFFIX="${SUFFIX}.tls"
 
-    if [ ${releasename} = 'redhat' -a ${major} = 6 ]; then
-        TLSFIX=1
-    fi
+    # Different fixes (see spec file)
+    [ ${releasename} = 'redhat' -a ${major} = 6 ] && TLSFIX=1
+    [ ${releasename} = 'redhat' -a ${major} = 9 ] && TLSFIX=2
 fi
 if [ "$POSTFIX_VDA" = 1 ]; then
     # don't bother changing the suffix

@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.39 2003/04/07 09:59:17 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.40 2003/04/09 15:52:27 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -27,6 +27,7 @@
 # ipv6                     - include IPV6 support
 # tls                      - include TLS support
 # tlsfix                   - include TLS fix (apparently needed for rh6.2)
+#                          - (also include for rh9)
 # requires_init_d          - Required by RedHat >= 7
 # requires_db              - used to add dbX dependencies in the package
 # include_db               - include the dbX library when compiling (rh6.x with db3)
@@ -73,7 +74,7 @@
 %define official 1
 %define ver 2.0.7
 %define mail_release_date 20021219
-%define rel 3
+%define rel 4
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -218,7 +219,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.39 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.40 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -396,11 +397,10 @@ CCARGS="${CCARGS} -fsigned-char"
 # See http://www.openldap.org/lists/openldap-devel/200105/msg00008.html
 # - it seems rh6.2 needs LIBS=-ldl to build correctly.
 # - reported by Jauder Ho <jauderho@carumba.com>
-  if [ "${tlsfix}" = 1 ]; then
-    LIBS=-ldl
-  else
-    LIBS=
-  fi
+#
+# RH9 requires -I/usr/kerberos/include to build correctly
+  [ "%{tlsfix}" = 1 ] && LIBS=-ldl
+  [ "%{tlsfix}" = 2 ] && CCARGS="${CCARGS} -I/usr/kerberos/include"
   CCARGS="${CCARGS} -DHAS_SSL -I/usr/include/openssl"
   AUXLIBS="${AUXLIBS} -lssl -lcrypto"
 %endif
@@ -1002,6 +1002,10 @@ fi
 #
 
 %changelog
+
+* Wed Apr 09 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.7-4
+  - TLS support for RedHat 9 requires an extra include (TLSFIX=2)
+    - reported by Mike Nerone <mnerone@idworld.net>
 
 * Mon Apr 07 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.7-3
   - update so works on RedHat 9
