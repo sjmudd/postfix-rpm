@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.32 2001/05/01 09:56:39 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.33 2001/05/01 14:52:47 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -47,7 +47,7 @@
 %define patchlevel pl02
 %define version1 %{vers}-%{patchlevel}
 %define version2 %{vers}_%{patchlevel}
-%define rel  1
+%define rel  1.1
 %define tlsno pfixtls-0.7.1-20010228-pl01-0.9.6a
 
 Name: postfix
@@ -137,7 +137,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.32 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.33 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -368,13 +368,9 @@ chmod 0744 ${RPM_BUILD_ROOT}%{config_directory}/chroot-setup-LINUX2
 # This file is named 1postfix to ensure it is run _before_ logrotate
 install -c ${RPM_SOURCE_DIR}/postfix-etc-cron.daily-postfix ${RPM_BUILD_ROOT}%{cron_directory}/1postfix
 
-# install pflogsumm.pl into %{command_directory} used by cron daily
+# install pflogsumm.pl used by cron daily into %{command_directory}
 #
-( set -e; sed -e '/# ---Begin:/,/# ---End:/d' \
-  < ${RPM_SOURCE_DIR}/pflogsumm.pl; \
-  echo -e "#\n# This version modified for RedHat RPM: postfix-%{version}-%{release}\n#" \
-) > ${RPM_BUILD_ROOT}%{command_directory}/pflogsumm.pl
-chmod u=rx,go= ${RPM_BUILD_ROOT}%{command_directory}/pflogsumm.pl
+install -c -m u=rx,go= pflogsumm.pl ${RPM_BUILD_ROOT}%{command_directory}/pflogsumm.pl
 
 install -c auxiliary/rmail/rmail ${RPM_BUILD_ROOT}%{rmail_path}
 
