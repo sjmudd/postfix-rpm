@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.48 2002/10/19 16:55:22 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.49 2002/10/20 23:01:28 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -65,7 +65,7 @@
 %define official 1 
 %define ver 1.1.11
 %define mail_release_date 20020115
-%define rel 9
+%define rel 10
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -141,6 +141,8 @@ Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vdaver}_quota_maildirsiz
 Patch5: postfix-rbl_reply_maps.patch
 # Provided by Wietse, smtpd_chat.c from the 1.1 snapshot
 Patch6: postfix-smtpd_chat.c.diff
+# Adapted from http://www.stahl.bau.tu-bs.de/~hildeb/postfix/duchovni/log_recipient.gz
+Patch7: postfix-log_recipient
 Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pgver}.patch
 Patch51: postfix-pg-raw.patch
 Patch99: postfix-smtpd_multiline_greeting.patch
@@ -211,7 +213,7 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.48 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.49 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -280,6 +282,7 @@ patch -p1 <%{pfixtls}/pfixtls.diff
 %patch1 -p1 -b .config
 %patch2 -p1 -b .auth
 %patch3 -p1 -b .alternatives
+%patch7 -p1 -b .logrcpt
 
 # Apply optional patches
 %if %{vda}
@@ -963,6 +966,9 @@ fi
 #
 
 %changelog
+
+* Mon Oct 21 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-10
+  - add Victor Duchovni's log_recipient patch
 
 * Sat Oct 19 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-9
   - 1.1.11-8 was released with an error. (multiline patch was wrong)

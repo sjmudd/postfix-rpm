@@ -45,48 +45,51 @@ do
     shift
 done
 
-
 # download_if_necessary to srcdir base/file if not already there
 
 download_if_necessary() {
     local srcdir=$1
     local base=$2
     local file=$3
+    echo -n "===> checking for ${file} ..."
     if [ ! -f "${srcdir}/${file}" ]; then
-        echo "	${file} not found"
-	echo "  downloading to ${srcdir} from ${base}..."
+        echo " not found"
+	echo "	downloading to ${srcdir} from ${base}..."
         ( cd ${srcdir} && wget ${base}/${file} || {
             echo 'Failed!'
             exit 1
         }
         )
     else
-        echo "	${file} exists in ${srcdir}"
+        echo " found"
     fi
-    echo ""
 }
 
 # Test the rpm prep stage for TLS patches - do they apply cleanly?
 testtls () {
     [ "${test_tls}" = 1 ] && {
-    echo "Testing TLS patches: ***"
+    echo ""
+    echo "===> testing TLS patches"
     ( cd ${srcdir} && \
       POSTFIX_TLS=1 sh make-postfix.spec && \
       cd ${specdir} && \
-      rpm -bp postfix.spec ) || { echo "Testing TLS patches: ** FAILED **"; exit 1; }
-      echo "Testing TLS patches: ** OK **"
+      rpm -bp postfix.spec ) || { echo "===> testing TLS patches: ** FAILED **"; exit 1; }
+      echo "===> testing TLS patches: ** OK **"
+      echo ""
     }
 }
 
 # Test the rpm prep stage for VDA patches - do they apply cleanly?
 testvda () {
     [ "${test_vda}" = 1 ] && {
-    echo "Testing VDA patches: ***"
+    echo ""
+    echo "===> testing VDA patches"
     ( cd ${srcdir} && \
       POSTFIX_VDA=1 sh make-postfix.spec && \
       cd ${specdir} && \
-      rpm -bp postfix.spec ) || { echo "Testing VDA patches: ** FAILED **"; exit 1; }
-      echo "Testing VDA patches: ** OK **"
+      rpm -bp postfix.spec ) || { echo "===> testing VDA patches: ** FAILED **"; exit 1; }
+      echo "===> testing VDA patches: ** OK **"
+      echo ""
     }
 }
 
@@ -97,9 +100,10 @@ build () {
   chmod u+w ${specdir}/postfix.spec && \
   cd ${specdir} && \
   sleep 2 && \
-  echo ""
-  echo "Invoking rpm to build the package (output goes to ${build_output})..." && \
-  if [ -z "$sign" ]; then echo "	NOT SIGNING PACKAGE"; fi && \
+  echo "" && \
+  echo "===> building RPM package" && \
+  echo "	output to ${build_output}..." && \
+  if [ -z "$sign" ]; then echo "	NOT signing package"; fi && \
   rpm -ba $sign postfix.spec ) 2>&1 | tee ${build_output}
 }
 
@@ -131,20 +135,18 @@ srcdir=`rpm --eval '%{_sourcedir}'`
 specdir=`rpm --eval '%{_specdir}'`
 
 cat <<EOF
-Information extracted from postfix.spec.in:
+===> checking postfix.spec.in:
 	postfix version:	${version}
 	Release Date:		${mail_release_date}
 	Postfix tarball name:	${file}
 	URL location:		${base}
 	RPM Release:		${rpm_release}
-
-Environment Information:
+===> checking environment information:
 	specdir=$specdir
 	srcdir=$srcdir
-
 EOF
 
-echo "Checking for postfix tar ball..."
+echo "===> checking for Postfix tar ball"
 
 download_if_necessary ${srcdir} ${base} ${file}
 
@@ -158,11 +160,10 @@ base=`dirname ${source0}`
 file=`echo ${source0} | sed -e 's;.*/;;'`
 
 cat <<EOF
-Checking TLS patches...
+===> checking TLS patches...
 	pfixtls:		${pfixtls}
 	TLS patch tarball name:	${file}
 	URL location:		${base}
-
 EOF
 download_if_necessary . ${base} ${file}
 
@@ -175,19 +176,17 @@ base=`dirname ${patch4}`
 file=`echo ${patch4} | sed -e 's;.*/;;'`
 
 cat <<EOF
-Checking VDA patches...
+===> checking VDA patches...
 	vdaver:			${vdaver}
 	VDA patch tarball name:	${file}
 	URL location:		${base}
-
 EOF
 download_if_necessary . ${base} ${file}.gz
 gunzip < ${file}.gz > ${file}
 
-echo "CVS Status:"
-
+echo "===> checking CVS Status"
 if [ $no_check ]; then
-    echo "	not checking cvs repository."
+    echo "	NOT checking cvs repository."
 else
     echo "	checking files with cvs repository..."
     cvs diff 2>&1 >/dev/null || {

@@ -12,6 +12,7 @@ postfix-etc-cron.daily-postfix
 postfix-etc-init.d-postfix
 postfix-files.patch
 postfix-get-distribution
+postfix-log_recipient
 postfix-makedefs.patch
 postfix-new-RPM-packages
 postfix-pg-raw.patch
