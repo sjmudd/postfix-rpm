@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.59 2001/09/08 10:09:11 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.61 2001/09/18 22:19:16 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 #
@@ -43,12 +43,12 @@
 
 %define branch release
 %define vers 20010228
-%define patchlevel pl04
+%define patchlevel pl05
 %define version1 %{vers}-%{patchlevel}
 %define version2 %{vers}_%{patchlevel}
-%define rel  4
+%define rel  1
 
-%define tlsno pfixtls-0.7.8-20010228-pl04-0.9.6b
+%define tlsno pfixtls-0.7.9-20010228-pl04-0.9.6b
 %define pflogno -1.0.3
 
 Name: postfix
@@ -145,7 +145,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.59 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.61 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -691,6 +691,10 @@ fi
 #
 
 %changelog
+
+* Wed Sep 19 2001 Simon J Mudd <sjmudd@pobox.com>
+- postfix-20010228-pl05-1
+  - update to latest patch level
 
 * Sat Sep 08 2001 Simon J Mudd <sjmudd@pobox.com>
 - postfix-20010228-pl04-3
