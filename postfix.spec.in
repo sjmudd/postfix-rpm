@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.73.2.20 2001/04/02 18:05:42 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.73.2.21 2001/04/17 21:13:50 sjmudd Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -46,8 +46,8 @@
 %define patchlevel pl01
 %define version1 %{vers}-%{patchlevel}
 %define version2 %{vers}_%{patchlevel}
-%define rel  2
-%define tlsno pfixtls-0.7.0-20010228-0.9.6
+%define rel  3
+%define tlsno pfixtls-0.7.0-20010228-pl01-0.9.6a
 
 Name: postfix
 Summary: Postfix Mail Transport Agent
@@ -137,7 +137,7 @@ to and after the installation of Postfix.
 The binary and source rpms I produce are currently stored on
 	http://www.pobox.com/~sjmudd/postfix
 
-This package/specfile was built from postfix.spec.in $Revision: 2.73.2.20 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.73.2.21 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=__SMTPD_MULTILINE_GREETING__
@@ -197,10 +197,6 @@ fi
 patch -p1 <%{tlsno}/pfixtls.diff
 %endif
 
-# setup master.cf to be chrooted
-mv conf/master.cf conf/master.cf-nochroot
-awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > conf/master.cf
-
 # APPLY OBLIGATORY PATCHES
 %patch1 -p1 -b .config
 %patch2 -p1 -b .chk
@@ -221,6 +217,10 @@ for i in ACKNOWLEDGEMENTS CHANGES INSTALL README TODO; do
   mv %{tlsno}/$i $i.TLS
 done
 %endif
+
+# setup master.cf to be chrooted
+mv conf/master.cf conf/master.cf-nochroot
+awk -f ${RPM_SOURCE_DIR}/postfix-chroot-setup.awk < conf/master.cf-nochroot > conf/master.cf
 
 # Copy README files allowing us to just go %doc below, and have rpm(1)
 # automatically tuck it in alongside the READMEs and COPYRIGHTs.
@@ -639,6 +639,11 @@ fi
 #       Tim Powers <timp@redhat.com>
 
 %changelog
+* Tue Apr 17 2001 Simon Mudd <sjmudd@pobox.com>
+- postfix-20010228_pl01release-3, update the TLS patch for pl01
+  patch provided by Daniel Roesen <droesen@entire-systems.com>
+  comments from Peter Tuschy <peter@tuschy.com>
+
 * Mon Apr 02 2001 Peter Tuschy <peter@tuschy.com>
 - postfix-20010228_pl01release-2
 - bugfix specfile: TLS patch must be the first patch after setup line
