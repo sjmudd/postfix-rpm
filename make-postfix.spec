@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.8 2002/12/31 09:15:32 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.9 2003/01/16 15:12:32 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -106,7 +106,7 @@ EOF
 
 if [ "$POSTFIX_CDB" = 1 ]; then
     echo "  adding CDB support to spec file"
-#   SUFFIX="${SUFFIX}.cdb"
+    SUFFIX="${SUFFIX}.cdb"
 fi
 
 # LDAP support is provided by default on redhat >= 7.2, and yellowdog >= 2.3.

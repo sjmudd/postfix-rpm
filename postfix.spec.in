@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.242 2003/01/16 11:26:13 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.243 2003/01/16 15:12:33 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -62,15 +62,16 @@
 
 # Version information
 %define vdaver 2.0.0.2
-%define pfixtls pfixtls-0.8.12-2.0.0.1-0.9.6h
+%define pfixtls pfixtls-0.8.13-2.0.1-0.9.7
 %define pgver 1.1.4
 %define pfixipv6 tls+ipv6-1.10-pf-2.0.0-20030101
+%define cdbver 1.1.11-20021104
 
 # If set to 1 if official version, 0 if snapshot
 %define official 0
 %define ver 2.0.2
 %define mail_release_date 20030115
-%define rel 0.1
+%define rel 1
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -132,8 +133,7 @@ Source7: postfix.spec.in
 Source8: make-postfix.spec
 Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{pfixtls}.tar.gz
 Source11: postfix-build
-Source12: http://www.corpit.ru/ftp/postfix/postfix-dict_cdb.tar.gz
-Source13: http://www.corpit.ru/ftp/postfix/README.CDB
+Source12: http://www.corpit.ru/ftp/postfix/postfix-dict_cdb-%{cdbver}.tar.gz
 Source14: ftp://ftp.stack.nl/pub/postfix/tls+ipv6/1.10/%{pfixipv6}.patch.gz
 
 # Obligatory Patches
@@ -157,6 +157,11 @@ Requires: gawk, perl, sed, ed
 %if %{requires_db}
 Requires: db%{requires_db}
 BuildRequires: db%{requires_db}-devel
+%endif
+
+%if %{cdb}
+Requires: tinycdb
+BuildRequires: tinycdb
 %endif
 
 %if %{ldap}
@@ -209,7 +214,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.242 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.243 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -283,7 +288,6 @@ fi
 # Apply optional patches
 %if %{cdb}
 %setup -D -T -a 12
-cp $RPM_SOURCE_DIR/README.CDB .
 sh dict_cdb.sh
 %endif
 %if %{vda}
@@ -882,10 +886,6 @@ fi
 %doc RELEASE_NOTES-1.1
 %doc RELEASE_NOTES-2.0
 
-%if %{cdb}
-%doc README.CDB
-%endif
-
 %if %{pgsql}
 %doc PGSQL_README
 %endif
@@ -966,13 +966,15 @@ fi
 
 %changelog
 
-* Thu Jan 16 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.2-20030115-0.1
+* Thu Jan 16 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.2-20030115-1
 
   - update URLs in rpm -qi postfix output
   - update postfix-new-RPM-packages
   - update to 2.0.2-20030115
   - remove postfix-makedefs.patch (to not force pcre installaton)
   - update VDA patch
+  - update TLS patches
+  - update CDB patches
 
 * Thu Jan 09 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.0-20030109-0.1
   - update to 2.0.0-20030109-0.1
