@@ -6,7 +6,7 @@ diff -uNr postfix-1.1.11-orig/src/smtpd/smtpd.c postfix-1.1.11/src/smtpd/smtpd.c
  	smtpd_chat_reply(&state, "%s", state.access_denied);
      } else {
 -	smtpd_chat_reply(&state, "220 %s", var_smtpd_banner);
-+	smtpd_chat_reply_multiline(&state, "220 %s", var_smtpd_banner);
++	smtpd_chat_reply_multiline(&state, 220, var_smtpd_banner);
  	msg_info("connect from %s[%s]", state.name, state.addr);
      }
  

@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.46 2002/10/18 12:07:50 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.47 2002/10/18 20:02:22 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -211,7 +211,7 @@ The binary and source rpms I produce are currently available at
 and the following mirrors:
 	ftp://ftp.everdigital.org, ftp://ftp.shuttleamerica.com
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.46 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.47 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -969,6 +969,7 @@ fi
     applied with POSTFIX_RBL_MAPS=1 when used with make-postfix.spec
   - convert src/smtpd/smtpd_chat.c provided by Wietse from the
     1.2-snapshots into a diff, applying the patch at his request
+  - modify multiline_banner patch to work with new smtpd_chat.c
 
 * Mon Jul 15 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.11-7
   - update the TLS patches
