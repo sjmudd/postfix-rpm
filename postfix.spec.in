@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.222 2002/12/12 21:15:44 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.223 2002/12/12 21:28:08 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -209,7 +209,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.222 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.223 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -875,7 +875,6 @@ fi
 %doc COMPATIBILITY
 %doc HISTORY
 %doc INSTALL
-%doc LICENSE
 %doc PORTING
 %doc RELEASE_NOTES
 
@@ -959,6 +958,7 @@ fi
 
 * Wed Dec 11 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021209-1.2
   - add ipv6 patch (not yet used)
+  - remove (duplicate) LICENSE from %doc directory
 
 * Wed Dec 11 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021209-1.1
   - rename macro: DISABLE_CHROOT -> disable_chroot
