@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  $Id: make-postfix.spec,v 1.10 2000/12/31 20:29:58 root Exp $
+#  $Id: make-postfix.spec,v 1.11 2000/12/31 20:50:48 root Exp $
 #
 
 POSTFIX_SUFFIX=
@@ -59,6 +59,13 @@ if [ `rpm -q redhat-release` ]; then
         REDHAT_PREREQ=', /etc/init.d'
     fi
     REDHAT_RELEASE=`rpm -q redhat-release` 
+fi
+
+if [ ! -z "$POSTFIX_REQUIRES" ]; then
+    POSTFIX_REQUIRES="Requires: ${POSTFIX_REQUIRES}"
+fi
+if [ ! -z "$POSTFIX_BUILDREQUIRES" ]; then
+    POSTFIX_BUILDREQUIRES="BuildRequires: ${POSTFIX_BUILDREQUIRES}"
 fi
 
 cat > ../SPECS/postfix.spec <<EOF
