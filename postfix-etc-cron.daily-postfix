@@ -16,7 +16,12 @@
 # uncomment the next line to completely disable the daily cronjob
 # exit 0
 
+# Default location of the log file
 LOGFILE=/var/log/maillog
+if [ ! -f ${LOGFILE} ]; then
+    # check Mandrake's default mail log location
+    [ -f /var/log/mail/info ] && LOGFILE=/var/log/mail/info
+endif
 EXECUTABLE=/usr/sbin/pflogsumm.pl
 PFLOGSUMTMP=/etc/postfix/pfls.tmp.$$	# safer directory than /tmp
 #OPTIONS="--verp_mung=2 --problems_first --iso_date_time  -q -u 10 -h 10 -d yesterday"
