@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.270 2004/04/07 17:35:51 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.271 2004/04/14 17:11:25 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -78,7 +78,7 @@
 %define vda_version 2.0.16
 %define tls_version pfixtls-0.8.18-2.0.18-20040205-0.9.7c
 %define pg_version 2.0.0.2
-%define ipv6_version tls+ipv6-1.21-pf-2.0.19-20040312
+%define ipv6_version tls+ipv6-1.22-pf-2.0.19-20040312
 %define cdb_version 1.1.11-20021104
 
 # If set to 1 if official version, 0 if snapshot
@@ -236,7 +236,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.270 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.271 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
