@@ -27,11 +27,13 @@ the web at the following URL:
 For those of you looking for newer versions of my packages you can find
 them at the following sites:
 
-http://postfix.WL0.org/ftp			Madrid, Spain
-ftp://ftp.WL0.org				Madrid, Spain
 http://postfix.etes.de/ftp.wl0.org/		Germany, Stuttgart
 http://ftp.sanguine.net/pub/postfix/		Japan, Tokyo
+ftp://nl.WL0.org	(not always available)	Netherlands, Amsterdam
+ftp://ftp.cs.uu.nl/mirror/ftp.wl0.org		Netherlands, Utrecht
 http://ftp.iestradas.pt/postfix/ftp.wl0.org/	Portugal
+http://postfix.WL0.org/ftp			Spain, Madrid
+ftp://ftp.WL0.org				Spain, Madrid
 ftp://ftp.everdigital.org/mirrors/postfix/	USA, Houston, TX
 ftp://ftp.nobandwidth.net/pub/postfix-mudd/	USA, Milford, New Hampshire
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# # $Id: postfix-chroot.sh,v 1.1.2.2 2003/07/23 21:26:25 sjmudd Exp $
+# # $Id: postfix-chroot.sh,v 1.1.2.3 2003/07/24 19:30:33 sjmudd Exp $
 #
 # postfix-chroot.sh - enable or disable Postfix chroot
 #
@@ -44,7 +44,7 @@ EOF
 
 # Link source file to destination directory if possible. If the link is a
 # symbolic link, make a copy of the link in the destination directory,
-# otherwise copy the file.  Log to /var/log/maillog what we are doing.
+# otherwise copy the file.
 
 copy() {
     info "  $1 -> $2"
@@ -70,6 +70,11 @@ info () {
     echo "$1"
 }
 
+# Count the files in a particular location given by the input pattern
+count_files_in () {
+    echo `ls $* 2>/dev/null | wc -l`
+}
+
 ##########################################################################
 #
 # remove chroot jail
@@ -83,17 +88,25 @@ remove_chroot () {
     info "removing chroot from: ${chroot}"
 
     # remove Postgres libraries
-    info "removng Postgres files from chroot (if any)"
-    rm -f ${chroot}${libdir}/libpq*
+    pattern="${chroot}${libdir}/libpq*"
+    [ $(count_lines_in ${pattern}) != 0 ] && {
+        info "removng Postgres files from chroot"
+        echo only rm -f ${pattern}
+    }
 
     # remove LDAP libraries
-    info "remove LDAP files from chroot (if any)"
-    rm -f ${chroot}${libdir}/libldap*.so*
-    rm -f ${chroot}${libdir}/liblber.so*
+    pattern="${chroot}${libdir}/libldap*.so* ${chroot}${libdir}/liblber.so*"
+    [ $(count_lines_in ${pattern}) != 0 ] && {
+        info "remove LDAP files from chroot"
+        echo only rm -f ${pattern}
+    }
 
     # remove db libraries
-    info "remove db files from chroot (if any)"
-    rm -f ${chroot}/lib/libdb*.so*
+    pattern="${chroot}/lib/libdb*.so*"
+    [ $(count_lines_in ${pattern}) != 0 ] && {
+        info "remove db files from chroot"
+        echo only rm -f ${pattern}
+    }
 
     # we must be in ${chroot} before calling this routine
     cd ${chroot} && {
@@ -127,7 +140,7 @@ BEGIN                   { IFS="[ \t]+"; OFS="\t"; }
 $8 ~ /(proxymap|local|pipe|virtual)/    { print; next; }
 $5 == "y"               { $5="n"; print $0; next; }
                         { print; }
-' < ${confdir}/master.cf-old > ${confdir}/master.cf
+' ${confdir}/master.cf-old > ${confdir}/master.cf
 
 }
 
@@ -227,7 +240,7 @@ BEGIN                   { IFS="[ \t]+"; OFS="\t"; }
 $8 ~ /(proxymap|local|pipe|virtual)/    { print; next; }
 $5 == "n"               { $5="y"; print $0; next; }
                         { print; }
-' < ${confdir}/master.cf-old > ${confdir}/master.cf
+' ${confdir}/master.cf-old > ${confdir}/master.cf
 
 }
 
