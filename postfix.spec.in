@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.218 2002/12/10 09:26:07 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.219 2002/12/10 11:04:22 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -69,7 +69,7 @@
 %define official 0
 %define ver 1.1.12
 %define mail_release_date 20021209
-%define rel 0.1
+%define rel 0.2
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -208,7 +208,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.218 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.219 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
@@ -653,18 +653,21 @@ fi
 rm -f %{queue_dir}/lib/libnss* %{queue_dir}/lib/libresolv*
 # determine glibc version
 LIBCVER=`ls -l /lib/libc.so.6* | sed "s/.*libc-\(.*\).so$/\1/g"`
-# copy the relevant parts in
-for i in compat dns files hesoid nis nisplus winbind wins; do
+# copy the relevant parts of glibc into the chroot
+for i in compat dns files hesoid ldap nis nisplus winbind wins; do
   [ -e /lib/libnss_${i}-${LIBCVER}.so ] && copy /lib/libnss_${i}-${LIBCVER}.so %{queue_dir}/lib
   [ -e /lib/libnss_${i}.so ]            && copy /lib/libnss_${i}.so            %{queue_dir}/lib
+  [ -e /lib/libnss_${i}.so.2 ]          && copy /lib/libnss_${i}.so.2          %{queue_dir}/lib
 done
-copy /lib/libresolv-${LIBCVER}.so %{queue_dir}/lib
+[ -e /lib/libnss_db.so.2.0.0 ] && copy /lib/libnss_db.so.2.0.0 %{queue_dir}/lib
+[ -e /lib/libresolv-${LIBCVER}.so ]   && copy /lib/libresolv-${LIBCVER}.so   %{queue_dir}/lib
+[ -e /lib/libresolv-${LIBCVER}.so.2 ] && copy /lib/libresolv-${LIBCVER}.so.2 %{queue_dir}/lib
 ldconfig -n %{queue_dir}/lib
 # copy real files into chroot environment
 for i in /etc/localtime /usr/lib/zoneinfo/localtime \
 	/etc/host.conf /etc/resolv.conf /etc/nsswitch.conf \
 	/etc/hosts /etc/passwd /etc/services; do
-    test -f ${i} && rm -f %{queue_dir}${i} && copy ${i} `/usr/bin/dirname %{queue_dir}${i}`
+    [ -e ${i} ] && rm -f %{queue_dir}${i} && copy ${i} `/usr/bin/dirname %{queue_dir}${i}`
 done
 %endif
 
@@ -952,6 +955,9 @@ fi
 #
 
 %changelog
+
+* Tue Dec 10 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021209-0.2
+  - update glibc chroot creation
 
 * Tue Dec 10 2002 Simon J Mudd <sjmudd@pobox.com> 1.1.12-20021209-0.1
   - update to 1.1.12-20021209
