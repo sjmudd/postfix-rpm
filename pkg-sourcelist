@@ -1,5 +1,5 @@
 make-postfix.spec
-pfixtls-0.8.12-2.0.0.1-0.9.6h.tar.gz
+pfixtls-0.8.13-2.0.1-0.9.7.tar.gz
 postfix-1.1.12-20021124-multiline-greeting.patch
 postfix-2.0.0.2.patch.gz
 postfix-aliases

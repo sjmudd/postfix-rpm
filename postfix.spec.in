@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.7 2003/01/13 07:28:40 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.8 2003/01/14 07:37:05 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -61,7 +61,7 @@
 
 # Version information
 %define vdaver 2.0.0.2
-%define pfixtls pfixtls-0.8.12-2.0.0.1-0.9.6h
+%define pfixtls pfixtls-0.8.13-2.0.1-0.9.7
 %define pgver 1.1.4
 %define pfixipv6 tls+ipv6-1.10-pf-2.0.0.2
 
@@ -208,7 +208,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.7 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.8 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, disable_chroot=%{disable_chroot}
@@ -966,6 +966,7 @@ fi
 * Mon Jan 13 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.1-1
   - update to 2.0.1
   - update vda patch to 2.0.0.2
+  - update TLS patches to 0.8.13
 
 * Wed Jan 08 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.0.2-3
   - cosmestic: lowercase some macro names
