@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# $Id: postfix.spec.in,v 2.52 2001/01/26 19:11:05 root Exp $
+# $Id: postfix.spec.in,v 2.53 2001/01/26 19:16:53 root Exp $
 #
 # File used to generate the different spec files, used to build the postfix
 # package on RedHat Linux.
@@ -49,7 +49,7 @@ URL: http://www.postfix.org
 Copyright: IBM Public License
 PreReq: /sbin/chkconfig__DISTRIBUTION_PREREQ__
 Provides: MTA smtpd smtpdaemon
-Conflicts: sendmail
+Conflicts: sendmail, exim, qmail
 Version: 20001217
 Release: 12__SUFFIX__
 Packager: Simon J Mudd <sjmudd@pobox.com>
@@ -580,6 +580,7 @@ rm -rf ${RPM_BUILD_ROOT}
   names.  Introduction of new define REDHATMYSQL for the first
   case.  Suggestions by Ramiro Morales <rmrpms@usa.net>
 - fix make-postfix.spec (missing -z checks) <ilmis@compart.fi>
+- add Conflicts: for exim and qmail
 
 * Sun Jan 21 2001 Simon Mudd <sjmudd@pobox.com>
 - snapshot-20001217-11, following suggestion by Daniel Roesen
