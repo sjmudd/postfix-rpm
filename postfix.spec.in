@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.283 2004/04/27 19:38:11 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.284 2004/04/27 20:52:15 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -241,7 +241,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.283 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.284 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -547,7 +547,7 @@ install -c -m 644 %{_sourcedir}/README-Postfix-SASL-RedHat.txt ${RPM_BUILD_ROOT}
 
 # Install odd documentation files
 for file in AAAREADME COMPATIBILITY COPYRIGHT HISTORY PORTING \
-	RELEASE_NOTES RELEASE_NOTES-1.1 RELEASE_NOTES-2.0 TODO-BEFORE-RELEASE \
+	RELEASE_NOTES RELEASE_NOTES-1.1 RELEASE_NOTES-2.0 \
 	US_PATENT_6321267
 do
 	install -c -m 644 $file ${RPM_BUILD_ROOT}%{docdir}/
@@ -987,7 +987,6 @@ umask 022
 %doc %{docdir}/RELEASE_NOTES-1.1
 %doc %{docdir}/RELEASE_NOTES-2.0
 %doc %{docdir}/SEE-ALSO
-%doc %{docdir}/TODO-BEFORE-RELEASE
 %doc %{docdir}/US_PATENT_6321267
 
 %doc %dir %{readme_dir}
