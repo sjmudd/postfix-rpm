@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.266 2004/04/04 13:13:47 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.267 2004/04/06 07:52:43 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -99,8 +99,9 @@
 #   (only affects snapshots)
 %define package_version %(echo %{tarball_version} | sed 's/\(RC[0-9]*\)-\(.*\)/\2-\1/' | sed 's/-/./g')
 
-%define sample_dir %{_docdir}/%{name}-%{version}/samples
-%define readme_dir %{_docdir}/%{name}-%{version}/README_FILES
+%define docdir %{_docdir}/%{name}-%{version}
+%define sample_dir %{docdir}/samples
+%define readme_dir %{docdir}/README_FILES
 
 %define newaliases_path %{_bindir}/newaliases.postfix
 %define mailq_path %{_bindir}/mailq.postfix
@@ -117,7 +118,7 @@ Name: postfix
 Group: System Environment/Daemons
 URL: http://www.postfix.org
 License: IBM Public License
-PreReq: /sbin/chkconfig
+PreReq: chkconfig, initscripts, shadow-utils
 %if %{requires_init_d}
 PreReq: /etc/init.d, /sbin/service
 %endif
@@ -233,7 +234,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.266 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.267 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -467,6 +468,10 @@ umask 022
 
 %{?!debug:strip -R .comment --strip-unneeded bin/* libexec/*}
 
+# create %{sample_dir} though I think this is no longer being used and
+# should therefore be removed. (2004-04-05)
+mkdir -p ${RPM_BUILD_ROOT}%{sample_dir}
+
 # Rename man pages so they we don't conflict with sendmail's
 # Binaries are handled in the defines in preamble of specfile
 mv man/man1/mailq.1      man/man1/mailq.postfix.1
@@ -490,8 +495,8 @@ sh postfix-install -non-interactive \
        sample_directory=%{sample_dir} \
        readme_directory=%{readme_dir} || exit 1
 
-ln -sf %{sample_dir} %{_sysconfdir}/postfix/samples
-ln -sf %{readme_dir} %{_sysconfdir}/postfix/README_FILES
+ln -sf %{sample_dir} ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/samples
+ln -sf %{readme_dir} ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/README_FILES
 
 # RPM compresses man pages automatically.  Edit postfix-files to reflect this,
 # so post-install won't get confused.
@@ -537,7 +542,9 @@ done
 # - postfix-chroot.sh is placed in /etc/postfix to make it more visible
 install -c -m 755 %{_sourcedir}/%{postfinger} ${RPM_BUILD_ROOT}%{_bindir}/postfinger
 install -c -m 755 %{_sourcedir}/postfix-chroot.sh ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/
-install -c -m 644 %{_sourcedir}/README-Postfix-SASL-RedHat.txt %{readme_dir}/
+
+mkdir -p ${RPM_BUILD_ROOT}%{readme_dir}
+install -c -m 644 %{_sourcedir}/README-Postfix-SASL-RedHat.txt ${RPM_BUILD_ROOT}%{readme_dir}/
 
 # fix path to perl and certs
 %if %{tls}
@@ -558,7 +565,7 @@ Documentation
 -------------
 
 Postfix documentation should be available in the standard directory
-%{_docdir}%{name}-%{version}/.  I have also added a symbolic link to the
+%{docdir}/.  I have also added a symbolic link to the
 readme_files and sample_files directories from the
 %{_sysconfdir}/postfix directory.
 
@@ -936,7 +943,7 @@ umask 022
 %attr(0755, root, root) %{_sysconfdir}/postfix/postfix-chroot.sh
 
 %dir %attr(-, root, root) %{sample_dir}
-%attr(0644,   root, root) %{sample_dir}/*
+#%attr(0644,   root, root) %{sample_dir}/*
 %dir %attr(-, root, root) %{readme_dir}
 %attr(0644,   root, root) %{readme_dir}/*
 
@@ -971,7 +978,7 @@ umask 022
 %doc RELEASE_NOTES-1.1
 %doc RELEASE_NOTES-2.0
 #%doc SNAPSHOT
-%doc TODO_BEFORE_RELEASE
+%doc TODO-BEFORE-RELEASE
 %doc US_PATENT_6321267
 
 %if %{tls}
@@ -989,6 +996,7 @@ umask 022
 
 %doc html
 %doc examples
+%doc README_FILES
 
 %dir %attr(0755, root, root) %verify(not md5 size mtime) %{_libexecdir}/postfix
 %{_libexecdir}/postfix/anvil
@@ -1054,7 +1062,7 @@ umask 022
 * Thu Apr 01 2004 Simon J Mudd <sjmudd@pobox.com> 2.1-RC1.20040331-0.1
 - prepare for release candidate 1 of 2.1
 - change my README files leaving one in the config directory
-- move the documentation files back to %{_docdir}/%{name}-%{version} but
+- move the documentation files back to %{docdir} but
   maintain symlinks from /etc/postfix for convenience.
 - update postfinger to 1.29
 - include README-Postfix-SASL-RedHat.txt (borrowed from RedHat RPM)
