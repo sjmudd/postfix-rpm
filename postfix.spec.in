@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.194.2.63 2002/12/02 14:17:27 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.194.2.64 2002/12/02 14:58:41 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # Please send bugfixes and comments to the packager.
@@ -145,7 +145,7 @@ Patch6: postfix-smtpd_chat.c.diff
 Patch7: postfix-log_recipient
 Patch50: http://www.mat.cc/postfix/postfix-pg.postfix-%{pgver}.patch
 Patch51: postfix-pg-raw.patch
-Patch99: ftp://ftp.wl0.org/SOURCES/postfix-1.1.11-multiline_greeting.patch
+Patch99: ftp://ftp.wl0.org/SOURCES/postfix-1.1.11-multiline-greeting.patch
 
 BuildRoot: %{_tmppath}/postfix-%{package_version}-buildroot
 
@@ -208,7 +208,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://pobox.com/~sjmudd/postfix/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.194.2.63 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.194.2.64 $,
 with the following options:
 
 SMTPD_MULTILINE_GREETING=%{SMTPD_MULTILINE_GREETING}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2}, DISABLE_CHROOT=%{DISABLE_CHROOT}
