@@ -17,7 +17,7 @@
      if (state->sasl_mechanism_list) {
 +  	if (strcasecmp(state->sasl_mechanism_list, words) == 0)
 +  	    return;
-+ 	cp = contatenate(state->sasl_mechanism_list, " ", words);
++ 	cp = concatenate(state->sasl_mechanism_list, " ", words);
  	myfree(state->sasl_mechanism_list);
 -	msg_warn("%s offered AUTH option multiple times",
 -		 state->session->namaddr);
