@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.230.2.74 2003/07/22 19:23:27 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.230.2.75 2003/07/23 21:26:25 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -79,7 +79,7 @@
 %define official 1
 %define ver 2.0.13
 %define mail_release_date 20021219
-%define rel 3.99.1
+%define rel 3.99.2
 %if %{official}
 %define tarball_version %{ver}
 %define package_version %{ver}
@@ -221,7 +221,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.230.2.74 $,
+This package/specfile was built from postfix.spec.in $Revision: 2.230.2.75 $,
 with the following options:
 
 smtpd_multiline_greeting=%{smtpd_multiline_greeting}, vda=%{vda}, pgsql=%{pgsql}, pgsql2=%{pgsql2},
@@ -532,8 +532,10 @@ for i in qmqp-source smtp-sink smtp-source; do
   install -c -m 755 bin/$i ${RPM_BUILD_ROOT}%{_sbindir}/$i
 done
 
-# install postfinger
+# install postfinger and postfix-chroot.sh scripts
+# - postfix-chroot.sh is placed in /etc/postfix to make it more visible
 install -c -m 755 %{_sourcedir}/%{postfinger} ${RPM_BUILD_ROOT}%{_bindir}/postfinger
+install -c -m 755 %{_sourcedir}/postfix-chroot.sh ${RPM_BUILD_ROOT}%{_sysconfdir}/
 
 # fix path to perl
 %if %{tls}
@@ -920,6 +922,9 @@ umask 022
 #
 
 %changelog
+
+* Wed Jul 23 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.13-3.99.2
+  - Finish postfix-chroot.sh script. It looks ok, prepare for testing
 
 * Mon Jul 21 2003 Simon J Mudd <sjmudd@pobox.com> 2.0.13-3.2
   - Remove chroot from package (Wietse's suggested it is better that way
