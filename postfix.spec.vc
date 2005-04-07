@@ -9,15 +9,15 @@ prog V_ipv6 = {
   regex     = tls\+ipv6-([^-]+-pf-\d\.\d\.\d)
 }
 prog V_postfix = {
-  version   = 2.2.0
+  version   = 2.2.2
   url       = ftp://ftp.porcupine.org/mirrors/postfix-release/official/
   regex     = postfix-(\d+\.\d+\.\d+)\.tar\.gz
   dldir     = /home/sjmudd/RPM/SRC/postfix
 }
 prog V_vda = {
-  version   = 2.1.3
+  version   = 2.2.2
   url       = http://web.onda.com.br/nadal/postfix/VDA/
-  regex     = postfix-(\d\.\d\.\d).patch.gz
+  regex     = postfix-(\d\.\d\.\d)-vda.patch.gz
 }
 
 prog V_spf = {

@@ -21,7 +21,7 @@
 # - Mandrake Linux
 
 [ -n "$DEBUG" ] && set -x
-version=$(echo '$Revision: 1.12.4.3 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
+version=$(echo '$Revision: 1.12.4.4 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
 myname=$(basename $0)
 
 # Provide a usage message
@@ -171,6 +171,11 @@ echo $release | grep -q '\.' && {
     major=$release
 }
 
+# tao-release fix
+# - tao-linux 1.0 is equivalent to rhel-3.0 so adjust the version numbering
+#   accordingly.
+[ "$rpmname" = "tao-release" -a "$major" = 1 ] && major=3
+
 case $info in
 distribution)
     echo ${name}-${major}.${minor};;
@@ -188,6 +193,7 @@ debug)
     echo major=$major
     echo minor=$minor
     echo full=$full
+    echo rpmname=$rpmname
     ;;
 *)
     echo "Internal error info=$info" >&2
