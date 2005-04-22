@@ -1,6 +1,6 @@
-diff -Pur postfix-2.1.3/README_FILES/SPF_README postfix-2.1.3+spf2/README_FILES/SPF_README
---- postfix-2.1.3/README_FILES/SPF_README	Thu Jan  1 01:00:00 1970
-+++ postfix-2.1.3+spf2/README_FILES/SPF_README	Mon Jul  5 20:38:16 2004
+diff -Pur postfix-2.2.0/README_FILES/SPF_README postfix-2.2.0+spf2/README_FILES/SPF_README
+--- postfix-2.2.0/README_FILES/SPF_README	Thu Jan  1 01:00:00 1970
++++ postfix-2.2.0+spf2/README_FILES/SPF_README	Mon Mar 14 20:06:32 2005
 @@ -0,0 +1,84 @@
 +Postfix SPF readme
 +-------------------
@@ -86,17 +86,23 @@ diff -Pur postfix-2.1.3/README_FILES/SPF_README postfix-2.1.3+spf2/README_FILES/
 +	http://www.postfix.org/			- Postfix home page
 +
 +[Dean Strik <dean@ipnet6.org>, 5 Jul 2004]
-diff -Pur postfix-2.1.3/SPF-ChangeLog postfix-2.1.3+spf2/SPF-ChangeLog
---- postfix-2.1.3/SPF-ChangeLog	Thu Jan  1 01:00:00 1970
-+++ postfix-2.1.3+spf2/SPF-ChangeLog	Mon Jul  5 22:41:45 2004
-@@ -0,0 +1,18 @@
+diff -Pur postfix-2.2.0/SPF-ChangeLog postfix-2.2.0+spf2/SPF-ChangeLog
+--- postfix-2.2.0/SPF-ChangeLog	Thu Jan  1 01:00:00 1970
++++ postfix-2.2.0+spf2/SPF-ChangeLog	Mon Mar 14 20:15:17 2005
+@@ -0,0 +1,24 @@
 +ChangeLog for Dean Strik's SPF patch for Postfix (using libspf2).
 +
 +	http://www.ipnet6.org/postfix/spf/
 +
 +---------------------------------------------------------------------
 +
-+Patch 4		Postfix version 2.1.3		(LibSPF2 version 1.0.3)
++Patch 5		Postfix version 2.1.5		(LibSPF2 version 1.0.x)
++		Postfix version 2.2.0
++
++	Trivial code change so gcc 3.4 correctly compiles the code.
++	Reported by Jett Tayer and Mark Sergeant.
++
++Patch 4		Postfix version 2.1.3		(LibSPF2 version 1.0.x)
 +
 +	Bugfix: no state inconsistency panics with multiple recipients.
 +
@@ -108,21 +114,21 @@ diff -Pur postfix-2.1.3/SPF-ChangeLog postfix-2.1.3+spf2/SPF-ChangeLog
 +
 +	Initial release. (AKA spf-v016). Only README fixes in p2/p3.
 +
-diff -Pur postfix-2.1.3/conf/postfix-files postfix-2.1.3+spf2/conf/postfix-files
---- postfix-2.1.3/conf/postfix-files	Thu Apr 22 19:20:50 2004
-+++ postfix-2.1.3+spf2/conf/postfix-files	Mon Jul  5 00:38:22 2004
-@@ -235,6 +235,7 @@
+diff -Pur postfix-2.2.0/conf/postfix-files postfix-2.2.0+spf2/conf/postfix-files
+--- postfix-2.2.0/conf/postfix-files	Thu Feb 24 12:57:26 2005
++++ postfix-2.2.0+spf2/conf/postfix-files	Mon Mar 14 20:06:32 2005
+@@ -255,6 +255,7 @@
  $readme_directory/SMTPD_ACCESS_README:f:root:-:644
  $readme_directory/SMTPD_POLICY_README:f:root:-:644
  $readme_directory/SMTPD_PROXY_README:f:root:-:644
 +$readme_directory/SPF_README:f:root:-:644
  $readme_directory/STANDARD_CONFIGURATION_README:f:root:-:644
+ $readme_directory/TLS_README:f:root:-:644
  $readme_directory/TUNING_README:f:root:-:644
- $readme_directory/ULTRIX_README:f:root:-:644
-diff -Pur postfix-2.1.3/src/global/mail_params.h postfix-2.1.3+spf2/src/global/mail_params.h
---- postfix-2.1.3/src/global/mail_params.h	Wed Apr 21 20:56:04 2004
-+++ postfix-2.1.3+spf2/src/global/mail_params.h	Mon Jul  5 01:51:09 2004
-@@ -1961,6 +1961,35 @@
+diff -Pur postfix-2.2.0/src/global/mail_params.h postfix-2.2.0+spf2/src/global/mail_params.h
+--- postfix-2.2.0/src/global/mail_params.h	Sun Feb 27 16:06:07 2005
++++ postfix-2.2.0+spf2/src/global/mail_params.h	Mon Mar 14 20:06:32 2005
+@@ -2272,6 +2272,35 @@
  #define CHECK_POLICY_SERVICE		"check_policy_service"
  
   /*
@@ -158,9 +164,9 @@ diff -Pur postfix-2.1.3/src/global/mail_params.h postfix-2.1.3+spf2/src/global/m
    * Client rate control.
    */
  #define VAR_SMTPD_CRATE_LIMIT		"smtpd_client_connection_rate_limit"
-diff -Pur postfix-2.1.3/src/global/mail_version.h postfix-2.1.3+spf2/src/global/mail_version.h
---- postfix-2.1.3/src/global/mail_version.h	Wed Jun 16 20:19:03 2004
-+++ postfix-2.1.3+spf2/src/global/mail_version.h	Mon Jul  5 22:38:54 2004
+diff -Pur postfix-2.2.0/src/global/mail_version.h postfix-2.2.0+spf2/src/global/mail_version.h
+--- postfix-2.2.0/src/global/mail_version.h	Wed Mar  9 18:48:00 2005
++++ postfix-2.2.0+spf2/src/global/mail_version.h	Mon Mar 14 20:06:32 2005
 @@ -38,6 +38,13 @@
  #define DEF_MAIL_RELEASE	MAIL_RELEASE_DATE
  extern char *var_mail_release;
@@ -169,15 +175,15 @@ diff -Pur postfix-2.1.3/src/global/mail_version.h postfix-2.1.3+spf2/src/global/
 + * SPF patch version.
 + */
 +#define VAR_SPF_PVERSION	"spf_patch_version"
-+#define DEF_SPF_PVERSION	"v4"
++#define DEF_SPF_PVERSION	"v5"
 +extern char *var_spf_version;
 +
  /* LICENSE
  /* .ad
  /* .fi
-diff -Pur postfix-2.1.3/src/smtpd/Makefile.in postfix-2.1.3+spf2/src/smtpd/Makefile.in
---- postfix-2.1.3/src/smtpd/Makefile.in	Thu Apr 22 21:37:39 2004
-+++ postfix-2.1.3+spf2/src/smtpd/Makefile.in	Fri Jul  2 16:50:41 2004
+diff -Pur postfix-2.2.0/src/smtpd/Makefile.in postfix-2.2.0+spf2/src/smtpd/Makefile.in
+--- postfix-2.2.0/src/smtpd/Makefile.in	Mon Feb  7 01:17:15 2005
++++ postfix-2.2.0+spf2/src/smtpd/Makefile.in	Mon Mar 14 20:06:32 2005
 @@ -1,12 +1,12 @@
  SHELL	= /bin/sh
  SRCS	= smtpd.c smtpd_token.c smtpd_check.c smtpd_chat.c smtpd_state.c \
@@ -194,13 +200,13 @@ diff -Pur postfix-2.1.3/src/smtpd/Makefile.in postfix-2.1.3+spf2/src/smtpd/Makef
  TESTSRC	= smtpd_token_test.c
  DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
  CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
-diff -Pur postfix-2.1.3/src/smtpd/smtpd.c postfix-2.1.3+spf2/src/smtpd/smtpd.c
---- postfix-2.1.3/src/smtpd/smtpd.c	Thu Jun 17 00:40:36 2004
-+++ postfix-2.1.3+spf2/src/smtpd/smtpd.c	Mon Jul  5 21:27:52 2004
-@@ -754,6 +754,12 @@
- char   *var_xforward_hosts;
- bool    var_smtpd_rej_unl_from;
- bool    var_smtpd_rej_unl_rcpt;
+diff -Pur postfix-2.2.0/src/smtpd/smtpd.c postfix-2.2.0+spf2/src/smtpd/smtpd.c
+--- postfix-2.2.0/src/smtpd/smtpd.c	Wed Mar  9 21:07:43 2005
++++ postfix-2.2.0+spf2/src/smtpd/smtpd.c	Mon Mar 14 20:08:12 2005
+@@ -900,6 +900,12 @@
+ char   *var_local_rwr_clients;
+ char   *var_smtpd_ehlo_dis_words;
+ char   *var_smtpd_ehlo_dis_maps;
 +int     var_spf_reject_code;
 +bool    var_spf_mark_only;
 +bool    var_spf_rcvd_header;
@@ -208,9 +214,9 @@ diff -Pur postfix-2.1.3/src/smtpd/smtpd.c postfix-2.1.3+spf2/src/smtpd/smtpd.c
 +char   *var_spf_explanation;
 +bool    var_spf_global_whitelist;
  
- #ifdef SNAPSHOT
- int     var_smtpd_crate_limit;
-@@ -1354,6 +1360,7 @@
+ bool    var_smtpd_use_tls;
+ bool    var_smtpd_enforce_tls;
+@@ -1637,6 +1643,7 @@
  	state->saved_redirect = 0;
      }
      state->saved_flags = 0;
@@ -218,7 +224,7 @@ diff -Pur postfix-2.1.3/src/smtpd/smtpd.c postfix-2.1.3+spf2/src/smtpd/smtpd.c
  #ifdef USE_SASL_AUTH
      if (var_smtpd_sasl_enable)
  	smtpd_sasl_mail_reset(state);
-@@ -1596,6 +1603,14 @@
+@@ -1943,6 +1950,14 @@
  	    out_fprintf(out_stream, REC_TYPE_NORM, "%s", *cpp);
  
      /*
@@ -233,36 +239,36 @@ diff -Pur postfix-2.1.3/src/smtpd/smtpd.c postfix-2.1.3+spf2/src/smtpd/smtpd.c
       * Suppress our own Received: header in the unlikely case that we are an
       * intermediate proxy.
       */
-@@ -2707,6 +2722,7 @@
- 	VAR_VIRT_MAILBOX_CODE, DEF_VIRT_MAILBOX_CODE, &var_virt_mailbox_code, 0, 0,
- 	VAR_RELAY_RCPT_CODE, DEF_RELAY_RCPT_CODE, &var_relay_rcpt_code, 0, 0,
- 	VAR_VERIFY_POLL_COUNT, DEF_VERIFY_POLL_COUNT, &var_verify_poll_count, 1, 0,
-+	VAR_SPF_REJECT_CODE, DEF_SPF_REJECT_CODE, &var_spf_reject_code, 0, 0,
- #ifdef SNAPSHOT
- 	VAR_SMTPD_CRATE_LIMIT, DEF_SMTPD_CRATE_LIMIT, &var_smtpd_crate_limit, 0, 0,
+@@ -3336,6 +3351,7 @@
  	VAR_SMTPD_CCONN_LIMIT, DEF_SMTPD_CCONN_LIMIT, &var_smtpd_cconn_limit, 0, 0,
-@@ -2734,6 +2750,9 @@
- 	VAR_SHOW_UNK_RCPT_TABLE, DEF_SHOW_UNK_RCPT_TABLE, &var_show_unk_rcpt_table,
- 	VAR_SMTPD_REJ_UNL_FROM, DEF_SMTPD_REJ_UNL_FROM, &var_smtpd_rej_unl_from,
- 	VAR_SMTPD_REJ_UNL_RCPT, DEF_SMTPD_REJ_UNL_RCPT, &var_smtpd_rej_unl_rcpt,
+ 	VAR_SMTPD_CMAIL_LIMIT, DEF_SMTPD_CMAIL_LIMIT, &var_smtpd_cmail_limit, 0, 0,
+ 	VAR_SMTPD_CRCPT_LIMIT, DEF_SMTPD_CRCPT_LIMIT, &var_smtpd_crcpt_limit, 0, 0,
++	VAR_SPF_REJECT_CODE, DEF_SPF_REJECT_CODE, &var_spf_reject_code, 0, 0,
+ #ifdef USE_TLS
+ 	VAR_SMTPD_TLS_CCERT_VD, DEF_SMTPD_TLS_CCERT_VD, &var_smtpd_tls_ccert_vd, 0, 0,
+ #endif
+@@ -3368,6 +3384,9 @@
+ 	VAR_SMTPD_USE_TLS, DEF_SMTPD_USE_TLS, &var_smtpd_use_tls,
+ 	VAR_SMTPD_ENFORCE_TLS, DEF_SMTPD_ENFORCE_TLS, &var_smtpd_enforce_tls,
+ 	VAR_SMTPD_TLS_WRAPPER, DEF_SMTPD_TLS_WRAPPER, &var_smtpd_tls_wrappermode,
 +	VAR_SPF_MARK_ONLY, DEF_SPF_MARK_ONLY, &var_spf_mark_only,
 +	VAR_SPF_RCVD_HEADER, DEF_SPF_RCVD_HEADER, &var_spf_rcvd_header,
 +	VAR_SPF_GLOBAL_WHITELIST, DEF_SPF_GLOBAL_WHITELIST, &var_spf_global_whitelist,
- 	0,
-     };
-     static CONFIG_STR_TABLE str_table[] = {
-@@ -2772,6 +2791,8 @@
- 	VAR_INPUT_TRANSP, DEF_INPUT_TRANSP, &var_input_transp, 0, 0,
- 	VAR_XCLIENT_HOSTS, DEF_XCLIENT_HOSTS, &var_xclient_hosts, 0, 0,
- 	VAR_XFORWARD_HOSTS, DEF_XFORWARD_HOSTS, &var_xforward_hosts, 0, 0,
+ #ifdef USE_TLS
+ 	VAR_SMTPD_TLS_AUTH_ONLY, DEF_SMTPD_TLS_AUTH_ONLY, &var_smtpd_tls_auth_only,
+ 	VAR_SMTPD_TLS_ACERT, DEF_SMTPD_TLS_ACERT, &var_smtpd_tls_ask_ccert,
+@@ -3418,6 +3437,8 @@
+ 	VAR_LOC_RWR_CLIENTS, DEF_LOC_RWR_CLIENTS, &var_local_rwr_clients, 0, 0,
+ 	VAR_SMTPD_EHLO_DIS_WORDS, DEF_SMTPD_EHLO_DIS_WORDS, &var_smtpd_ehlo_dis_words, 0, 0,
+ 	VAR_SMTPD_EHLO_DIS_MAPS, DEF_SMTPD_EHLO_DIS_MAPS, &var_smtpd_ehlo_dis_maps, 0, 0,
 +	VAR_SPF_LOCAL_POLICY, DEF_SPF_LOCAL_POLICY, &var_spf_local_policy, 0, 0,
 +	VAR_SPF_EXPLANATION, DEF_SPF_EXPLANATION, &var_spf_explanation, 0, 0,
- #ifdef SNAPSHOT
- 	VAR_SMTPD_HOGGERS, DEF_SMTPD_HOGGERS, &var_smtpd_hoggers, 0, 0,
- #endif
-diff -Pur postfix-2.1.3/src/smtpd/smtpd.h postfix-2.1.3+spf2/src/smtpd/smtpd.h
---- postfix-2.1.3/src/smtpd/smtpd.h	Wed Apr 21 20:23:33 2004
-+++ postfix-2.1.3+spf2/src/smtpd/smtpd.h	Sun Jul  4 23:00:47 2004
+ #ifdef USE_TLS
+ 	VAR_RELAY_CCERTS, DEF_RELAY_CCERTS, &var_smtpd_relay_ccerts, 0, 0,
+ 	VAR_SMTPD_SASL_TLS_OPTS, DEF_SMTPD_SASL_TLS_OPTS, &var_smtpd_sasl_tls_opts, 0, 0,
+diff -Pur postfix-2.2.0/src/smtpd/smtpd.h postfix-2.2.0+spf2/src/smtpd/smtpd.h
+--- postfix-2.2.0/src/smtpd/smtpd.h	Sun Jan 30 22:45:31 2005
++++ postfix-2.2.0+spf2/src/smtpd/smtpd.h	Mon Mar 14 20:06:33 2005
 @@ -12,6 +12,9 @@
    * System library.
    */
@@ -273,7 +279,7 @@ diff -Pur postfix-2.1.3/src/smtpd/smtpd.h postfix-2.1.3+spf2/src/smtpd/smtpd.h
  
   /*
    * SASL library.
-@@ -123,6 +126,12 @@
+@@ -138,6 +141,12 @@
      ARGV   *prepend;			/* prepended headers */
      VSTRING *instance;			/* policy query correlation */
      int     seqno;			/* policy query correlation */
@@ -286,10 +292,10 @@ diff -Pur postfix-2.1.3/src/smtpd/smtpd.h postfix-2.1.3+spf2/src/smtpd/smtpd.h
  
      /*
       * Pass-through proxy client.
-diff -Pur postfix-2.1.3/src/smtpd/smtpd_check.c postfix-2.1.3+spf2/src/smtpd/smtpd_check.c
---- postfix-2.1.3/src/smtpd/smtpd_check.c	Mon May  3 17:40:13 2004
-+++ postfix-2.1.3+spf2/src/smtpd/smtpd_check.c	Sun Jul  4 21:21:24 2004
-@@ -211,6 +211,7 @@
+diff -Pur postfix-2.2.0/src/smtpd/smtpd_check.c postfix-2.2.0+spf2/src/smtpd/smtpd_check.c
+--- postfix-2.2.0/src/smtpd/smtpd_check.c	Sat Mar  5 02:13:10 2005
++++ postfix-2.2.0+spf2/src/smtpd/smtpd_check.c	Mon Mar 14 20:06:33 2005
+@@ -232,6 +232,7 @@
  #include "smtpd.h"
  #include "smtpd_sasl_glue.h"
  #include "smtpd_check.h"
@@ -297,7 +303,7 @@ diff -Pur postfix-2.1.3/src/smtpd/smtpd_check.c postfix-2.1.3+spf2/src/smtpd/smt
  
  #define RESTRICTION_SEPARATORS ", \t\r\n"
  
-@@ -1511,6 +1512,61 @@
+@@ -1629,6 +1630,62 @@
      return (stat);
  }
  
@@ -345,6 +351,7 @@ diff -Pur postfix-2.1.3/src/smtpd/smtpd_check.c postfix-2.1.3+spf2/src/smtpd/smt
 +		reply_name, reply_class);
 +	break;
 +    default:
++	break;
 +    }
 +
 +    /*
@@ -359,7 +366,7 @@ diff -Pur postfix-2.1.3/src/smtpd/smtpd_check.c postfix-2.1.3+spf2/src/smtpd/smt
  /* reject_unknown_address - fail if address does not resolve */
  
  static int reject_unknown_address(SMTPD_STATE *state, const char *addr,
-@@ -3160,6 +3216,10 @@
+@@ -3382,6 +3439,10 @@
  	} else if (strcasecmp(name, REJECT_NON_FQDN_SENDER) == 0) {
  	    if (state->sender && *state->sender)
  		status = reject_non_fqdn_address(state, state->sender,
@@ -370,9 +377,9 @@ diff -Pur postfix-2.1.3/src/smtpd/smtpd_check.c postfix-2.1.3+spf2/src/smtpd/smt
  					  state->sender, SMTPD_NAME_SENDER);
  	} else if (strcasecmp(name, REJECT_AUTH_SENDER_LOGIN_MISMATCH) == 0) {
  #ifdef USE_SASL_AUTH
-diff -Pur postfix-2.1.3/src/smtpd/smtpd_spf.c postfix-2.1.3+spf2/src/smtpd/smtpd_spf.c
---- postfix-2.1.3/src/smtpd/smtpd_spf.c	Thu Jan  1 01:00:00 1970
-+++ postfix-2.1.3+spf2/src/smtpd/smtpd_spf.c	Mon Jul  5 22:38:25 2004
+diff -Pur postfix-2.2.0/src/smtpd/smtpd_spf.c postfix-2.2.0+spf2/src/smtpd/smtpd_spf.c
+--- postfix-2.2.0/src/smtpd/smtpd_spf.c	Thu Jan  1 01:00:00 1970
++++ postfix-2.2.0+spf2/src/smtpd/smtpd_spf.c	Mon Mar 14 20:06:33 2005
 @@ -0,0 +1,340 @@
 +/*++
 +/* NAME
@@ -714,9 +721,9 @@ diff -Pur postfix-2.1.3/src/smtpd/smtpd_spf.c postfix-2.1.3+spf2/src/smtpd/smtpd
 +    return (action);
 +}
 +
-diff -Pur postfix-2.1.3/src/smtpd/smtpd_spf.h postfix-2.1.3+spf2/src/smtpd/smtpd_spf.h
---- postfix-2.1.3/src/smtpd/smtpd_spf.h	Thu Jan  1 01:00:00 1970
-+++ postfix-2.1.3+spf2/src/smtpd/smtpd_spf.h	Sat Jul  3 04:07:17 2004
+diff -Pur postfix-2.2.0/src/smtpd/smtpd_spf.h postfix-2.2.0+spf2/src/smtpd/smtpd_spf.h
+--- postfix-2.2.0/src/smtpd/smtpd_spf.h	Thu Jan  1 01:00:00 1970
++++ postfix-2.2.0+spf2/src/smtpd/smtpd_spf.h	Mon Mar 14 20:06:33 2005
 @@ -0,0 +1,40 @@
 +/*++
 +/* NAME
@@ -758,10 +765,10 @@ diff -Pur postfix-2.1.3/src/smtpd/smtpd_spf.h postfix-2.1.3+spf2/src/smtpd/smtpd
 +/*      E-mail: <dean@ipnet6.org>
 +/*--*/
 +
-diff -Pur postfix-2.1.3/src/smtpd/smtpd_state.c postfix-2.1.3+spf2/src/smtpd/smtpd_state.c
---- postfix-2.1.3/src/smtpd/smtpd_state.c	Wed Apr 21 20:23:49 2004
-+++ postfix-2.1.3+spf2/src/smtpd/smtpd_state.c	Fri Jul  2 18:36:25 2004
-@@ -59,6 +59,7 @@
+diff -Pur postfix-2.2.0/src/smtpd/smtpd_state.c postfix-2.2.0+spf2/src/smtpd/smtpd_state.c
+--- postfix-2.2.0/src/smtpd/smtpd_state.c	Sat Dec 11 02:16:54 2004
++++ postfix-2.2.0+spf2/src/smtpd/smtpd_state.c	Mon Mar 14 20:06:33 2005
+@@ -67,6 +67,7 @@
  #include "smtpd.h"
  #include "smtpd_chat.h"
  #include "smtpd_sasl_glue.h"
@@ -769,7 +776,7 @@ diff -Pur postfix-2.1.3/src/smtpd/smtpd_state.c postfix-2.1.3+spf2/src/smtpd/smt
  
  /* smtpd_state_init - initialize after connection establishment */
  
-@@ -125,6 +126,11 @@
+@@ -144,6 +145,11 @@
      smtpd_peer_init(state);
  
      /*
@@ -781,7 +788,7 @@ diff -Pur postfix-2.1.3/src/smtpd/smtpd_state.c postfix-2.1.3+spf2/src/smtpd/smt
       * Initialize xforward information.
       */
      smtpd_xforward_init(state);
-@@ -150,6 +156,7 @@
+@@ -171,6 +177,7 @@
      if (state->protocol)
  	myfree(state->protocol);
      smtpd_peer_reset(state);
