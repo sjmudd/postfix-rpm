@@ -3,7 +3,7 @@ make-postfix.rpm
 make-postfix.spec
 postfinger-1.29
 postfix-2.0.16-20031026-multiline-greeting.patch
-postfix-2.2.2-vda.patch.gz
+postfix-2.2.3-vda.patch.gz
 postfix-aliases
 postfix-bounce_notify_util.c.patch
 postfix-chroot.sh
