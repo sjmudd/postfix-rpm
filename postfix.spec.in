@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.4.12 2005/05/11 06:37:59 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.4.13 2005/06/05 21:38:53 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -123,6 +123,55 @@
 %define postfinger postfinger-1.29
 %define whinge /usr/bin/logger -p mail.info -t postfix/rpm
 %define die_cmd die(){ %whinge "$*"; exit 1; }
+
+#####################################################################
+# alternatives processing - define through macros to be consistent
+# CHECKME CHECKME CHECKME
+# used in various places
+#
+# currently only used on rhel3/4
+%define alternatives_usr_lib_sendmail --slave /usr/lib/sendmail mta-sendmail %{sendmail_path}
+%define alternatives_usr_lib_sendmail %nil
+%define alternatives_install \
+    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{sendmail_path} %{with_alt_prio} \
+        --slave %{_bindir}/mailq mta-mailq %{mailq_path} \
+        --slave %{_bindir}/newaliases mta-newaliases %{newaliases_path} \
+        --slave %{_bindir}/rmail mta-rmail %{rmail_path} \
+        %{alternatives_usr_lib_sendmail} \
+        --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
+        --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
+        --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
+        --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
+        --initscript postfix; :
+
+%define alternatives_remove \
+        %{_sbindir}/alternatives --remove mta %{sendmail_path}; :
+
+# currently only used on rhel3/4
+%define alternatives_usr_lib_sendmail_sim ln -sf %{sendmail_path} /usr/lib/sendmail
+%define alternatives_usr_lib_sendmail_sim %nil
+
+
+%define alternatives_install_sim \
+        ln -sf %{sendmail_path}             %{_sbindir}/sendmail; \
+        ln -sf %{mailq_path}                %{_bindir}/mailq; \
+        ln -sf %{newaliases_path}           %{_bindir}/newaliases; \
+        ln -sf %{rmail_path}                %{_bindir}/rmail; \
+        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps}; \
+        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps}; \
+        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps}; \
+        ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}; :
+
+# remove files when uninstalling rpm
+%define alternative_remove_sim \
+	%{_sbindir}/sendmail \
+	%{_bindir}/mailq \
+	%{_bindir}/newaliases \
+	%{_bindir}/rmail \
+	%{_mandir}/man1/sendmail.1%{mps} \
+	%{_mandir}/man1/mailq.1%{mps} \
+	%{_mandir}/man1/newaliases.1%{mps} \
+	%{_mandir}/man5/aliases.5%{mps}
 
 Name: postfix
 Group: System Environment/Daemons
@@ -251,7 +300,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.4.12 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.4.13 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -738,37 +787,25 @@ fi
 
 if [ -x %{_sbindir}/alternatives ]; then
     %whinge "Fresh Postfix Install: using RH alternatives"
-    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{sendmail_path} %{with_alt_prio} \
-        --slave %{_bindir}/mailq mta-mailq %{mailq_path} \
-        --slave %{_bindir}/newaliases mta-newaliases %{newaliases_path} \
-        --slave %{_bindir}/rmail mta-rmail %{rmail_path} \
-        --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
-        --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
-        --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
-        --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
-        --initscript postfix
+    %{alternatives_install}
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
         %whinge "Fresh Postfix Install, no %{_sbindir}/sendmail present: simulating RH alternatives"
-        ln -sf %{sendmail_path}             %{_sbindir}/sendmail
-        ln -sf %{mailq_path}                %{_bindir}/mailq 
-        ln -sf %{newaliases_path}           %{_bindir}/newaliases 
-        ln -sf %{rmail_path}                %{_bindir}/rmail 
-        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps} 
-        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
-        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
-        ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
+        %{alternatives_install_sim}
     fi
 fi
 
-# Request by Wietse: if there is a /usr/lib/sendmail file (not symbolic link),
-# not owned by a package then replace it with a symbolic link to
-# /usr/sbin/sendmail.
-# - due to alternatives don't use %{sendmail_path}
-
-test -f /usr/lib/sendmail && {
+# Based on a request by Wietse:
+# Is /usr/lib/sendmail a regular file?
+# - if so AND it is NOT owned by an existing rpm link it to /usr/sbin/sendmail
+#   /usr/sbin/sendmail may be a binary or a link from alternatives to *ANY*
+#   mta package.
+#   [ don't use %sendmail_path which may "disappear" if the postfix rpm is removed. ]
+# if /usr/lib/sendmail IS owned by an rpm do NOT touch it.
+if test -f /usr/lib/sendmail; then
     rpm -qf /usr/lib/sendmail >/dev/null 2>&1 || ln -sf /usr/sbin/sendmail /usr/lib/sendmail
-} || :
+fi
+exit 0
 
 %triggerpostun -- sendmail
 
@@ -778,27 +815,11 @@ test -f /usr/lib/sendmail && {
 
 if [ -x %{_sbindir}/alternatives ]; then
     %whinge "%{V_postfix}-%{rel} Uninstalling sendmail, so setup Postfix: using RH alternatives"
-    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{sendmail_path} %{with_alt_prio} \
-        --slave %{_bindir}/mailq mta-mailq %{mailq_path} \
-        --slave %{_bindir}/newaliases mta-newaliases %{newaliases_path} \
-        --slave %{_bindir}/rmail mta-rmail %{rmail_path} \
-        --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
-        --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
-        --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
-        --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
-        --initscript postfix
-	:	# ensure the trigger exit status is 0
+    %{alternatives_install}
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
         %whinge "%{V_postfix}-%{rel} Uninstalling sendmail, no %{_sbindir}/sendmail present: simulating RH alternatives"
-        ln -sf %{sendmail_path}             %{_sbindir}/sendmail
-        ln -sf %{mailq_path}                %{_bindir}/mailq 
-        ln -sf %{newaliases_path}           %{_bindir}/newaliases 
-        ln -sf %{rmail_path}                %{_bindir}/rmail 
-        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps} 
-        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
-        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
-        ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
+        %{alternatives_install_sim}
     else
         :
     fi
@@ -814,27 +835,11 @@ fi
 
 if [ -x %{_sbindir}/alternatives ]; then
     %whinge "%{V_postfix}-%{rel} Upgrading Postfix: using RH alternatives"
-    %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{sendmail_path} %{with_alt_prio} \
-        --slave %{_bindir}/mailq mta-mailq %{mailq_path} \
-        --slave %{_bindir}/newaliases mta-newaliases %{newaliases_path} \
-        --slave %{_bindir}/rmail mta-rmail %{rmail_path} \
-        --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
-        --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
-        --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
-        --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
-        --initscript postfix
-	:	# ensure the trigger exit status is 0
+    %{alternatives_install}
 else
     if [ ! -e %{_sbindir}/sendmail ]; then
         %whinge "%{V_postfix}-%{rel} Upgrading Postfix, no %{_sbindir}/sendmail present: simulating RH alternatives"
-        ln -sf %{sendmail_path}                           %{_sbindir}/sendmail
-        ln -sf %{mailq_path}                              %{_bindir}/mailq 
-        ln -sf %{newaliases_path}                         %{_bindir}/newaliases 
-        ln -sf %{rmail_path}                              %{_bindir}/rmail 
-        ln -sf %{_mandir}/man1/sendmail.postfix.1%{mps}   %{_mandir}/man1/sendmail.1%{mps} 
-        ln -sf %{_mandir}/man1/mailq.postfix.1%{mps}      %{_mandir}/man1/mailq.1%{mps} 
-        ln -sf %{_mandir}/man1/newaliases.postfix.1%{mps} %{_mandir}/man1/newaliases.1%{mps} 
-        ln -sf %{_mandir}/man5/aliases.postfix.5%{mps}    %{_mandir}/man5/aliases.5%{mps}
+        %{alternatives_install_sim}
     else
         :
     fi
@@ -888,7 +893,7 @@ queue_directory_remove () {
     chkconfig --del postfix
 
     if [ -x %{_sbindir}/alternatives ]; then
-        %{_sbindir}/alternatives --remove mta %{sendmail_path}
+        %{alternatives_remove}
     elif [ -L %{_sbindir}/sendmail} ]; then
         # check that symbolic link belongs to postfix
         if [ $(ls -l %{_sbindir}/sendmail | awk '{print $11}') = %{sendmail_path} ]; then
@@ -922,7 +927,8 @@ umask 022
         [ -x {_sbindir}/alternatives ] && \
 		{_sbindir}/alternatives --set mta %{sendmail_path}
     fi
-} || :
+}
+exit 0
 
 %clean
 umask 022
