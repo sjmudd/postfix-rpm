@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.4.15 2005/06/22 21:54:36 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.4.16 2005/06/27 21:22:03 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -87,8 +87,8 @@
 
 # If set to 1 if official version, 0 if snapshot
 %define official 1
-%define V_postfix 2.2.3
-%define rel 2__SUFFIX__
+%define V_postfix 2.2.4
+%define rel 1__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -251,7 +251,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.4.15 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.4.16 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -782,14 +782,17 @@ else
     fi
 fi
 
-# Request by Wietse: if there is a /usr/lib/sendmail file (not symbolic link),
-# not owned by a package then replace it with a symbolic link to
-# /usr/sbin/sendmail.
-# - due to alternatives don't use %{sendmail_path}
-
-test -f /usr/lib/sendmail && {
+# Based on a request by Wietse:
+# Is /usr/lib/sendmail a regular file?
+# - if so AND it is NOT owned by an existing rpm link it to /usr/sbin/sendmail
+#   /usr/sbin/sendmail may be a binary or a link from alternatives to *ANY*
+#   mta package.
+#   [ don't use %sendmail_path which may "disappear" if the postfix rpm is removed. ]
+# if /usr/lib/sendmail IS owned by an rpm do NOT touch it.
+if test -f /usr/lib/sendmail; then
     rpm -qf /usr/lib/sendmail >/dev/null 2>&1 || ln -sf /usr/sbin/sendmail /usr/lib/sendmail
-} || :
+fi
+exit 0
 
 %triggerpostun -- sendmail
 
@@ -936,14 +939,15 @@ queue_directory_remove () {
 
 %postun
 umask 022
-[ "$1" -ge 1 ] && {
+if [ "$1" -ge 1 ]; then
     service postfix condrestart || :
     mta=`readlink /etc/alternatives/mta`
     if [ "$mta" = "%{sendmail_path}" ]; then
         [ -x {_sbindir}/alternatives ] && \
 		{_sbindir}/alternatives --set mta %{sendmail_path}
     fi
-} || :
+fi
+exit 0
 
 %clean
 umask 022
@@ -1090,6 +1094,12 @@ umask 022
 #
 
 %changelog
+
+* Mon Jun 27 2005 Simon J Mudd <sjmudd@pobox.com> 2.2.4-1
+  - update to postfix 2.2.4
+  - also add some code to try and detect installing a new rpm
+    over a previous manually installed Postfix installation.
+    (Try and avoid overwriting configuration.)
 
 * Wed May 11 2005 Simon J Mudd <sjmudd@pobox.com> 2.2.3-2
   - update VDA patch to 2.2.3
