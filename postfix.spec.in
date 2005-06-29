@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.4.17 2005/06/29 21:20:59 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.4.18 2005/06/29 21:21:12 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -88,7 +88,7 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 1
 %define V_postfix 2.2.4
-%define rel 1__SUFFIX__
+%define rel 2__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -251,7 +251,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.4.17 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.4.18 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
