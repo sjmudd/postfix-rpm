@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.4.16 2005/06/27 21:22:03 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.4.17 2005/06/29 21:20:59 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -81,7 +81,7 @@
 %define debug %{?_with_debug:1}%{?!_with_debug:0}
 
 # patch version information
-%define V_vda   2.2.3
+%define V_vda   2.2.4
 %define V_cdb   1.1.11-20021104
 %define V_spf   2.2.0-5
 
@@ -251,7 +251,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.4.16 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.4.17 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -1094,6 +1094,10 @@ umask 022
 #
 
 %changelog
+
+* Wed Jun 29 2005 Simon J Mudd <sjmudd@pobox.com> 2.2.4-2
+  - update VDA patch
+  - update postfix-chroot.sh to work with FC4
 
 * Mon Jun 27 2005 Simon J Mudd <sjmudd@pobox.com> 2.2.4-1
   - update to postfix 2.2.4
