@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.4.3 2005/03/12 09:18:43 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.4.4 2005/07/25 21:42:10 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -21,7 +21,10 @@
 #			library paths ( /usr/include/mysql:/usr/lib/mysql )
 # POSTFIX_PCRE		include support for pcre maps
 # POSTFIX_PGSQL		include support for PostGres database
-# POSTFIX_SASL		include support for SASL (1, 2 or 0 to disable)
+# POSTFIX_SASL		include SASL/AUTH support
+#				0 to disable sasl,
+#				1 for sasl v1, or
+#				2 for sasl v2
 # POSTFIX_SMTPD_MULTILINE_GREETING
 #			include support for multitline SMTP banner
 # POSTFIX_SPF           include support for libspf2
