@@ -21,7 +21,7 @@
 # - Mandrake Linux
 
 [ -n "$DEBUG" ] && set -x
-version=$(echo '$Revision: 1.12.4.4 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
+version=$(echo '$Revision: 1.12.4.5 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
 myname=$(basename $0)
 
 # Provide a usage message
@@ -116,11 +116,12 @@ if check_release redhat-release; then
 	sed -e "s;^${rpmname}-;;" -e 's;-[0-9.]*$;;' -e 's;[EWA]S;;')
 elif check_release whitebox-release; then
     # whitebox-release-3.0-6_i386
+    # whitebox-release-4-2.WB2
     # - whitebox SHOULD behave like rhel, so we name it the same
     rpmname=whitebox-release
     full=$(get_release ${rpmname})
     name=rhel
-    release=$(echo $full | sed -e "s;^${rpmname}-;;" -e 's;-[0-9.a-z_]*$;;')
+    release=$(echo $full | sed -e "s;^${rpmname}-;;" -e 's;-[0-9.a-zA-Z_]*$;;')
 elif check_release centos-release; then
     # CentOS SHOULD behave like rhel, so we name it the same
     rpmname=centos-release

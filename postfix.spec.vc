@@ -10,7 +10,7 @@ prog V_postfix = {
   dldir     = /home/sjmudd/RPM/SRC/postfix
 }
 prog V_vda = {
-  version   = 2.2.4
+  version   = 2.2.5
   url       = http://web.onda.com.br/nadal/postfix/VDA/
   regex     = postfix-(\d\.\d\.\d)-vda.patch.gz
 }
