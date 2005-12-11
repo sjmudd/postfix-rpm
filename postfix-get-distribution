@@ -21,7 +21,7 @@
 # - Mandrake Linux
 
 [ -n "$DEBUG" ] && set -x
-version=$(echo '$Revision: 1.12.4.5 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
+version=$(echo '$Revision: 1.12.4.6 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
 myname=$(basename $0)
 
 # Provide a usage message
@@ -37,7 +37,7 @@ usage () {
 
 	Shows the distribution name or one of several different components:
 	--distribution	<name>-<major>.<minor>		[default behaviour]
-	--name		redhat, rhel, yellowdoy, ... (abbreviated format)
+	--name		redhat, rhel, yellowdog, ... (abbreviated format)
 	--major		major version (3, 5, 6, 7, 8)
 	--minor		minor version (0, ...) [ may have decimal values ]
 	--full		Redhat-Release-X.Y, Whitebox-Release-X.Y, ...
