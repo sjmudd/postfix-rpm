@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.4.26 2006/01/05 20:54:08 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.4.27 2006/01/05 21:53:57 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -40,10 +40,13 @@
 %define distribution __DISTRIBUTION__
 
 # distribution which we are building Postfix on
-%define build_dist_full %(sh $(rpm --eval '%{_sourcedir}')/postfix-get-distribution --full)
-%define build_dist      %(sh $(rpm --eval '%{_sourcedir}')/postfix-get-distribution)
-%define build_name      %(sh $(rpm --eval '%{_sourcedir}')/postfix-get-distribution --name)
-%define build_major     %(sh $(rpm --eval '%{_sourcedir}')/postfix-get-distribution --major)
+# - call my script once to speed up build process
+%define distro_info     %(sh $(rpm --eval '%{_sourcedir}')/postfix-get-distribution --distro-info)
+%define build_dist_full %(echo "%distro_info" | cut -d" " -f5)
+%define build_name      %(echo "%distro_info" | cut -d" " -f1)
+%define build_major     %(echo "%distro_info" | cut -d" " -f3)
+%define build_minor     %(echo "%distro_info" | cut -d" " -f4)
+%define build_dist      %{build_name}-%{build_major}.%{build_minor}
 %define mps %(test "%{build_name}" = mandrake -a "%{build_major}" -ge 8 && echo .bz2 || echo .gz)
 
 %define mysql_paths __MYSQL_PATHS__
@@ -251,7 +254,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.4.26 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.4.27 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and

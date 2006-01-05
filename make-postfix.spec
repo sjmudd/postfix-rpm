@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.4.4 2005/07/25 21:42:10 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.4.5 2006/01/05 21:53:57 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -100,11 +100,12 @@ echo "    check and remove /var/lib/rpm/__db.00? files"
 # 9                    | 3
 # 0                    | 0
 
-fullname=`sh ${sourcedir}/postfix-get-distribution --full`
-distribution=`sh ${sourcedir}/postfix-get-distribution`
-releasename=`sh ${sourcedir}/postfix-get-distribution --name`
-major=`sh ${sourcedir}/postfix-get-distribution --major`
-minor=`sh ${sourcedir}/postfix-get-distribution --minor`
+distro_info=$(sh ${sourcedir}/postfix-get-distribution --distro-info)
+fullname=$(echo "$distro_info" | cut -d" " -f5)
+releasename=$(echo "$distro_info" | cut -d" " -f1)
+major=$(echo "$distro_info" | cut -d" " -f3)
+minor=$(echo "$distro_info" | cut -d" " -f4)
+distribution="${releasename}-${major}.${minor}"
 
 echo "  Distribution is: ${fullname} (${distribution})"
 echo ""

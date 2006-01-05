@@ -21,12 +21,11 @@
 # - Mandrake Linux
 
 [ -n "$DEBUG" ] && set -x
-version=$(echo '$Revision: 1.12.4.6 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
+version=$(echo '$Revision: 1.12.4.7 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
 myname=$(basename $0)
 
 # Provide a usage message
 usage () {
-
 	cat <<-EOF
 	$myname version $version
 
@@ -36,12 +35,14 @@ usage () {
 	Usage: $myname [--help] [--distribution] [--name] [--major] [--minor] [--full]
 
 	Shows the distribution name or one of several different components:
-	--distribution	<name>-<major>.<minor>		[default behaviour]
-	--name		redhat, rhel, yellowdog, ... (abbreviated format)
-	--major		major version (3, 5, 6, 7, 8)
-	--minor		minor version (0, ...) [ may have decimal values ]
-	--full		Redhat-Release-X.Y, Whitebox-Release-X.Y, ...
-	--debug		show all values
+	--distribution  <name>-<major>.<minor>		[default behaviour]
+	--name          redhat, rhel, yellowdog, ... (abbreviated format)
+	--major         major version (3, 5, 6, 7, 8)
+	--minor         minor version (0, ...) [ may have decimal values ]
+	--full          Redhat-Release-X.Y, Whitebox-Release-X.Y, ...
+	--debug         show all values on separate lines in forma item=value
+	--distro-info   Show debug parameter values only,  not the ‘‘name=’’
+	                label that normally precedes the debug value.
 	EOF
 }
 
@@ -81,6 +82,7 @@ if [ -n "$1" ]; then
     --minor)		info=minor;;
     --full)		info=full;;
     --debug)		info=debug;;
+    --distro-info)      info=params;;
     --help)		usage; exit 0;;
     *)			usage; exit 1;;
     esac
@@ -114,6 +116,12 @@ if check_release redhat-release; then
     fi
     release=$(echo $full | \
 	sed -e "s;^${rpmname}-;;" -e 's;-[0-9.]*$;;' -e 's;[EWA]S;;')
+elif check_release centos-release; then
+    # CentOS SHOULD behave like rhel, so we name it the same
+    rpmname=centos-release
+    full=$(get_release ${rpmname})
+    name=rhel
+    release=$(rpm -q --queryformat='%{VERSION}' ${rpmname})
 elif check_release whitebox-release; then
     # whitebox-release-3.0-6_i386
     # whitebox-release-4-2.WB2
@@ -122,12 +130,6 @@ elif check_release whitebox-release; then
     full=$(get_release ${rpmname})
     name=rhel
     release=$(echo $full | sed -e "s;^${rpmname}-;;" -e 's;-[0-9.a-zA-Z_]*$;;')
-elif check_release centos-release; then
-    # CentOS SHOULD behave like rhel, so we name it the same
-    rpmname=centos-release
-    full=$(get_release ${rpmname})
-    name=rhel
-    release=$(rpm -q --queryformat='%{VERSION}' ${rpmname})
 elif check_release tao-release; then
     # tao-release-1.0-TL16
     # Tao-Linux SHOULD behave like rhel, so we name it the same
@@ -195,6 +197,10 @@ debug)
     echo minor=$minor
     echo full=$full
     echo rpmname=$rpmname
+    ;;
+params)
+    # maintain the same order as the previous debug output
+    echo "$name $release $major $minor $full $rpmname"
     ;;
 *)
     echo "Internal error info=$info" >&2
