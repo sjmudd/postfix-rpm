@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.4.28 2006/01/08 01:06:01 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.4.29 2006/01/14 10:24:41 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -10,8 +10,11 @@
 #
 # Information imported from postfix.spec.in: DO NOT CHANGE IT BY HAND
 #
-# mysql_paths              - path where locally installed MySQL resides (or 0)
-#                            in mysql maps
+# mysql_paths              - paths where locally installed MySQL resides (or 0)
+#                            - if using this option mysql_paths should be as
+#                              follows: </pathto/mysql/include>:</pathto/mysql/lib>
+#                            - The order is important and only 2 directories may
+#                              be given.
 # requires_db              - used to add dbX dependencies in the package
 # smtpd_multiline_greeting - my patch to allow multiline banner
 # mps			   - man page suffix, .gz except Mandrake >= 8 which uses .bz2
@@ -91,7 +94,7 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 1
 %define V_postfix 2.2.8
-%define rel 2__SUFFIX__
+%define rel 3__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -254,7 +257,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.4.28 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.4.29 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -265,6 +268,24 @@ package or on my web page.
 umask 022
 
 %{die_cmd}
+
+# check custom MYSQL path values are sensible to avoid problems
+# with people mixing include and lib directories
+if [ -n "%{mysql_include}" -o -n "%{mysql_lib}" ]; then
+	echo "%{mysql_include}" | grep -q "/lib" && {
+		echo "ERROR: The first path in mysql_paths appears to be a library path, it should be an include path (e.g. /usr/local/include)"
+		exit 1
+	}
+	echo "%{mysql_lib}" | grep -q "/include" && {
+		echo "ERROR: The second path in mysql_paths appears to be an include path, it should be a library path (e.g. /usr/local/lib)"
+		exit 1
+	}
+	[ $(echo "%{mysql_include}" | awk -F: '{ print NF }') = 2 ]" || {
+		echo "ERROR: mysql_paths should be of the form /pathto/mysql/include:/pathto/mysql/lib, with only 2 directories"
+		echo "       If you don't want to use a custom mysql installation set mysql_paths to 0"
+		exit 1
+	}
+fi
 
 # Warn if the distribution this spec file was made for isn't the same as
 # the current distribution, using a script in the SOURCES directory.
@@ -1101,6 +1122,9 @@ umask 022
 #
 
 %changelog
+
+* Sat Jan 14 2006 Simon J Mudd <sjmudd@pobox.com> 2.2.8-3
+  - change mysql_paths documentation and checking to avoid misuse
 
 * Sat Jan 07 2006 Simon J Mudd <sjmudd@pobox.com> 2.2.8-2
   - update VDA patch to 2.2.8

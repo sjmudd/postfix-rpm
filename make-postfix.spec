@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.4.5 2006/01/05 21:53:57 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.4.6 2006/01/14 10:24:41 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -18,7 +18,7 @@
 # POSTFIX_MYSQL_REDHAT	include support for RedHat's mysql packages
 # POSTFIX_MYSQL_PATHS	include support for locally installed mysql binary,
 #			providing the colon seperated include and
-#			library paths ( /usr/include/mysql:/usr/lib/mysql )
+#			library directories ( /usr/include/mysql:/usr/lib/mysql )
 # POSTFIX_PCRE		include support for pcre maps
 # POSTFIX_PGSQL		include support for PostGres database
 # POSTFIX_SASL		include SASL/AUTH support
