@@ -1,9 +1,10 @@
-README-Postfix-SASL-RedHat.txt
 make-postfix.rpm
 make-postfix.spec
 postfinger-1.29
 postfix-2.0.16-20031026-multiline-greeting.patch
+postfix-2.2.1-smtpd_sasl_authenticated_header.patch
 postfix-2.2.8-vda.patch.gz
+postfix354.patch
 postfix-aliases
 postfix-bounce_notify_util.c.patch
 postfix-chroot.sh
@@ -17,7 +18,8 @@ postfix-makedefs.patch
 postfix-mysql_query.patch
 postfix-pam.conf
 postfix-rbl_reply_maps.patch
-postfix-sasl.conf
 postfix-saslauthd.conf
+postfix-sasl.conf
 postfix.spec.cf
 postfix.spec.in
+README-Postfix-SASL-RedHat.txt

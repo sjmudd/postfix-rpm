@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.4.29 2006/01/14 10:24:41 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.4.30 2006/02/08 16:05:34 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -13,6 +13,7 @@
 # mysql_paths              - paths where locally installed MySQL resides (or 0)
 #                            - if using this option mysql_paths should be as
 #                              follows: </pathto/mysql/include>:</pathto/mysql/lib>
+#                              e.g.:    /usr/mysql/include:/usr/mysql/lib
 #                            - The order is important and only 2 directories may
 #                              be given.
 # requires_db              - used to add dbX dependencies in the package
@@ -94,7 +95,7 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 1
 %define V_postfix 2.2.8
-%define rel 3__SUFFIX__
+%define rel 4__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -173,6 +174,9 @@ Patch4:  http://web.onda.com.br/nadal/postfix/VDA/postfix-%{V_vda}-vda.patch.gz
 Patch6: http://www.ipnet6.org/postfix/spf/postfix-libspf2.README
 Patch7: http://www.ipnet6.org/postfix/download/postfix-libspf2-%{V_spf}.patch
 Patch99: ftp://ftp.wl0.org/SOURCES/postfix-2.0.16-20031026-multiline-greeting.patch
+Patch100: postfix-2.2.1-smtpd_sasl_authenticated_header.patch
+Patch101: postfix354-multiline.patch
+Patch102: postfix354.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{V_package}-buildroot
 
@@ -257,7 +261,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.4.29 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.4.30 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -271,20 +275,28 @@ umask 022
 
 # check custom MYSQL path values are sensible to avoid problems
 # with people mixing include and lib directories
-if [ -n "%{mysql_include}" -o -n "%{mysql_lib}" ]; then
-	echo "%{mysql_include}" | grep -q "/lib" && {
-		echo "ERROR: The first path in mysql_paths appears to be a library path, it should be an include path (e.g. /usr/local/include)"
+if [ "%{mysql_paths}" != 0 ]; then
+	exit_error() {
+		cat <<-EOF
+		*************************************************************************
+		CUSTOM MYSQL configuration error
+		mysql_paths=%mysql_paths	(0=Not used)
+		mysql_local=%mysql_local 	(0=Not used,1=used)
+		mysql_include=%mysql_include	(include directory)
+		mysql_lib=%mysql_lib		(lib directory)
+		ERROR: $1
+		        If you don't want to use a custom mysql installation set
+			mysql_paths to 0.
+		*************************************************************************
+		EOF
 		exit 1
 	}
-	echo "%{mysql_lib}" | grep -q "/include" && {
-		echo "ERROR: The second path in mysql_paths appears to be an include path, it should be a library path (e.g. /usr/local/lib)"
-		exit 1
-	}
-	[ $(echo "%{mysql_include}" | awk -F: '{ print NF }') = 2 ]" || {
-		echo "ERROR: mysql_paths should be of the form /pathto/mysql/include:/pathto/mysql/lib, with only 2 directories"
-		echo "       If you don't want to use a custom mysql installation set mysql_paths to 0"
-		exit 1
-	}
+	[ $(echo "%{mysql_paths}" | awk -F: '{ print NF }') = 2 ] || \
+		exit_error "mysql_paths should be of the form /pathto/mysql/include:/pathto/mysql/lib, with only 2 directories"
+	echo "%{mysql_include}" | grep -q "/lib" && \
+		exit_error "The first path in mysql_paths appears to be a library path: it should be an include path (e.g. /usr/local/include)"
+	echo "%{mysql_lib}" | grep -q "/include" && \
+		exit_error "The second path in mysql_paths appears to be an include path: it should be a library path (e.g. /usr/local/lib)"
 fi
 
 # Warn if the distribution this spec file was made for isn't the same as
@@ -329,13 +341,18 @@ sh dict_cdb.sh
     die "%{_sourcedir}/postfix-%{V_vda}-vda.patch.gz not found or patch failed"
 %endif
 
+# REMINDER: perhaps these should be incorporated into one patch?
 %if %{smtpd_multiline_greeting}
-%patch99 -p1 -b .multiline
+%patch99  -p1 -b .multiline
+%patch101 -p1 -b .354-multilinepatch
 %endif
 
 %if %{with_spf}
 %patch7 -p1 -b .spf
 %endif
+
+%patch100 -p1 -b .saslauthheader
+%patch102 -p1 -b .354patch
 
 # Modify master.cf: rmail --> rmail.postfix
 ed conf/master.cf <<EOF || exit 1
@@ -1122,6 +1139,11 @@ umask 022
 #
 
 %changelog
+
+* Sat Jan 14 2006 Simon J Mudd <sjmudd@pobox.com> 2.2.8-4
+  - several additions suggested by Tony Earnshaw <tonye@barlaeus.nl>
+  - add postfix-2.2.1-smtpd_sasl_authenticated_header.patch by "Branko F. Gračnar" <bfg@noviforum.si>
+  - add another patch by Zoltán Mezei's <mezei.zoltan@telefor.hu>
 
 * Sat Jan 14 2006 Simon J Mudd <sjmudd@pobox.com> 2.2.8-3
   - change mysql_paths documentation and checking to avoid misuse
