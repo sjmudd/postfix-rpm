@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.4.6 2006/01/14 10:24:41 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.4.7 2006/02/08 16:37:53 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -297,34 +297,28 @@ rhel)
     ;;
 
 fedora)
-	# distinguish fedora-core-1 / fedora-core-2
+	# distinguish fedora-core versions
         DEFAULT_DB=4
         DIST=".fc${major}"
 	;;
 
 redhat)
     case ${major} in
-    9)
+    8|9)
 	DEFAULT_DB=4
-	DIST=".rh9"
-	;;
-
-    8)
-	DEFAULT_DB=4
-	DIST=".rh8"
+	DIST=".rh${major}"
 	;;
 
     7)
 	DEFAULT_DB=3
-
-       case ${minor} in
-       0) DIST=".rh70.1" ;;
-       1) DIST=".rh70.1" ;;
-       2) DIST=".rh72" ;;
-       3) DIST=".rh73" ;;
-       *) ;;
-       esac
-       ;;
+	case ${minor} in
+	0) DIST=".rh70.1" ;;
+	1) DIST=".rh70.1" ;;
+	2) DIST=".rh72" ;;
+	3) DIST=".rh73" ;;
+	*) ;;
+	esac
+	;;
 
     *)	;;
     esac
@@ -369,7 +363,6 @@ esac
 }
 
 # set default values if they are still undefined
-
 [ -z "$POSTFIX_ALT_PRIO" ]	           && POSTFIX_ALT_PRIO=30
 [ -z "$POSTFIX_CDB" ]	                   && POSTFIX_CDB=0
 [ -z "$POSTFIX_DB" ]			   && POSTFIX_DB=0
