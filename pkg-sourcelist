@@ -4,6 +4,7 @@ postfinger-1.29
 postfix-2.0.16-20031026-multiline-greeting.patch
 postfix-2.2.1-smtpd_sasl_authenticated_header.patch
 postfix-2.2.8-vda.patch.gz
+postfix354-multiline.patch
 postfix354.patch
 postfix-aliases
 postfix-bounce_notify_util.c.patch
