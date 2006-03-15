@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/buildpackage,v 2.24.4.1 2005/02/07 18:41:24 sjmudd Exp $
+# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/buildpackage,v 2.24.4.2 2006/03/15 18:05:39 sjmudd Exp $
 #
 # Shell script used to build my packages
 # - checks if the needed files exist and retrieve them
@@ -63,7 +63,7 @@ done
 RPM=/usr/bin/rpmbuild
 
 [ -x $RPM ] || {
-    echo "$RPM not found, please install it first"
+    echo "$RPM not found, please install it with sudo yum install rpm-build"
     exit 1
 }
 
