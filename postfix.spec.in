@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.4.33 2006/04/02 16:37:03 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.4.34 2006/04/07 21:45:55 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -94,8 +94,8 @@
 
 # If set to 1 if official version, 0 if snapshot
 %define official 1
-%define V_postfix 2.2.9
-%define rel 3__SUFFIX__
+%define V_postfix 2.2.10
+%define rel 1__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -262,7 +262,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.4.33 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.4.34 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -807,12 +807,13 @@ fi
 
 [ "$1" = 1 ] || exit 0
 
+# See changelog for explanation of mta-sendmailman entry.
 %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{sendmail_path} %{with_alt_prio} \
     --slave %{_bindir}/mailq mta-mailq %{mailq_path} \
     --slave %{_bindir}/newaliases mta-newaliases %{newaliases_path} \
     --slave %{_bindir}/rmail mta-rmail %{rmail_path} \
     --slave %{_libdir}/sendmail mta-sendmail %{usrlib_sendmail} \
-    --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
+    --slave %{_mandir}/man8/sendmail.8%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
     --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
     --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
     --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
@@ -826,12 +827,13 @@ exit 0
 %whinge "%{V_postfix}-%{rel} triggerpostun -- sendmail: final number of sendmail packages=$2"
 [ $2 = 0 ] || exit 0
 
+# See changelog for explanation of mta-sendmailman entry.
 %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{sendmail_path} %{with_alt_prio} \
     --slave %{_bindir}/mailq mta-mailq %{mailq_path} \
     --slave %{_bindir}/newaliases mta-newaliases %{newaliases_path} \
     --slave %{_bindir}/rmail mta-rmail %{rmail_path} \
     --slave %{_libdir}/sendmail mta-sendmail %{usrlib_sendmail} \
-    --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
+    --slave %{_mandir}/man8/sendmail.8%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
     --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
     --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
     --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
@@ -846,12 +848,13 @@ exit 0	# ensure the trigger exit status is 0
 %whinge "%{V_postfix}-%{rel} triggerpostun -- postfix: final number of Postfix packages=$2"
 [ $2 -gt 0 ] || exit 0
 
+# See changelog for explanation of mta-sendmailman entry.
 %{_sbindir}/alternatives --install %{_sbindir}/sendmail mta %{sendmail_path} %{with_alt_prio} \
     --slave %{_bindir}/mailq mta-mailq %{mailq_path} \
     --slave %{_bindir}/newaliases mta-newaliases %{newaliases_path} \
     --slave %{_bindir}/rmail mta-rmail %{rmail_path} \
     --slave %{_libdir}/sendmail mta-sendmail %{usrlib_sendmail} \
-    --slave %{_mandir}/man1/sendmail.1%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
+    --slave %{_mandir}/man8/sendmail.8%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
     --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
     --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
     --slave %{_mandir}/man5/aliases.5%{mps}    mta-aliasesman    %{_mandir}/man5/aliases.postfix.5%{mps} \
@@ -1079,12 +1082,16 @@ umask 022
 
 %changelog
 
+* Fri Apr 07 2006 Simon J Mudd <sjmudd@pobox.com> 2.2.10-1
 * Tue Mar 21 2006 Simon J Mudd <sjmudd@pobox.com> 2.2.9-3
   - use only chkconfig (/usr/sbin/alternatives) on supported packages.
     This contrasts previous support for boxes which did not have this.
     However as of rh7.3 and later chkconfig includes /usr/sbin/alternatives
-    so I can simplify the rpm.  Only gotcha to be aware of *may* be
-    old /usr/lib/sendmail "links", but they should be ok.
+    so I can simplify the rpm.  Only gotcha to be aware of *may* be old
+    /usr/lib/sendmail "links", but they should be ok.
+  - 'fix' mta-sendmailman entry so that alternatives does not complain.
+    The link is wrong but ensures that my RPM will install correctly without
+    change when the system sendmail is installed.
 
 * Mon Mar 20 2006 Simon J Mudd <sjmudd@pobox.com> 2.2.9-2
   - update vda patch to 2.2.9
