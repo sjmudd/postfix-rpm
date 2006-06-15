@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.4.7 2006/02/08 16:37:53 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.4.8 2006/06/15 21:44:51 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -240,6 +240,15 @@ if [ "$POSTFIX_IPV6" = 1 ]; then
 fi
 
 if [ "$POSTFIX_SPF" = 1 ]; then
+    V_LIBSPF=$( rpm -q libspf2 | sed -e 's/libspf2-//' )
+
+    # Test if libspf2 is greater than 1.2
+    echo "$V_LIBSPF" | egrep '^[1-9]\.[2-9]' >/dev/null
+
+    if [ $? -eq 0 ]; then
+       POSTFIX_SPF=2
+    fi
+
     echo "  adding SPF support to spec file"
     SUFFIX="${SUFFIX}.spf"
 fi
