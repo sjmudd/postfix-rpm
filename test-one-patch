@@ -7,22 +7,38 @@
 #
 # Return value: the result of the rpmbuild -bp execution
 
+[ -n "$DEBUG" ] && set -x
+
 umask 022
 PATH=/bin:/usr/bin:/usr/sbin:/usr/etc:/sbin:/etc:/usr/contrib/bin:/usr/gnu/bin:/usr/ucb:/usr/bsd
 SHELL=/bin/sh
  
-current_directory=`pwd`
-parametername=$1
-parametervalue=${2:-1}
+NAME=$1
+VALUE=${2:-1}
 
-srcdir=`rpm --eval '%{_sourcedir}'`
-specdir=`rpm --eval '%{_specdir}'`
-pwd=`pwd`
+srcdir=$(rpm --eval '%{_sourcedir}' | sed -e 's;%{name};postfix;')
+specdir=$(rpm --eval '%{_specdir}' | sed -e 's;%{name};postfix;')
+buildresults=results.${NAME}
 
-( cd ${srcdir} && \
-    eval unset $parametername && \
-    eval $parametername=$parametervalue && \
-    eval export $parametername && \
-    sh make-postfix.spec && \
-    cd ${specdir} && \
-    rpmbuild -bp postfix.spec ) >/dev/null 2>&1
+# delete previous file
+[ -f $buildresults ] && rm $buildresults
+
+sh linkfiles --quiet --delete
+
+(
+# start the build
+eval unset $NAME && \
+eval $NAME=$VALUE && \
+eval export $NAME && \
+sh linkfiles --create && \
+cd ${srcdir} && \
+sh make-postfix.spec && \
+cd ${specdir} && \
+rpmbuild -bp postfix.spec
+) > ${buildresults} 2>&1
+
+RC=$?
+
+sh linkfiles --quiet --delete
+
+exit $RC

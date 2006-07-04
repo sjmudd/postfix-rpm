@@ -1,25 +1,25 @@
 #!/bin/sh
 #
+# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/buildpackage,v 2.24.6.1 2006/07/04 15:11:51 sjmudd Exp $
+#
 # Shell script used to build my packages
 # - checks if the needed files exist and retrieve them
 # - checks if the files have been changed against those stored in the CVS
 #   repository
 #
+[ -n "$DEBUG" ] && set -x
+myname=$(basename $0)
 
-# only add the file if $add is blank
-function add_to_pkg_sourcelist {
-    local file=$1
-    local filelist=$2
-    local add=$3
-
-    if [ -z "${add}" ]; then
-        echo ${file} >> ${filelist} && \
-        sort < ${filelist} > ${filelist}.n && \
-            mv ${filelist}.n ${filelist} || {
-                echo "Failed to update ${filelist}!"
-                exit 1
-        }
-    fi
+# Perform the package build
+build () {
+( cd ${srcdir} && \
+  sh make-postfix.spec && \
+  chmod u+w ${specdir}/postfix.spec && \
+  cd ${specdir} && \
+  sleep 2 && \
+  echo "" && \
+  echo "===> building RPM package (output to ${build_output})..." && \
+  $RPM -ba $sign postfix.spec ) 2>&1 | tee ${build_output}
 }
 
 # Initialize.
@@ -36,7 +36,7 @@ pkgdir=`pwd`
 sign='--sign'
 test_patches=0
  
-USAGE="Usage: $0 [name=value] [option]
+USAGE="Usage: $myname [name=value] [option]
     --no-check              Do not check if the files have changed against the version stored in cvs.
     --no-sign               Do not sign the package.
     --test-patches          test the patches
@@ -54,7 +54,7 @@ do
     --no-check) no_check=1;;
      --no-sign) sign=;;
 --test-patches) test_patches=1;;
-             *) echo $0: Error: $USAGE 1>&2; exit 1;;
+             *) echo $myname: Error: $USAGE 1>&2; exit 1;;
     esac
     shift
 done
@@ -63,146 +63,15 @@ done
 RPM=/usr/bin/rpmbuild
 
 [ -x $RPM ] || {
-    echo "$RPM not found, please install it first"
+    echo "$RPM not found, please install it with sudo yum install rpm-build"
     exit 1
 }
 
-# download_if_necessary to srcdir base/file if not already there
-#
-# add_file:
-# leave blank unless you want to disable updating the filelist
-# for example with the postfix source tar ball
+srcdir=$(rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;')
+specdir=$(rpm --eval '%{_specdir}' | sed 's;%{name};postfix;')
 
-function download_if_necessary {
-    local srcdir=$1
-    local base=$2
-    local file=$3
-    local add_file=$4
-
-    echo -n "===> checking ${file} ..."
-    if [ ! -f "${srcdir}/${file}" ]; then
-        echo " not found"
-	echo "	downloading from ${base} to ${srcdir}..."
-        (
-            cd ${srcdir} && \
-            wget ${base}/${file} && \
-	    add_to_pkg_sourcelist ${file} ${pkgdir}/pkg-sourcelist ${add_file}
-        )
-    else
-        echo " found"
-    fi
-}
-
-# Test prep stage for different patches - do they apply cleanly?
-test_patches() {
-    [ "${test_patches}" = 1 ] && sh test-patches
-}
-
-# Perform the package build
-build () {
-( cd ${srcdir} && \
-  sh make-postfix.spec && \
-  chmod u+w ${specdir}/postfix.spec && \
-  cd ${specdir} && \
-  sleep 2 && \
-  echo "" && \
-  echo "===> building RPM package (output to ${build_output})..." && \
-  if [ -z "$sign" ]; then echo "	NOT signing package"; fi && \
-  $RPM -ba $sign postfix.spec ) 2>&1 | tee ${build_output}
-}
-
-# Check postfix tar ball has been download
-
-version=`grep '^%define ver ' postfix.spec.in | awk '{ print $3 } '`
-mail_release_date=`grep '^%define mail_release_date' postfix.spec.in | awk '{ print $3 } '`
-rpm_release=`grep '^%define rel ' postfix.spec.in | awk '{ print $3 } '`
-
-if grep -q '%define official 1' postfix.spec.in
-then
-    ftpdir=official
-else
-    version="${version}-${mail_release_date}"
-    ftpdir=experimental
-fi
-
-# convert 
-#	Source0: ftp://ftp.porcupine.org/mirrors/postfix-release/%{ftp_dir}/postfix-%{version1}.tar.gz
-# into one of
-#	ftp://ftp.porcupine.org/mirrors/postfix-release/official/postfix-1.1.0.tar.gz
-#	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/postfix-1.1.0-20020115.tar.gz
-
-source0=`grep "^Source0:" postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{ftp_dir};${ftpdir};" -e "s;%{version1};${version};"`
-
-file="postfix-${version}.tar.gz"
-base=`dirname ${source0}`
-srcdir=`rpm --eval '%{_sourcedir}'`
-specdir=`rpm --eval '%{_specdir}'`
-
-cat <<EOF
-===> checking postfix.spec.in:
-	postfix version:	${version}
-	Release Date:		${mail_release_date}
-	Postfix tarball name:	${file}
-	URL location:		${base}
-	RPM Release:		${rpm_release}
-===> checking environment information:
-	specdir=$specdir
-	srcdir=$srcdir
-EOF
-
-echo "===> checking for Postfix tar ball"
-
-download_if_necessary ${srcdir} ${base} ${file} NO_UPDATE_PKG_SOURCELIST
-
-# Look for the TLS patches
-#	Source9: ftp://ftp.aet.tu-cottbus.de/pub/postfix_tls/%{tls_version}.tar.gz  
-
-tls_version=`grep '^%define tls_version' postfix.spec.in | awk '{ print $3 } '`
-source0=`grep '^Source9: ftp://ftp.aet.tu-cottbus.de' postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{tls_version};${tls_version};"`
-
-base=`dirname ${source0}`
-file=`echo ${source0} | sed -e 's;.*/;;'`
-
-cat <<EOF
-===> checking TLS patches...
-	tls_version:		${tls_version}
-	TLS patch tarball name:	${file}
-	URL location:		${base}
-EOF
-download_if_necessary . ${base} ${file}
-
-# Look for VDA Patch
-# Patch4: http://ftp.oav.net/others/postfix/VDA/postfix-%{vda_version}_quota.patch.gz
-vda_version=`grep '^%define vda_version' postfix.spec.in | awk '{ print $3 } '`
-patch4=`grep '^Patch4: http://.*/postfix/VDA/postfix' postfix.spec.in | awk '{ print $2 }' | sed -e "s;%{vda_version};${vda_version};"`
-
-base=`dirname ${patch4}`
-file=`echo ${patch4} | sed -e 's;.*/;;'`
-
-cat <<EOF
-===> checking VDA patches...
-	vda_version:		${vda_version}
-	VDA patch tarball name:	${file}
-	URL location:		${base}
-EOF
-download_if_necessary . ${base} ${file}
-
-echo "===> checking CVS Status"
-if [ $no_check ]; then
-    echo "	NOT checking repository."
-else
-    echo "	checking files in repository..."
-    cvs diff 2>&1 >/dev/null || {
-	echo ""
-	echo "WARNING Commit changes before building, or use the --no-check option"
-	exit 1;
-    }
-fi
-echo ""
-
-sh removelinks --quiet
-sh makelinks
-test_patches	# Just check the patches here
+sh linkfiles --quiet --delete
+sh linkfiles --create
 build
 echo ""
-sh removelinks
+sh linkfiles --delete

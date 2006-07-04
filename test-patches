@@ -1,43 +1,52 @@
 #!/bin/sh
+#
+# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/test-patches,v 2.1.8.1 2006/07/04 15:11:51 sjmudd Exp $
+#
 
-#set -x
+test_patch () {
+    echo -n "===> testing $1 ... "
+    sh test-one-patch $1 $2
+    rc=$?
+    if [ $rc = "0" ]
+    then
+        echo PASSED
+    else
+        depends=
+        grep -q "is needed by postfix" results.$1 && depends="[check installed dependencies]"
+        echo "FAILED $depends"
+    fi
+}
+
+[ -n "$DEBUG" ] && set -x
 
 # Test all the patches in the package and check which ones apply cleanly
-myname=`basename $0`
-testresults=postfix-test-patch-results
+myname=$(basename $0)
 
-echo "$myname: Postfix RPM patch tester"
-echo "writing results to $testresults"
+cat <<EOF
 
-cat >$testresults <<END
-# Postfix RPM: results of building with different patches.
-# The value is set to 1 if the patch applies cleanly, otherwise it is set to 0.
-#
-# The DB patches are NOT tested as I don't have these installed on all my
-# machines.
-#
-END
+$myname: Postfix RPM patch tester
 
-for i in \
-POSTFIX_CDB \
-POSTFIX_IPV6 \
-POSTFIX_LDAP \
-POSTFIX_PCRE \
-POSTFIX_SASL \
-POSTFIX_SMTPD_MULTILINE_GREETING \
-POSTFIX_TLS \
-POSTFIX_VDA \
-; do
-    echo -n "===> testing $i patch... "
-    sh test-one-patch $i 1
-    rc=$?
-    [ $rc = "0" ] && echo OK || echo Failed
-    cat >>$testresults <<END
-${i}_PATCH=$((1-$rc))
-END
-done
+Results of building with different patches
+------------------------------------------
 
-cat >>$testresults <<END
-# 
-# End of testing
-END
+EOF
+
+test_patch POSTFIX_CDB 1
+test_patch POSTFIX_IPV6 1
+test_patch POSTFIX_LDAP 1
+test_patch POSTFIX_PCRE 1
+test_patch POSTFIX_PGSQL 1
+test_patch POSTFIX_SASL 2
+test_patch POSTFIX_SMTPD_MULTILINE_GREETING 1
+test_patch POSTFIX_TLS 1
+test_patch POSTFIX_VDA 1
+
+cat <<EOF
+---------------
+
+NOTES:
+[1] Check build outputs for each failed patch and ensure that all dependencies
+    are installed.
+[2] Patches are not tested together
+
+EOF

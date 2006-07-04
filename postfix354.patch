@@ -1,0 +1,23 @@
+--- postfix.2.2.8/src/smtpd/smtpd.c.orig	2006-02-07 12:08:23.000000000 +0100
++++ postfix.2.2.8/src/smtpd/smtpd.c	2006-02-07 12:10:27.000000000 +0100
+@@ -2006,7 +2006,7 @@
+ 		    "\t(envelope-from %s)", STR(state->buffer));
+ #endif
+     }
+-    smtpd_chat_reply(state, "354 End data with <CR><LF>.<CR><LF>");
++    smtpd_chat_reply(state, "354 Start mail input; end with <CR><LF>.<CR><LF>");
+ 
+     /*
+      * Copy the message content. If the cleanup process has a problem, keep
+--- postfix.2.2.8/src/smtpstone/smtp-sink.c.orig	2006-02-07 12:22:35.000000000 +0100
++++ postfix.2.2.8/src/smtpstone/smtp-sink.c	2006-02-07 12:24:53.000000000 +0100
+@@ -218,7 +218,7 @@
+ static void data_response(SINK_STATE *state)
+ {
+     state->data_state = ST_CR_LF;
+-    smtp_printf(state->stream, "354 End data with <CR><LF>.<CR><LF>");
++    smtp_printf(state->stream, "354 Start mail input; end with <CR><LF>.<CR><LF>");
+     smtp_flush(state->stream);
+     state->read_fn = data_read;
+ }
+

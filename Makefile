@@ -2,53 +2,75 @@
 # Makefile for producing my Postfix RPMs
 #
 
+all: setup update fetch build
+
 # Setup the directory structure used (on a non-root machine)
 # normally done just once after checking out the repository
 # files.
 setup:
-	@echo Setting up directory structure
+	@echo "--------------------------------------------------------------"
+	@echo ">>> Setting up directory structure"
+	@echo "--------------------------------------------------------------"
+	@echo ""
 	@sh setup-rpm-environment
+
+# update to the latest version of the rpm
+# (no longer builds)
+update latest:
+	@echo "--------------------------------------------------------------"
+	@echo ">>> updating CVS files"
+	@echo "--------------------------------------------------------------"
+	@echo ""
+	@cvs update || : 
+
+# download files if necessary
+fetch:
+	@echo "--------------------------------------------------------------"
+	@echo ">>> downloading source files (if needed)"
+	@echo "--------------------------------------------------------------"
+	@echo ""
+	@LANG= LC_CTYPE= LANG= ./vcheck --plain --no-update --download --catch-up --file postfix.spec.vc
+
+# build the rpm
+build rpm:
+	@echo "--------------------------------------------------------------"
+	@echo ">>> Building RPM"
+	@echo "--------------------------------------------------------------"
+	@echo ""
+	@sh buildpackage
+
+# build the rpm with no cvs checks first
+nochecks:
+	@echo "--------------------------------------------------------------"
+	@echo ">>> Building RPM (no cvs checks)"
+	@echo "--------------------------------------------------------------"
+	@echo ""
+	@sh buildpackage --no-check
 
 # Build the rpm
 default: rpm 
 
 # commit changes to cvs
 commit:
-	@cvs diff 2>/dev/null >/dev/null || cvs commit
+	@cvs commit
 
 # checks if there have been changes to source
 checkcvs:
+	@echo ""
+	@echo "--------------------------------------------------------------"
+	@echo ">>> Checking for changes against the CVS repository"
+	@echo "--------------------------------------------------------------"
+	@echo ""
+	@cvs diff 2>&1 >/dev/null || { echo ""; echo "WARNING Commit changes before building, or try $(MAKE) nochecks"; exit 1; }
 
-# to build the latest version of the rpm
-update latest:
-	@echo updating CVS files
-	@cvs update || : 
-	@echo Making RPMs
-	$(MAKE) rpm
-
-# build the rpm
-rpm:
-	@echo Building RPM; \
-	sh buildpackage
 
 # Tests - test the different patches
-tests: vda_test
-
-
-# Test the rpm prep stage for VDA patches - do they apply cleanly?
-vda-test:
+tests:
+	@echo "--------------------------------------------------------------"
+	@echo ">>> testing patches"
+	@echo "--------------------------------------------------------------"
 	@echo ""
-	@echo "===> testing VDA patches"
-	@specdir=`rpm --eval '%{_specdir}'`; \
-	srcdir=`rpm --eval '%{_sourcedir}'`; \
-	( cd $$srcdir && \
-	  pwd && \
-	POSTFIX_VDA=1 sh make-postfix.spec && \
-	cd $$specdir && \
-	rpmbuild -bp postfix.spec ) || { echo "===> testing VDA patches: ** FAILED **"; exit 1; }
-
-#	echo "===> testing VDA patches: ** OK **"
-#	echo ""
+	@sh test-patches
 
 # clean up the directory structure of files which we don't need
 # - links from this package into SOURCES
@@ -56,12 +78,16 @@ vda-test:
 # - stuff in %{_tmppath} ~user/rpm/tmp/*
 # - stuff in %{_builddir} ~user/rpm/BUILD/*
 clean tidy:
-	sh removelinks || :
-	dir=`rpm --eval '%{_sourcedir}'`
-	for i in `ls $$dir`; do [ -L $$i ] && rm $$i || :; done
-	dir=`rpm --eval '%{_tmppath}'`; rm -rf $$dir/*
-	dir=`rpm --eval '%{_builddir}'`; rm -rf $$dir/*
-	[ -e build-output ] && rm build-output || :
+	@sh linkfiles --delete --quiet || :
+	@dir=`rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;'` ; \
+		for file in `ls $$dir`; do [ -L $$file ] && rm $$file || :; done
+	@dir=`/bin/rpm --eval '%{_sourcedir}'`; \
+		dir=`rpm --eval '%{_tmppath}'  | sed 's;%{name};postfix;'`; \
+		[ -d $$dir ] && rm -rf $$dir/* || :
+	@dir=`rpm --eval '%{_builddir}' | sed 's;%{name};postfix;'`; \
+		[ -d $$dir ] && rm -rf $$dir/* || :
+	@[ -e build-output ] && rm build-output || :
+	@for file in `ls results.* 2>/dev/null`; do rm $$file || :; done
 
 # Give some help
 help:

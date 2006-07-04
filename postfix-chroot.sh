@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# # $Id: postfix-chroot.sh,v 2.1 2003/08/26 16:23:35 sjmudd Exp $
+# # $Id: postfix-chroot.sh,v 2.1.6.1 2006/07/04 15:11:51 sjmudd Exp $
 #
 # postfix-chroot.sh - enable or disable Postfix chroot
 #
@@ -105,7 +105,7 @@ remove_chroot () {
     }
 
     # remove LDAP libraries
-    pattern="${chroot}${libdir}/libldap*.so* ${chroot}${libdir}/liblber.so*"
+    pattern="${chroot}${libdir}/libldap*.*so* ${chroot}${libdir}/liblber*.*so*"
     [ $(count_files_in ${pattern}) != 0 ] && {
         info $verbose "remove LDAP files from chroot"
         rm -f ${pattern}
@@ -208,9 +208,9 @@ setup_chroot() {
     # determine if the LDAP libraries are needed
     echo ${dependencies} | grep -q libldap && {
         info $verbose "copy LDAP libraries into chroot"
-        for i in ${libdir}/libldap*.so* \
-                 ${libdir}/libldap_r.so* \
-                 ${libdir}/liblber.so*; do
+        for i in ${libdir}/libldap*.*so* \
+                 ${libdir}/libldap_r.*so* \
+                 ${libdir}/liblber*.*so*; do
               copy $i ${chroot}${libdir}/
         done
         ldconfig -n ${chroot}${libdir}		# not convinced this is necessary

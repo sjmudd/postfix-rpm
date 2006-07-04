@@ -1,0 +1,123 @@
+#!/bin/sh
+#
+# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/make-postfix.rpm,v 1.1.6.1 2006/07/04 15:11:51 sjmudd Exp $
+#
+# Script to build a Postfix rpm
+# - perform an upgrade, including the same parameters as the running rpm
+# - perform an upgrade, using the postfix.spec.cf equivalent file
+# - clean environment before building (disabling optional build components)
+
+[ -n "$DEBUG" ] && set -x
+myname=$(basename $0)
+version=$(echo '$Id: make-postfix.rpm,v 1.1.6.1 2006/07/04 15:11:51 sjmudd Exp $' | awk '{ print $3 }')
+
+# provide usage message
+usage () {
+	cat <<-EOF
+	$myname version $version (C) 2004 Simon J Mudd
+
+	Script to build a Postfix RPM. This script is expected to be used
+	with the Postfix source RPM which contains it.
+
+	Usage: $myname [-c] [-f <file>] [-h] [-u}
+
+	Options:
+	c	clean environment resetting any variables
+	u	build upgradable RPM, reading the configuration from
+	 	/etc/postfix/postfix.spec.cf
+	f	read the configuration from a file
+	h	this help message
+
+	Typical usage as follows:
+	.	$myname -cu		# build an RPM to upgrade an installed RPM
+	.	$myname -c		# build a standard RPM (no patches/options)
+	.	$myname -cf /path/to/postfix.spec.cf	# build an rpm based on the
+	.				# given file
+
+	EOF
+}
+
+# give an error message
+msg_error () {
+	echo "ERROR: $1, exiting"
+	exit 1
+}
+
+# clean the environment so that no optional parameters are available
+clean_environment () {
+	echo "- clearing POSTFIX_* environment variables"
+	unset POSTFIX_CDB
+	unset POSTFIX_DB
+	unset POSTFIX_IPV6
+	unset POSTFIX_LDAP
+	unset POSTFIX_MYSQL
+	unset POSTFIX_MYSQL_PATHS
+	unset POSTFIX_MYSQL_QUERY
+	unset POSTFIX_MYSQL_REDHAT
+	unset POSTFIX_PCRE
+	unset POSTFIX_PGSQL
+	unset POSTFIX_SASL
+	unset POSTFIX_SMTPD_MULTILINE_GREETING
+	unset POSTFIX_TLS
+	unset POSTFIX_VDA
+}
+
+# source the given file if it exists
+source_file () {
+	local file=$1
+	[ -n "$file" ] || msg_error "no filename specified"
+	[ -r "$file" ] || msg_error "file $file is not readable"
+	# source the file
+	echo "- sourcing postfix rpm config file $file"
+	. $file
+}
+
+SOURCES=`rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;'`
+SPECS=`rpm --eval '%{_specdir}' | sed 's;%{name};postfix;'`
+rpmbuild=`which rpmbuild`
+defaultfile=/etc/postfix/postfix.spec.cf
+commandline="${rpmbuild} -ba ${SPECS}/postfix.spec"
+
+while getopts :cf:hu flag
+do
+	case $flag in
+	c) clean_environment;;
+	f) source_file $OPTARG;;
+	h) usage; exit 0;;
+	u) source_file ${defaultfile};;
+	*) usage; exit 1;;
+	esac
+done
+
+echo "=== $myname version $version (C) 2004 Simon J Mudd ==="
+echo ""
+
+[ -x "${rpmbuild}" ]		|| msg_error "rpmbuild ($rpmbuild) not found or executable"
+echo ""
+echo "=== Making Postfix spec file ==="
+cd ${SOURCES}			|| msg_error "can not cd to ${SOURCES}"
+(
+	[ -f make-postfix.spec ] || msg_error "file ${SOURCES}/make-postfix.spec not found or readable"
+	export POSTFIX_CDB
+	export POSTFIX_DB
+	export POSTFIX_IPV6
+	export POSTFIX_LDAP
+	export POSTFIX_MYSQL
+	export POSTFIX_MYSQL_PATHS
+	export POSTFIX_MYSQL_QUERY
+	export POSTFIX_MYSQL_REDHAT
+	export POSTFIX_PCRE
+	export POSTFIX_PGSQL
+	export POSTFIX_SASL
+	export POSTFIX_SMTPD_MULTILINE_GREETING
+	export POSTFIX_TLS
+	export POSTFIX_VDA
+	sh make-postfix.spec
+) || msg_error "can not build postfix.spec"
+
+[ -r ${SPECS}/postfix.spec ]	|| msg_error "file ${SPECS}/postfix.spec not found or readable"
+echo ""
+echo "=== Building Postfix RPM ==="
+echo ""
+echo ${commandline}
+${commandline}			|| msg_error "can not build postfix rpm"
