@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.6.1 2006/07/04 15:11:51 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.6.2 2006/07/31 18:40:37 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -260,8 +260,8 @@ REQUIRES_ZLIB=
 
 POSTFIX_TLS=1
 if [ "$POSTFIX_TLS" = 1 ]; then
-    echo "  adding TLS support to spec file"
-    #SUFFIX="${SUFFIX}.tls"	# disable this as it is now the default for 2.2
+    echo '  TLS support included in spec file by default (postfix >= 2.2)'
+    #SUFFIX="${SUFFIX}.tls"	# disable this as it is now the default for 2.2 and later
 
     # Different fixes (see spec file)
     [ ${releasename} = 'redhat' -a ${major} -eq 6 ] && TLSFIX=1
@@ -270,7 +270,7 @@ if [ "$POSTFIX_TLS" = 1 ]; then
     [ ${releasename} = 'rhel'   -a ${major} -ge 3 ] && { TLSFIX=2; REQUIRES_ZLIB=1; }
 fi
 if [ "$POSTFIX_VDA" = 1 ]; then
-    echo "  adding VDA support to spec file"
+    echo '  adding VDA support to spec file'
     SUFFIX="${SUFFIX}.vda"
 fi
 
