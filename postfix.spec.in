@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.6.2 2006/07/31 18:40:37 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.6.3 2006/07/31 20:44:18 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -260,7 +260,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.6.2 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.6.3 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -348,8 +348,14 @@ ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR
 The Postfix smtpd multiline greeting patch does not yet work on Postfix
 2.3.X. Please disable the configuration until the patch has been fixed.
 
+This is done by running the following command before attempting to
+build the Postfix RPM.
+
+unset POSTFIX_SMTPD_MULTILINE_GREETING
+
 ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR
 ENDTEXT
+    exit 1
 %endif
 # REMINDER: perhaps these should be incorporated into one patch?
 %if %{smtpd_multiline_greeting}
