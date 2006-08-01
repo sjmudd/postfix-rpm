@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.6.4 2006/08/01 17:01:08 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.6.5 2006/08/01 17:27:22 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -258,7 +258,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.6.4 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.6.5 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -625,7 +625,8 @@ find ${RPM_BUILD_ROOT}%{examples_dir}/ -type f -exec chmod -x {} \;
 # Install odd documentation files
 for file in AAAREADME COMPATIBILITY COPYRIGHT HISTORY PORTING \
 	RELEASE_NOTES RELEASE_NOTES-1.1 RELEASE_NOTES-2.0 \
-	US_PATENT_6321267
+	RELEASE_NOTES-2.1 RELEASE_NOTES-2.2 TLS_ACKNOWLEDGEMENTS \
+	TLS_CHANGES TLS_LICENSE TLS_TODO US_PATENT_6321267
 do
 	install -c -m 644 $file ${RPM_BUILD_ROOT}%{docdir}/
 done
