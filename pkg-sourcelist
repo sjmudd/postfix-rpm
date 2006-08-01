@@ -1,12 +1,9 @@
 make-postfix.rpm
 make-postfix.spec
 postfinger-1.29
-postfix-2.0.16-20031026-multiline-greeting.patch
+postfix-2.3.2-multiline-greeting.patch
 postfix-2.2.10_libspf2-1.2.x-20060614.patch.gz
 postfix-2.3.1-vda.patch.gz
-postfix-2.2.1-smtpd_sasl_authenticated_header.patch
-postfix354-multiline.patch
-postfix354.patch
 postfix-aliases
 postfix-bounce_notify_util.c.patch
 postfix-chroot.sh
