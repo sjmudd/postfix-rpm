@@ -1,24 +1,18 @@
-	This fixes a problem in Simon's multiline-greeting patch.
-
-	When smtpd_chat_reply() detects an I/O error, vstream_longjmp()
-	is called, hence smtpd_chat_reply_multiline()'s context is 
-	destroyed but the local VSTRINGs are not.
-
-diff -ur postfix-2.0.16-20031026.orig/src/smtpd/smtpd.c postfix-2.0.16-20031026.patched/src/smtpd/smtpd.c
---- postfix-2.0.16-20031026.orig/src/smtpd/smtpd.c	Wed Oct 22 18:58:55 2003
-+++ postfix-2.0.16-20031026.patched/src/smtpd/smtpd.c	Wed Nov 12 16:47:46 2003
-@@ -1808,7 +1808,7 @@
- 	    && (state->access_denied = smtpd_check_client(state)) != 0) {
- 	    smtpd_chat_reply(state, "%s", state->access_denied);
- 	} else {
--	    smtpd_chat_reply(state, "220 %s", var_smtpd_banner);
-+	    smtpd_chat_reply_multiline(state, 220, var_smtpd_banner);
+diff -uNr postfix-2.3.2.orig/src/smtpd/smtpd.c postfix-2.3.2/src/smtpd/smtpd.c
+--- postfix-2.3.2.orig/src/smtpd/smtpd.c	2006-07-27 02:47:39.000000000 +0200
++++ postfix-2.3.2/src/smtpd/smtpd.c	2006-08-01 18:43:32.000000000 +0200
+@@ -3915,7 +3915,7 @@
+ 				 var_myhostname);
+ 		/* Not: state->error_count++; */
+ 	    } else {
+-		smtpd_chat_reply(state, "220 %s", var_smtpd_banner);
++		smtpd_chat_reply_multiline(state, 220, var_smtpd_banner);
+ 	    }
  	}
  
- 	for (;;) {
-diff -ur postfix-2.0.16-20031026.orig/src/smtpd/smtpd_chat.c postfix-2.0.16-20031026.patched/src/smtpd/smtpd_chat.c
---- postfix-2.0.16-20031026.orig/src/smtpd/smtpd_chat.c	Sat Jul  5 17:28:32 2003
-+++ postfix-2.0.16-20031026.patched/src/smtpd/smtpd_chat.c	Wed Nov 12 17:51:15 2003
+diff -uNr postfix-2.3.2.orig/src/smtpd/smtpd_chat.c postfix-2.3.2/src/smtpd/smtpd_chat.c
+--- postfix-2.3.2.orig/src/smtpd/smtpd_chat.c	2006-07-10 22:24:52.000000000 +0200
++++ postfix-2.3.2/src/smtpd/smtpd_chat.c	2006-08-01 18:46:05.000000000 +0200
 @@ -14,6 +14,11 @@
  /*	SMTPD_STATE *state;
  /*	char	*format;
@@ -31,9 +25,9 @@ diff -ur postfix-2.0.16-20031026.orig/src/smtpd/smtpd_chat.c postfix-2.0.16-2003
  /*	void	smtpd_chat_notify(state)
  /*	SMTPD_STATE *state;
  /*
-@@ -31,6 +36,11 @@
- /*	When soft_bounce is enabled, all 5xx (reject) reponses are
- /*	replaced by 4xx (try again).
+@@ -32,6 +37,11 @@
+ /*	replaced by 4xx (try again). In case of a 421 reply the
+ /*	SMTPD_FLAG_HANGUP flag is set for orderly disconnect.
  /*
 +/*	smtpd_chat_reply_multiline() formats a server reply, sends it to
 +/*	the client, and appends a copy to the SMTP transaction log.
@@ -43,7 +37,7 @@ diff -ur postfix-2.0.16-20031026.orig/src/smtpd/smtpd_chat.c postfix-2.0.16-2003
  /*	smtpd_chat_notify() sends a copy of the SMTP transaction log
  /*	to the postmaster for review. The postmaster notice is sent only
  /*	when delivery is possible immediately. It is an error to call
-@@ -61,6 +71,8 @@
+@@ -62,6 +72,8 @@
  #include <time.h>
  #include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
  #include <stdarg.h>
@@ -52,11 +46,13 @@ diff -ur postfix-2.0.16-20031026.orig/src/smtpd/smtpd_chat.c postfix-2.0.16-2003
  
  /* Utility library. */
  
-@@ -180,6 +192,61 @@
- 	vstream_longjmp(state->client, SMTP_ERR_TIME);
-     if (vstream_ferror(state->client))
- 	vstream_longjmp(state->client, SMTP_ERR_EOF);
-+}
+@@ -188,6 +200,65 @@
+ 	state->flags |= SMTPD_FLAG_HANGUP;
+ }
+ 
++
++
++
 +
 +/* trim_line - remove trailing whitespace and return a pointer to the first */
 +/* non-space char in the string.  Based on TRIM() in ../util/dict.c         */
@@ -111,16 +107,18 @@ diff -ur postfix-2.0.16-20031026.orig/src/smtpd/smtpd_chat.c postfix-2.0.16-2003
 +    }
 +    line2 = trim_line(line);
 +    smtpd_chat_reply(state, "%03d %s", smtp_reply_code, line2);
- }
- 
++}
++
  /* print_line - line_wrap callback */
-diff -ur postfix-2.0.16-20031026.orig/src/smtpd/smtpd_chat.h postfix-2.0.16-20031026.patched/src/smtpd/smtpd_chat.h
---- postfix-2.0.16-20031026.orig/src/smtpd/smtpd_chat.h	Sat Nov 18 11:37:30 2000
-+++ postfix-2.0.16-20031026.patched/src/smtpd/smtpd_chat.h	Wed Nov 12 16:47:46 2003
+ 
+ static void print_line(const char *str, int len, int indent, char *context)
+diff -uNr postfix-2.3.2.orig/src/smtpd/smtpd_chat.h postfix-2.3.2/src/smtpd/smtpd_chat.h
+--- postfix-2.3.2.orig/src/smtpd/smtpd_chat.h	2006-04-24 20:48:28.000000000 +0200
++++ postfix-2.3.2/src/smtpd/smtpd_chat.h	2006-08-01 18:46:56.000000000 +0200
 @@ -15,6 +15,7 @@
  extern void smtpd_chat_reset(SMTPD_STATE *);
  extern void smtpd_chat_query(SMTPD_STATE *);
- extern void PRINTFLIKE(2, 3) smtpd_chat_reply(SMTPD_STATE *, char *, ...);
+ extern void PRINTFLIKE(2, 3) smtpd_chat_reply(SMTPD_STATE *, const char *, ...);
 +extern void smtpd_chat_reply_multiline(SMTPD_STATE *, int, char *, ...);
  extern void smtpd_chat_notify(SMTPD_STATE *);
  
