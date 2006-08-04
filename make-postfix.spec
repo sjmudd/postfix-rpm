@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.6.2 2006/07/31 18:40:37 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.6.3 2006/08/04 15:52:08 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -142,10 +142,14 @@ esac
 
 test -z "${POSTFIX_LDAP}" && POSTFIX_LDAP=${DEFAULT_LDAP}
 if [ "${POSTFIX_LDAP}" = 1 ]; then
-    echo "  adding LDAP support to spec file"
 
     # Only add the .ldap suffix if the distribution by default doesn´t support ldap
-    [ "${POSTFIX_LDAP}" != "${DEFAULT_LDAP}" ] && SUFFIX="${SUFFIX}.ldap"
+    if [ "${POSTFIX_LDAP}" != "${DEFAULT_LDAP}" ]; then
+	echo "  adding explicit LDAP support to spec file"
+	SUFFIX="${SUFFIX}.ldap"
+    else
+    	echo '  LDAP support included in spec file by default'
+    fi
 fi
 
 if [ "$POSTFIX_PCRE" = 1 ]; then
