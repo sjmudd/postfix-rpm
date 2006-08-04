@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.6.5 2006/08/01 17:27:22 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.6.6 2006/08/04 15:52:08 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -95,7 +95,7 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 1
 %define V_postfix 2.3.2
-%define rel 0.3__SUFFIX__
+%define rel 0.4__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -258,7 +258,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.6.5 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.6.6 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -364,6 +364,7 @@ q
 EOF
 
 %build
+[ -n "$RPM_DEBUG_SCRIPTLET" ] && set -x 
 umask 022
 
 CCARGS=
@@ -470,6 +471,9 @@ unset CCARGS AUXLIBS
 make DEBUG="%{?_with_debug:-g}" OPT="$RPM_OPT_FLAGS"
 
 %pre
+# can't see the output so send it to a file
+exec > /tmp/rpmtst.txt 2>&1
+set -x 
 umask 022
 
 # create postfix user and group, and maildrop group if necessary.
@@ -499,8 +503,8 @@ test -z "${GROUP}" && usermod -G mail postfix || :
 
 # check for a new install and see if a non package installed Postfix might
 # exist.  Attempt to avoid overwriting the source config and provide a warning.
-if [ $1 = 0 ]; then
-    timenow=$(date +%Y%m%d-%H%M%S)
+if [ "$1" = 0 ]; then
+    timenow=$(date +%Y%m%d-%H%M%%S)
     pretext="This is a new Postfix RPM installation"
     [ -f %{_sysconfdir}/postfix ] && {
         [ -n "$pretext" ] && %whinge "$pretext" && pretext=
@@ -519,6 +523,7 @@ fi
 exit 0
 
 %install
+[ -n "$RPM_DEBUG_SCRIPTLET" ] && set -x 
 umask 022
 
 [ -n "${RPM_BUILD_ROOT}" -a "${RPM_BUILD_ROOT}" != "/" ] && {
@@ -758,6 +763,7 @@ export POSTFIX_MYSQL POSTFIX_MYSQL_PATHS POSTFIX_MYSQL_REDHAT \
 EOF
 
 %post
+[ -n "$RPM_DEBUG_SCRIPTLET" ] && set -x 
 umask 022
 
 chkconfig --add postfix
@@ -1015,7 +1021,13 @@ umask 022
 %doc %{docdir}/RELEASE_NOTES
 %doc %{docdir}/RELEASE_NOTES-1.1
 %doc %{docdir}/RELEASE_NOTES-2.0
+%doc %{docdir}/RELEASE_NOTES-2.1
+%doc %{docdir}/RELEASE_NOTES-2.2
 %doc %{docdir}/SEE-ALSO
+%doc %{docdir}/TLS_ACKNOWLEDGEMENTS
+%doc %{docdir}/TLS_CHANGES
+%doc %{docdir}/TLS_LICENSE
+%doc %{docdir}/TLS_TODO
 %doc %{docdir}/US_PATENT_6321267
 
 %doc %dir %{readme_dir}
@@ -1094,7 +1106,8 @@ umask 022
 
 %changelog
 
-* Tue Aug 01 2006 Simon J Mudd <sjmudd@pobox.com> 2.3.2-0.3
+* Tue Aug 04 2006 Simon J Mudd <sjmudd@pobox.com> 2.3.2-0.4
+  - this works on RHEL4 but not RHEL3 (giving a error in the %pre script)
   - check that each of the different options work ok (all seems ok except
     libspf)
   - adjust smtp_multiline_banner patch to work on 2.3.2
