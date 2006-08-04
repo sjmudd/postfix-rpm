@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.6.7 2006/08/04 15:54:05 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.6.8 2006/08/04 17:20:20 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -95,7 +95,7 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 1
 %define V_postfix 2.3.2
-%define rel 0.4__SUFFIX__
+%define rel 0.5__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -258,7 +258,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.6.7 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.6.8 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -347,13 +347,7 @@ if [ "%{with_spf}" -le 1 ]; then
 %patch7 -p1 -b .spf
 else
 %patch8 -p1 -b .spf
-+ fi
-%endif
-
-# disabled as it does not work on postfix-2.3
-%if 0
-%patch100 -p1 -b .saslauthheader
-%patch102 -p1 -b .354patch
+fi
 %endif
 
 # Modify master.cf: rmail --> rmail.postfix
@@ -364,7 +358,6 @@ q
 EOF
 
 %build
-[ -n "$RPM_DEBUG_SCRIPTLET" ] && set -x 
 umask 022
 
 CCARGS=
@@ -471,9 +464,6 @@ unset CCARGS AUXLIBS
 make DEBUG="%{?_with_debug:-g}" OPT="$RPM_OPT_FLAGS"
 
 %pre
-# can't see the output so send it to a file
-exec > /tmp/rpmtst.txt 2>&1
-set -x 
 umask 022
 
 # create postfix user and group, and maildrop group if necessary.
@@ -523,7 +513,6 @@ fi
 exit 0
 
 %install
-[ -n "$RPM_DEBUG_SCRIPTLET" ] && set -x 
 umask 022
 
 [ -n "${RPM_BUILD_ROOT}" -a "${RPM_BUILD_ROOT}" != "/" ] && {
@@ -763,7 +752,6 @@ export POSTFIX_MYSQL POSTFIX_MYSQL_PATHS POSTFIX_MYSQL_REDHAT \
 EOF
 
 %post
-[ -n "$RPM_DEBUG_SCRIPTLET" ] && set -x 
 umask 022
 
 chkconfig --add postfix
@@ -1106,8 +1094,7 @@ umask 022
 
 %changelog
 
-* Tue Aug 04 2006 Simon J Mudd <sjmudd@pobox.com> 2.3.2-0.4
-  - this works on RHEL4 but not RHEL3 (giving a error in the %pre script)
+* Tue Aug 04 2006 Simon J Mudd <sjmudd@pobox.com> 2.3.2-0.5
   - check that each of the different options work ok (all seems ok except
     libspf)
   - adjust smtp_multiline_banner patch to work on 2.3.2
