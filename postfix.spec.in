@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.6.10 2006/08/11 19:15:13 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.6.11 2006/08/11 19:21:26 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -258,7 +258,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.6.10 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.6.11 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -455,7 +455,7 @@ CCARGS="${CCARGS} -fsigned-char"
 %endif
 
 # Disable IPv6 support if requested
-%if %{with_ipv6} = 0
+%if %{with_ipv6} == 0
 	CCARGS="${CCARGS} -DNO_IPV6"
 %endif
 
