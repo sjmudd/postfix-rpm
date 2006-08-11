@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.6.5 2006/08/11 21:03:39 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.6.6 2006/08/11 21:06:43 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -260,6 +260,11 @@ if [ "$POSTFIX_IPV6" = 1 ]; then
     else
 	echo '  adding IPv6 support to spec file explicitly' 
 	SUFFIX="${SUFFIX}.ipv6"
+    fi
+else
+    if ! [ $POSTFIX_IPV6 = $DEFAULT_IPV6 ]; then
+	echo '  removing IPv6 support from spec file explicitly' 
+	SUFFIX="${SUFFIX}.noipv6"
     fi
 fi
 
