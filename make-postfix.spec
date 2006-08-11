@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.6.3 2006/08/04 15:52:08 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.6.4 2006/08/11 19:15:13 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -148,7 +148,7 @@ if [ "${POSTFIX_LDAP}" = 1 ]; then
 	echo "  adding explicit LDAP support to spec file"
 	SUFFIX="${SUFFIX}.ldap"
     else
-    	echo '  LDAP support included in spec file by default'
+    	echo '  adding LDAP support to spec file by default (disable with POSTFIX_LDAP=0)'
     fi
 fi
 
@@ -238,9 +238,27 @@ END
     exit 1
 fi
 
+# --- POSTFIX_IPV6 --- do we require ipv6 support?
+#
+# IPv6 support is included by default except:
+# - redhat servers
+# - yellowdog servers
+# - it can still explicitly be disabled with POSTFIX_IPV6=0
+
+DEFAULT_IPV6=1
+case ${releasename} in
+redhat|yellowdog)
+    DEFAULT_IPV6=0
+    ;;
+esac
+
 if [ "$POSTFIX_IPV6" = 1 ]; then
-    echo "  adding IPv6 support to spec file"
-    SUFFIX="${SUFFIX}.ipv6"
+    if [ $POSTFIX_IPV6 = $DEFAULT_IPV6 ]; then
+	echo '  adding IPv6 support to spec file by default (disable with POSTFIX_IPV6=0)'
+    else
+	echo '  adding IPv6 support to spec file explicitly' 
+	SUFFIX="${SUFFIX}.ipv6"
+    fi
 fi
 
 if [ "$POSTFIX_SPF" = 1 ]; then
@@ -262,9 +280,12 @@ REQUIRES_ZLIB=
 [ "$POSTFIX_MYSQL" = 1 ]        && REQUIRES_ZLIB=1
 [ "$POSTFIX_MYSQL_REDHAT" = 1 ] && REQUIRES_ZLIB=1
 
-POSTFIX_TLS=1
+
+# --- POSTFIX_TLS --- enable by default, but can disable explicitly
+
+[ -z "$POSTFIX_TLS" ] && POSTFIX_TLS=1
 if [ "$POSTFIX_TLS" = 1 ]; then
-    echo '  TLS support included in spec file by default (postfix >= 2.2)'
+    echo '  addding TLS support to spec file by default (disable with POSTFIX_TLS=0)'
     #SUFFIX="${SUFFIX}.tls"	# disable this as it is now the default for 2.2 and later
 
     # Different fixes (see spec file)
@@ -272,6 +293,9 @@ if [ "$POSTFIX_TLS" = 1 ]; then
     [ ${releasename} = 'redhat' -a ${major} -eq 9 ] && { TLSFIX=2; REQUIRES_ZLIB=1; }
     [ ${releasename} = 'fedora' -a ${major} -eq 1 ] && TLSFIX=2
     [ ${releasename} = 'rhel'   -a ${major} -ge 3 ] && { TLSFIX=2; REQUIRES_ZLIB=1; }
+else
+    echo '  removing TLS support from spec file'
+    SUFFIX="${SUFFIX}.notls"
 fi
 if [ "$POSTFIX_VDA" = 1 ]; then
     echo '  adding VDA support to spec file'

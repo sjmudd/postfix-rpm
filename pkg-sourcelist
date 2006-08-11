@@ -1,9 +1,9 @@
 make-postfix.rpm
 make-postfix.spec
 postfinger-1.29
-postfix-2.3.2-multiline-greeting.patch
 postfix-2.2.10_libspf2-1.2.x-20060614.patch.gz
-postfix-2.3.1-vda.patch.gz
+postfix-2.3.2-multiline-greeting.patch
+postfix-2.3.2-vda.patch.gz
 postfix-aliases
 postfix-bounce_notify_util.c.patch
 postfix-chroot.sh

@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.6.9 2006/08/06 09:00:37 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.6.10 2006/08/11 19:15:13 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -89,13 +89,13 @@
 %define debug %{?_with_debug:1}%{?!_with_debug:0}
 
 # patch version information
-%define V_vda   2.3.1
+%define V_vda   2.3.2
 %define V_cdb   1.1.11-20021104
 
 # If set to 1 if official version, 0 if snapshot
 %define official 1
 %define V_postfix 2.3.2
-%define rel 1__SUFFIX__
+%define rel 2__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -258,7 +258,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.6.9 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.6.10 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -454,8 +454,13 @@ CCARGS="${CCARGS} -fsigned-char"
 	CCARGS="${CCARGS} -DNO_TLS"
 %endif
 
-# Required by some TLS implementations (RHEL 3 and RH9) and also some
-# MySQL packages
+# Disable IPv6 support if requested
+%if %{with_ipv6} = 0
+	CCARGS="${CCARGS} -DNO_IPV6"
+%endif
+
+# Required by some TLS implementations (RHEL 3 and RH9) and also some MySQL
+# packages
 %if %{requires_zlib}
   AUXLIBS="${AUXLIBS} -lz"
 %endif
@@ -1096,6 +1101,12 @@ umask 022
 #
 
 %changelog
+
+* Fri Aug 11 2006 Simon J Mudd <sjmudd@pobox.com> 2.3.2-2
+  - TLS support: make it possible to disable TLS support if required (POSTFIX_TLS=0)
+  - IPv6 support: make it possible to disable IPv6 support if required (POSTFIX_IPV6=0)
+  - The default behaviour in both cases is to enable them. (postfix default too.)
+  - update VDA patch to 2.3.2
 
 * Sun Aug 06 2006 Simon J Mudd <sjmudd@pobox.com> 2.3.2-1
   - check that each of the different options work ok
