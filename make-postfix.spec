@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.6.6 2006/08/11 21:06:43 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.6.7 2006/08/11 21:11:31 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -111,7 +111,7 @@ echo "  Distribution is: ${fullname} (${distribution})"
 echo ""
 
 if [ "$POSTFIX_CDB" = 1 ]; then
-    echo "  adding CDB support to spec file"
+    echo "  enabling CDB support in spec file"
     SUFFIX="${SUFFIX}.cdb"
 fi
 
@@ -145,19 +145,19 @@ if [ "${POSTFIX_LDAP}" = 1 ]; then
 
     # Only add the .ldap suffix if the distribution by default doesn´t support ldap
     if [ "${POSTFIX_LDAP}" != "${DEFAULT_LDAP}" ]; then
-	echo "  adding explicit LDAP support to spec file"
+	echo "  enabling explicit LDAP support in spec file"
 	SUFFIX="${SUFFIX}.ldap"
     else
-    	echo '  adding LDAP support to spec file by default (disable with POSTFIX_LDAP=0)'
+    	echo '  enabling LDAP support in spec file by default (disable with POSTFIX_LDAP=0)'
     fi
 fi
 
 if [ "$POSTFIX_PCRE" = 1 ]; then
-    echo "  adding PCRE support to spec file"
+    echo "  enabling PCRE support in spec file"
     SUFFIX="${SUFFIX}.pcre"
 fi
 if [ "$POSTFIX_PGSQL" = 1 ]; then
-    echo "  adding PostGres support to spec file"
+    echo "  enabling PostGres support in spec file"
     SUFFIX="${SUFFIX}.pgsql"
 fi
 # Check for conflicting MySQL requests and report an error if necessary
@@ -179,7 +179,7 @@ MYSQL_COUNT=0
 if [ "$POSTFIX_MYSQL" = 1 ]; then
     POSTFIX_MYSQL_REDHAT=0
     POSTFIX_MYSQL_PATHS=
-    echo "  adding MySQL support (www.mysql.com MySQL* packages) to spec file"
+    echo "  enabling MySQL support (www.mysql.com MySQL* packages) in spec file"
     SUFFIX="${SUFFIX}.MySQL"
 fi
 if [ -n "$POSTFIX_REDHAT_MYSQL" ]; then
@@ -192,18 +192,18 @@ fi
 if [ "$POSTFIX_MYSQL_REDHAT" = 1 ]; then
     POSTFIX_MYSQL=0
     POSTFIX_MYSQL_PATHS=
-    echo "  adding MySQL support (RedHat mysql* packages) to spec file"
+    echo "  enabling MySQL support (RedHat mysql* packages) in spec file"
     SUFFIX="${SUFFIX}.mysql"
 fi
 if [ -n "$POSTFIX_MYSQL_PATHS" -a "$POSTFIX_MYSQL_PATHS" != 0 ]; then
     POSTFIX_MYSQL=0
     POSTFIX_MYSQL_REDHAT=0
-    echo "  adding MySQL support (paths set to $POSTFIX_MYSQL_PATHS) to spec file"
+    echo "  enabling MySQL support (paths set to $POSTFIX_MYSQL_PATHS) in spec file"
     SUFFIX="${SUFFIX}.mysql_path"
 fi
 
 if [ "$POSTFIX_SASL" = 1 -o "$POSTFIX_SASL" = 2 ]; then
-    echo "  adding SASL v${POSTFIX_SASL} support to spec file"
+    echo "  enabling SASL v${POSTFIX_SASL} support in spec file"
     SUFFIX="${SUFFIX}.sasl${POSTFIX_SASL}"
 else
     POSTFIX_SASL=
@@ -256,14 +256,14 @@ esac
 [ -z "$POSTFIX_IPV6" ] && POSTFIX_IPV6=$DEFAULT_IPV6
 if [ "$POSTFIX_IPV6" = 1 ]; then
     if [ $POSTFIX_IPV6 = $DEFAULT_IPV6 ]; then
-	echo '  adding IPv6 support to spec file by default (disable with POSTFIX_IPV6=0)'
+	echo '  enabling IPv6 support in spec file by default (disable with POSTFIX_IPV6=0)'
     else
-	echo '  adding IPv6 support to spec file explicitly' 
+	echo '  enabling IPv6 support in spec file explicitly' 
 	SUFFIX="${SUFFIX}.ipv6"
     fi
 else
     if ! [ $POSTFIX_IPV6 = $DEFAULT_IPV6 ]; then
-	echo '  removing IPv6 support from spec file explicitly' 
+	echo '  disabling IPv6 support in spec file explicitly' 
 	SUFFIX="${SUFFIX}.noipv6"
     fi
 fi
@@ -278,7 +278,7 @@ if [ "$POSTFIX_SPF" = 1 ]; then
        POSTFIX_SPF=2
     fi
 
-    echo "  adding SPF support to spec file"
+    echo "  enabling SPF support in spec file"
     SUFFIX="${SUFFIX}.spf"
 fi
 
@@ -292,7 +292,7 @@ REQUIRES_ZLIB=
 
 [ -z "$POSTFIX_TLS" ] && POSTFIX_TLS=1
 if [ "$POSTFIX_TLS" = 1 ]; then
-    echo '  addding TLS support to spec file by default (disable with POSTFIX_TLS=0)'
+    echo '  enabling TLS support in spec file by default (disable with POSTFIX_TLS=0)'
     #SUFFIX="${SUFFIX}.tls"	# disable this as it is now the default for 2.2 and later
 
     # Different fixes (see spec file)
@@ -301,11 +301,11 @@ if [ "$POSTFIX_TLS" = 1 ]; then
     [ ${releasename} = 'fedora' -a ${major} -eq 1 ] && TLSFIX=2
     [ ${releasename} = 'rhel'   -a ${major} -ge 3 ] && { TLSFIX=2; REQUIRES_ZLIB=1; }
 else
-    echo '  removing TLS support from spec file'
+    echo '  disabling TLS support in spec file'
     SUFFIX="${SUFFIX}.notls"
 fi
 if [ "$POSTFIX_VDA" = 1 ]; then
-    echo '  adding VDA support to spec file'
+    echo '  enabling VDA support in spec file'
     SUFFIX="${SUFFIX}.vda"
 fi
 
@@ -398,7 +398,7 @@ esac
 [ -z "${POSTFIX_DB}" ] && POSTFIX_DB=${DEFAULT_DB}
 [ "${POSTFIX_DB}" != "${DEFAULT_DB}" -a "${POSTFIX_DB}" != 0 ] && {
     SUFFIX=".db${POSTFIX_DB}${SUFFIX}"
-    echo "  adding db${POSTFIX_DB} support to spec file"
+    echo "  enabling db${POSTFIX_DB} support in spec file"
 }
 [ -n "${DIST}" ] && SUFFIX="${SUFFIX}${DIST}"
 
