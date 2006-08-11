@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.6.4 2006/08/11 19:15:13 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.6.5 2006/08/11 21:03:39 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -252,6 +252,8 @@ redhat|yellowdog)
     ;;
 esac
 
+# set value to default value if not specified
+[ -z "$POSTFIX_IPV6" ] && POSTFIX_IPV6=$DEFAULT_IPV6
 if [ "$POSTFIX_IPV6" = 1 ]; then
     if [ $POSTFIX_IPV6 = $DEFAULT_IPV6 ]; then
 	echo '  adding IPv6 support to spec file by default (disable with POSTFIX_IPV6=0)'
