@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.6.7 2006/08/11 21:11:31 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.6.8 2006/08/12 09:11:10 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -286,7 +286,6 @@ fi
 REQUIRES_ZLIB=
 [ "$POSTFIX_MYSQL" = 1 ]        && REQUIRES_ZLIB=1
 [ "$POSTFIX_MYSQL_REDHAT" = 1 ] && REQUIRES_ZLIB=1
-
 
 # --- POSTFIX_TLS --- enable by default, but can disable explicitly
 

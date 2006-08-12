@@ -1,6 +1,6 @@
 make-postfix.rpm
 make-postfix.spec
-postfinger-1.29
+postfinger-1.30
 postfix-2.2.10_libspf2-1.2.x-20060614.patch.gz
 postfix-2.3.2-multiline-greeting.patch
 postfix-2.3.2-vda.patch.gz

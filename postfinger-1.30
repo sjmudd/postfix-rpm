@@ -9,7 +9,7 @@
 #      Sasa Babic <sasab@hygia.pharmacy.bg.ac.yu>
 #      Iñaki Arenaza <iarenaza@escomposlinux.org>
 #      Jorge Gordoy <gordoy@g2ctech.com>
-#    $Revision: 2.1 $
+#    $Revision: 1.1.2.1 $
 #
 # License:
 #    This program is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@
 #    An on-line copy of the GNU General Public License can be found
 #    http://www.fsf.org/copyleft/gpl.html.
 
-version_number=1.29	# don't use rcs version here
+version_number=1.30	# don't use rcs version here
 version="version: ${version_number}"
 BACKUP_IFS=$IFS
 usage="postfinger ${version}: a Postfix configuration extraction utility
@@ -158,6 +158,21 @@ END
     [ -n "${BSDPKG}" ] && {
 	${BSDPKG} -q -W ${SMTPD} >/dev/null 2>/dev/null && \
 	    echo "looks like this postfix comes from BSD package: `${BSDPKG} -q -W ${SMTPD}`"
+    }
+ 
+    PKGCHK=
+    PKGINFO=
+    [ -x /usr/sbin/pkgchk ] && PKGCHK=/usr/sbin/pkgchk
+    [ -x /usr/bin/pkginfo ] && PKGINFO=/usr/bin/pkginfo
+    [ -n "$PKGCHK" -a -n "$PKGINFO" ] && {
+	pkgs=`pkgchk -l -p ${SMTPD} | tr '\011' ' ' |
+	    sed -ne '/^Referenced by the following packages:/,/^C/ {
+	/^ /p
+	}'`
+	[ -n "$pkgs" ] && {
+	    echo "looks like this postfix comes from the SVR4 package:"
+	    ${PKGINFO} -x ${pkgs}
+	}
     }
 
     echo ""

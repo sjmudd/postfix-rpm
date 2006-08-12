@@ -14,9 +14,13 @@ prog V_vda = {
   url       = http://web.onda.com.br/nadal/postfix/VDA/
   regex     = postfix-(\d\.\d\.\d)-vda.patch.gz
 }
-
 prog V_spf = {
   version   = 2.2.0-5
   url       = http://www.ipnet6.org/postfix/download/
   regex     = postfix-libspf2-(\d\.\d\.\d-\d)\.patch
+}
+prog V_postfinger = {
+  version   = 1.30
+  url       = http://postfix.wl0.org/ftp/postfinger/
+  regex     = postfinger-(\d\.\d+)
 }
