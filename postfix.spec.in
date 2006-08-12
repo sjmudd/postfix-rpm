@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.6.12 2006/08/12 09:11:10 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.6.13 2006/08/12 11:18:08 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -30,9 +30,6 @@
 # with_sasl                - include SASL/AUTH support (0 to disable sasl,
 #                            1 for sasl v1, or 2 for sasl v2, sasl_library is
 #                            the sasl library to link against, distribution dependent)
-# with_spf                 - include libspf2 library support
-#                            - rpms for libspf can be found at http://www.sosdg.org/rpm/libspf/
-#                            - apparently they work on RHEL3
 # with_tls                 - include TLS support
 # with_tlsfix              - include TLS fix
 #                            - needed for rh6.2, rh9 and rhel3
@@ -79,8 +76,7 @@
 %define with_pcre         __WITH_PCRE__
 %define with_pgsql        __WITH_PGSQL__
 %define with_sasl         __WITH_SASL__
-%define with_dovecot_sasl __WITH_DOVECOT_SASL__
-%define with_spf          __WITH_SPF__
+%define with_dovecot      __WITH_DOVECOT__
 %define with_tls          __WITH_TLS__
 %define with_tlsfix       __WITH_TLSFIX__
 %define with_vda          __WITH_VDA__
@@ -184,11 +180,6 @@ BuildRoot: %{_tmppath}/%{name}-%{V_package}-buildroot
 BuildRequires: /usr/bin/cc, gawk, sed, ed, patch, rpm >= 4
 Requires: gawk, sed, ed
 
-%if %{with_spf}
-BuildRequires: libspf2-devel
-Requires: libspf2
-%endif
-
 %if %{requires_db}
 Requires: db%{requires_db}
 BuildRequires: db%{requires_db}-devel
@@ -240,6 +231,11 @@ Requires: cyrus-sasl
 BuildRequires: cyrus-sasl, %{sasl_library}
 %endif
 
+%if %{with_dovecot}
+Requires: dovecot
+#BuildRequires: ???
+%endif
+
 %if %{with_tls}
 Requires: openssl
 BuildRequires: openssl-devel
@@ -259,7 +255,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.6.12 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.6.13 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -343,16 +339,6 @@ sh dict_cdb.sh
 %patch99  -p1 -b .multiline
 %endif
 
-%if %{with_spf}
-	echo "ERROR: The postfix-2.3 RPM does not yet support SPF, exiting"
-	exit 1
-if [ "%{with_spf}" -le 1 ]; then
-%patch7 -p1 -b .spf
-else
-%patch8 -p1 -b .spf
-fi
-%endif
-
 # Modify master.cf: rmail --> rmail.postfix
 ed conf/master.cf <<EOF || exit 1
 %s/rmail/rmail.postfix/
@@ -419,17 +405,8 @@ CCARGS="${CCARGS} -fsigned-char"
     AUXLIBS="${AUXLIBS} -L%{sasl_lib_dir} -lsasl2"
   fi
   # Provide support for dovecot SASL (not completed yet)
-  if [ "%{with_dovecot_sasl}" = 1 ]; then
+  if [ "%{with_dovecot}" = 1 ]; then
     CCARGS="${CCARGS} -I/usr/include/sasl -DUSE_SASL_AUTH -DUSE_CYRUS_SASL -DDEF_SASL_SERVER_TYPE=\"dovecot\""
-  fi
-%endif
-
-%if %{with_spf}
-  if [ "%{with_spf}" -le 1]; then
-    AUXLIBS="${AUXLIBS} -lspf2"
-  else
-    AUXLIBS="${AUXLIBS} -lspf2"
-    CCARGS="${CCARGS} -DHAVE_NS_TYPE"
   fi
 %endif
 
@@ -588,6 +565,16 @@ bin/postconf -c ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix -e \
 	"alias_database = hash:%{_sysconfdir}/postfix/aliases" \
 || exit 1
 
+# Change default smtpd_sasl... parameters for dovecot
+# - if upgrading between non-dovecot and dovecot postfix rpms these
+#   values may need to be changed manually
+%if %{with_dovecot}
+bin/postconf -c ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix -e \
+	"smtpd_sasl_type = dovecot" \
+	"smtpd_sasl_path = private/auth" \
+|| exit 1
+%endif
+
 # Install Sys V init script
 mkdir -p ${RPM_BUILD_ROOT}%{initdir}
 install -c %{_sourcedir}/postfix-etc-init.d-postfix \
@@ -738,14 +725,13 @@ POSTFIX_PCRE=%{with_pcre}
 POSTFIX_PGSQL=%{with_pgsql}
 POSTFIX_SASL=%{with_sasl}
 POSTFIX_SMTPD_MULTILINE_GREETING=%{smtpd_multiline_greeting}
-POSTFIX_SPF=%{with_spf}
 POSTFIX_TLS=%{with_tls}
 POSTFIX_VDA=%{with_vda}
 
 # export values to child processes
 export POSTFIX_MYSQL POSTFIX_MYSQL_PATHS POSTFIX_MYSQL_REDHAT \
  POSTFIX_LDAP POSTFIX_PCRE POSTFIX_PGSQL \
- POSTFIX_SASL POSTFIX_SPF POSTFIX_TLS POSTFIX_IPV6 POSTFIX_VDA \
+ POSTFIX_SASL POSTFIX_TLS POSTFIX_IPV6 POSTFIX_VDA \
  POSTFIX_SMTPD_MULTILINE_GREETING POSTFIX_DB POSTFIX_INCLUDE_DB \
  POSTFIX_CDB POSTFIX_ALT_PRIO
 
@@ -1105,6 +1091,7 @@ umask 022
 
 * Sat Aug 12 2006 Simon J Mudd <sjmudd@pobox.com> 2.3.2-3
   - update postfinger to postfinger-1.30 (this should have been done before)
+  - remove SPF support as it does not work on postfix-2.3
 
 * Fri Aug 11 2006 Simon J Mudd <sjmudd@pobox.com> 2.3.2-2
   - TLS support: make it possible to disable TLS support if required (POSTFIX_TLS=0)

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.6.8 2006/08/12 09:11:10 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.6.9 2006/08/12 11:18:08 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -12,6 +12,7 @@
 # POSTFIX_ALT_PRIO	allow the alternative's priority to be changed (default 30)
 # POSTFIX_CDB		support for Constant Database, CDB, by Michael Tokarev
 #			<mjt@corpit.ru>, as originally devised by djb.
+# POSTFIX_DOVECOT	include support for Dovecot
 # POSTFIX_IPV6		include support for IPv6
 # POSTFIX_LDAP		include support for openldap packages
 # POSTFIX_MYSQL		include support for MySQL's MySQL packages
@@ -27,7 +28,6 @@
 #				2 for sasl v2
 # POSTFIX_SMTPD_MULTILINE_GREETING
 #			include support for multitline SMTP banner
-# POSTFIX_SPF           include support for libspf2
 # POSTFIX_TLS		include support for TLS
 # POSTFIX_VDA		include support for Virtual Delivery Agent
 #
@@ -209,6 +209,12 @@ else
     POSTFIX_SASL=
 fi
 
+# enable support for Dovecot SASL
+if [ "$POSTFIX_DOVECOT" = 1 ]; then
+    echo "  enabling DOVECOT support in spec file"
+    SUFFIX="${SUFFIX}.dovecot"
+fi
+
 [ -z "$POSTFIX_RPM_NO_WARN" -a \
 	"$POSTFIX_LDAP" -gt 0 -a \
 	"$POSTFIX_SASL" = 2 -a \
@@ -266,20 +272,6 @@ else
 	echo '  disabling IPv6 support in spec file explicitly' 
 	SUFFIX="${SUFFIX}.noipv6"
     fi
-fi
-
-if [ "$POSTFIX_SPF" = 1 ]; then
-    V_LIBSPF=$( rpm -q libspf2 | sed -e 's/libspf2-//' )
-
-    # Test if libspf2 is greater than 1.2
-    echo "$V_LIBSPF" | egrep '^[1-9]\.[2-9]' >/dev/null
-
-    if [ $? -eq 0 ]; then
-       POSTFIX_SPF=2
-    fi
-
-    echo "  enabling SPF support in spec file"
-    SUFFIX="${SUFFIX}.spf"
 fi
 
 # --- REQUIRES_ZLIB --- do we require the zlib library?
@@ -418,7 +410,6 @@ esac
 [ -z "$POSTFIX_PGSQL" ]			   && POSTFIX_PGSQL=0
 [ -z "$POSTFIX_SASL" ]			   && POSTFIX_SASL=0
 [ -z "$POSTFIX_SMTPD_MULTILINE_GREETING" ] && POSTFIX_SMTPD_MULTILINE_GREETING=0
-[ -z "$POSTFIX_SPF" ]			   && POSTFIX_SPF=0
 [ -z "$POSTFIX_TLS" ]			   && POSTFIX_TLS=0
 [ -z "$POSTFIX_VDA" ]			   && POSTFIX_VDA=0
 [ -z "$REQUIRES_ZLIB" ]			   && REQUIRES_ZLIB=0
@@ -450,10 +441,10 @@ s!__WITH_MYSQL__!$POSTFIX_MYSQL!g
 s!__WITH_PCRE__!$POSTFIX_PCRE!g
 s!__WITH_PGSQL__!$POSTFIX_PGSQL!g
 s!__WITH_SASL__!$POSTFIX_SASL!g
-s!__WITH_SPF__!$POSTFIX_SPF!g
 s!__WITH_TLSFIX__!$TLSFIX!g
 s!__WITH_TLS__!$POSTFIX_TLS!g
 s!__WITH_VDA__!$POSTFIX_VDA!g
+s!__WITH_DOVECOT__!$POSTFIX_DOVECOT!g
 " ${sourcedir}/postfix.spec.in >> ${specdir}/postfix.spec
 
 # end of make-postfix.spec
