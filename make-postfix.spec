@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.6.9 2006/08/12 11:18:08 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.6.10 2006/08/13 11:09:42 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -12,7 +12,7 @@
 # POSTFIX_ALT_PRIO	allow the alternative's priority to be changed (default 30)
 # POSTFIX_CDB		support for Constant Database, CDB, by Michael Tokarev
 #			<mjt@corpit.ru>, as originally devised by djb.
-# POSTFIX_DOVECOT	include support for Dovecot
+# POSTFIX_DOVECOT	include support for Dovecot SASL
 # POSTFIX_IPV6		include support for IPv6
 # POSTFIX_LDAP		include support for openldap packages
 # POSTFIX_MYSQL		include support for MySQL's MySQL packages
@@ -22,7 +22,7 @@
 #			library directories ( /usr/include/mysql:/usr/lib/mysql )
 # POSTFIX_PCRE		include support for pcre maps
 # POSTFIX_PGSQL		include support for PostGres database
-# POSTFIX_SASL		include SASL/AUTH support
+# POSTFIX_SASL		include Cyrus SASL/AUTH support
 #				0 to disable sasl,
 #				1 for sasl v1, or
 #				2 for sasl v2
@@ -203,7 +203,7 @@ if [ -n "$POSTFIX_MYSQL_PATHS" -a "$POSTFIX_MYSQL_PATHS" != 0 ]; then
 fi
 
 if [ "$POSTFIX_SASL" = 1 -o "$POSTFIX_SASL" = 2 ]; then
-    echo "  enabling SASL v${POSTFIX_SASL} support in spec file"
+    echo "  enabling Cyrus SASL v${POSTFIX_SASL} support in spec file"
     SUFFIX="${SUFFIX}.sasl${POSTFIX_SASL}"
 else
     POSTFIX_SASL=
@@ -211,7 +211,7 @@ fi
 
 # enable support for Dovecot SASL
 if [ "$POSTFIX_DOVECOT" = 1 ]; then
-    echo "  enabling DOVECOT support in spec file"
+    echo "  enabling Dovecot SASL support in spec file"
     SUFFIX="${SUFFIX}.dovecot"
 fi
 
@@ -235,14 +235,6 @@ WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
 END
     exit 1
 }
-
-if [ "$POSTFIX_RBL_MAPS" = 1 ]; then
-    cat <<END
-WARNING: POSTFIX_RBL_MAPS no longer used.
-  Please unset POSTFIX_RBL_MAPS to continue.
-END
-    exit 1
-fi
 
 # --- POSTFIX_IPV6 --- do we require ipv6 support?
 #

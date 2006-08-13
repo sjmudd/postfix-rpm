@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.6.13 2006/08/12 11:18:08 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.6.14 2006/08/13 11:09:42 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -21,13 +21,14 @@
 # mps			   - man page suffix, .gz except Mandrake >= 8 which uses .bz2
 # with_cdb                 - include CDB support by Michael Tokarev
 #                            <mjt@corpit.ru>
+# with_dovecot             - include DOVECOT SASL authentication
 # with_ipv6                - include IPV6 support
 # with_ldap                - include LDAP support
 # with_mysql               - include support for www.mysql.com's MySQL rpms
 # with_mysql_redhat        - include support for RedHat's MySQL rpms
 # with_pcre                - include pcre support
 # with_pgsql               - include Postgres database support
-# with_sasl                - include SASL/AUTH support (0 to disable sasl,
+# with_sasl                - include Cyrus SASL/AUTH support (0 to disable sasl,
 #                            1 for sasl v1, or 2 for sasl v2, sasl_library is
 #                            the sasl library to link against, distribution dependent)
 # with_tls                 - include TLS support
@@ -92,7 +93,7 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 1
 %define V_postfix 2.3.2
-%define rel 3__SUFFIX__
+%define rel 4__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -168,10 +169,6 @@ Patch5: postfix-makedefs.patch
 
 # Optional patches
 Patch4:  http://web.onda.com.br/nadal/postfix/VDA/postfix-%{V_vda}-vda.patch.gz
-# Libspf patches
-Patch6: http://www.ipnet6.org/postfix/spf/postfix-libspf2.README
-Patch7: http://www.ipnet6.org/postfix/download/postfix-libspf2-2.2.0-5.patch
-Patch8: http://www.linuxrulz.org/nkukard/postfix/postfix-2.2.10_libspf2-1.2.x-20060614.patch.gz
 Patch99: ftp://ftp.wl0.org/SOURCES/postfix-2.3.2-multiline-greeting.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{V_package}-buildroot
@@ -231,9 +228,13 @@ Requires: cyrus-sasl
 BuildRequires: cyrus-sasl, %{sasl_library}
 %endif
 
+# Unless dovecot is used the dovecot rpm isn't really needed as a dependency.
+# - however IFF dovecot is used it MUST be version >= 1
+# - testing this is therefore a little tricky as the only place to
+#   check is in the postfix startup.
+#   Therefore at the moment the rpm requirement is explicit.
 %if %{with_dovecot}
-Requires: dovecot
-#BuildRequires: ???
+Requires: dovecot >= 1
 %endif
 
 %if %{with_tls}
@@ -255,7 +256,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.6.13 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.6.14 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -404,9 +405,13 @@ CCARGS="${CCARGS} -fsigned-char"
     CCARGS="${CCARGS} -I/usr/include/sasl -DUSE_SASL_AUTH -DUSE_CYRUS_SASL"
     AUXLIBS="${AUXLIBS} -L%{sasl_lib_dir} -lsasl2"
   fi
-  # Provide support for dovecot SASL (not completed yet)
-  if [ "%{with_dovecot}" = 1 ]; then
-    CCARGS="${CCARGS} -I/usr/include/sasl -DUSE_SASL_AUTH -DUSE_CYRUS_SASL -DDEF_SASL_SERVER_TYPE=\"dovecot\""
+%endif
+# Provide support for Dovecot SASL
+%if %{with_dovecot}
+  CCARGS="${CCARGS} -DUSE_SASL_AUTH"
+  # make dovecot the default IFF we don't include SASL
+  if [ "%{with_sasl}" = 0 ]; then
+    CCARGS="${CCARGS} -DDEF_SERVER_SASL_TYPE=\\\"dovecot\\\""
   fi
 %endif
 
@@ -566,14 +571,18 @@ bin/postconf -c ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix -e \
 || exit 1
 
 # Change default smtpd_sasl... parameters for dovecot
-# - if upgrading between non-dovecot and dovecot postfix rpms these
-#   values may need to be changed manually
+# - override postfix default behaviour IFF not using cyrus sasl.
+# - main.cf can still be adjusted manually after installation if required.
 %if %{with_dovecot}
-bin/postconf -c ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix -e \
+  if [ "%{with_sasl}" = 0 ]; then
+    bin/postconf -c ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix -e \
 	"smtpd_sasl_type = dovecot" \
 	"smtpd_sasl_path = private/auth" \
-|| exit 1
+    || exit 1
+  fi
 %endif
+# Fix a typo in some of the documentation.
+perl -pi -e "s/DEF_SASL_SERVER_TYPE/DEF_SERVER_SASL_TYPE/g" */SASL_README*
 
 # Install Sys V init script
 mkdir -p ${RPM_BUILD_ROOT}%{initdir}
@@ -716,6 +725,7 @@ cat - %{_sourcedir}/postfix.spec.cf <<EOF | sed -e '/^# NOTE:/d' > ${RPM_BUILD_R
 POSTFIX_ALT_PRIO=%{with_alt_prio}
 POSTFIX_CDB=%{with_cdb}
 POSTFIX_DB=%{requires_db}
+POSTFIX_DOVECOT=%{with_dovecot}
 POSTFIX_IPV6=%{with_ipv6}
 POSTFIX_LDAP=%{with_ldap}
 POSTFIX_MYSQL=%{with_mysql}
@@ -733,7 +743,7 @@ export POSTFIX_MYSQL POSTFIX_MYSQL_PATHS POSTFIX_MYSQL_REDHAT \
  POSTFIX_LDAP POSTFIX_PCRE POSTFIX_PGSQL \
  POSTFIX_SASL POSTFIX_TLS POSTFIX_IPV6 POSTFIX_VDA \
  POSTFIX_SMTPD_MULTILINE_GREETING POSTFIX_DB POSTFIX_INCLUDE_DB \
- POSTFIX_CDB POSTFIX_ALT_PRIO
+ POSTFIX_CDB POSTFIX_ALT_PRIO POSTFIX_DOVECOT
 
 # other options used in the build (but not explicitly changeable by the user) are:
 # - debug=%{?_with_debug:1}%{?!_with_debug:0}
@@ -796,6 +806,59 @@ fi
 	%{whinge} "creating new %{_sysconfdir}/sysconfig/saslauthd from local Postfix copy"
 }
 %endif
+
+# Add comments to the /etc/dovecot.conf configuration file showing how
+# to configure with Postfix if needed.
+
+DOVECOT_CONF=/etc/dovecot.conf
+# if postfix is mentioned in the dovecot configuration file then DO NOTHING
+if ! grep -q postfix $DOVECOT_CONF; then
+
+	# check if auth default is configured and add a COMMENTED SECTION taken from the SASL_README file
+	if grep -q 'auth default' $DOVECOT_CONF; then
+		ed $DOVECOT_CONF <<-EOF_END || exit 1
+		/auth default {
+		a
+
+		# Postfix - suggested configuration taken from SASL_README (2.3.2).
+		#    mechanisms = plain login
+		#  socket listen {
+		#    client {
+		#      path = /var/spool/postfix/private/auth
+		#      mode = 0660
+		#      user = postfix
+		#      group = postfix
+		#    }
+		#  }
+	
+		.
+		w
+		q
+		EOF_END
+	else
+		# add the whole section at the end
+		cat <<-EOF_END >> $DOVECOT_CONF
+	
+		# Postfix - suggested configuration taken from SASL_README (2.3.2).
+		#auth default {
+		#  mechanisms = plain login
+		#  passdb pam {
+		#  }
+		#  userdb passwd {
+		#  }
+		#  socket listen {
+		#    client {
+		#      path = /var/spool/postfix/private/auth
+		#      mode = 0660
+		#      user = postfix
+		#      group = postfix
+		#    }
+		#  }
+		#}
+	
+		EOF_END
+	fi
+fi
 
 # Apply the alternatives scripts ONLY if installing (not upgrading) to
 # ensure a link exists from %{_sbindir}/sendmail to
@@ -1089,9 +1152,12 @@ umask 022
 
 %changelog
 
-* Sat Aug 12 2006 Simon J Mudd <sjmudd@pobox.com> 2.3.2-3
+* Sun Aug 13 2006 Simon J Mudd <sjmudd@pobox.com> 2.3.2-3
   - update postfinger to postfinger-1.30 (this should have been done before)
   - remove SPF support as it does not work on postfix-2.3
+  - complete the support for Dovecot SASL with help from
+    - Rob McGee <rob@room101.us.eu.org>
+    - Victoriano Giralt <victoriano@uma.es>
 
 * Fri Aug 11 2006 Simon J Mudd <sjmudd@pobox.com> 2.3.2-2
   - TLS support: make it possible to disable TLS support if required (POSTFIX_TLS=0)
