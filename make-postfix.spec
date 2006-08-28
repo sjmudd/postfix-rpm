@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.6.10 2006/08/13 11:09:42 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.6.11 2006/08/28 08:46:58 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -393,6 +393,7 @@ esac
 [ -z "$POSTFIX_ALT_PRIO" ]	           && POSTFIX_ALT_PRIO=30
 [ -z "$POSTFIX_CDB" ]	                   && POSTFIX_CDB=0
 [ -z "$POSTFIX_DB" ]			   && POSTFIX_DB=0
+[ -z "$POSTFIX_DOVECOT" ]		   && POSTFIX_DOVECOT=0
 [ -z "$POSTFIX_IPV6" ]			   && POSTFIX_IPV6=0
 [ -z "$POSTFIX_LDAP" ]			   && POSTFIX_LDAP=0
 [ -z "$POSTFIX_MYSQL" ]			   && POSTFIX_MYSQL=0
