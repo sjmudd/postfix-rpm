@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.6.15 2006/08/28 08:44:00 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.6.16 2006/08/28 08:48:45 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -255,7 +255,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.6.15 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.6.16 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -738,10 +738,10 @@ POSTFIX_TLS=%{with_tls}
 POSTFIX_VDA=%{with_vda}
 
 # export values to child processes
-export POSTFIX_MYSQL POSTFIX_MYSQL_PATHS POSTFIX_MYSQL_REDHAT \
- POSTFIX_LDAP POSTFIX_PCRE POSTFIX_PGSQL \
- POSTFIX_SASL POSTFIX_TLS POSTFIX_IPV6 POSTFIX_VDA \
- POSTFIX_SMTPD_MULTILINE_GREETING POSTFIX_DB POSTFIX_INCLUDE_DB \
+export POSTFIX_MYSQL POSTFIX_MYSQL_PATHS POSTFIX_MYSQL_REDHAT \\
+ POSTFIX_LDAP POSTFIX_PCRE POSTFIX_PGSQL \\
+ POSTFIX_SASL POSTFIX_TLS POSTFIX_IPV6 POSTFIX_VDA \\
+ POSTFIX_SMTPD_MULTILINE_GREETING POSTFIX_DB POSTFIX_INCLUDE_DB \\
  POSTFIX_CDB POSTFIX_ALT_PRIO POSTFIX_DOVECOT
 
 # other options used in the build (but not explicitly changeable by the user) are:
