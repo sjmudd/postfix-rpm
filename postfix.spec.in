@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.6.14 2006/08/13 11:09:42 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.6.15 2006/08/28 08:44:00 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -92,8 +92,8 @@
 
 # If set to 1 if official version, 0 if snapshot
 %define official 1
-%define V_postfix 2.3.2
-%define rel 4__SUFFIX__
+%define V_postfix 2.3.3
+%define rel 1__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -228,13 +228,12 @@ Requires: cyrus-sasl
 BuildRequires: cyrus-sasl, %{sasl_library}
 %endif
 
-# Unless dovecot is used the dovecot rpm isn't really needed as a dependency.
-# - however IFF dovecot is used it MUST be version >= 1
-# - testing this is therefore a little tricky as the only place to
-#   check is in the postfix startup.
-#   Therefore at the moment the rpm requirement is explicit.
+# Postfix compiled with Dovecot support only works with dovecot >= 1
+# - however requiring the dovecot rpm to be installed when it may
+#   not be used means that there will be NO explicit dependency
+#   added to the rpm.
 %if %{with_dovecot}
-Requires: dovecot >= 1
+#Requires: dovecot >= 1		NOT REQUIRED / DO NOT ADD
 %endif
 
 %if %{with_tls}
@@ -256,7 +255,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.6.14 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.6.15 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -1151,6 +1150,9 @@ umask 022
 #
 
 %changelog
+
+* Sun Aug 13 2006 Simon J Mudd <sjmudd@pobox.com> 2.3.3-1
+  - update to postfix-2.3.3
 
 * Sun Aug 13 2006 Simon J Mudd <sjmudd@pobox.com> 2.3.2-3
   - update postfinger to postfinger-1.30 (this should have been done before)
