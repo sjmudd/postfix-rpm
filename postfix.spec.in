@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.6.21 2006/11/05 09:17:48 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.6.22 2006/11/08 22:23:20 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -22,7 +22,6 @@
 # with_cdb                 - include CDB support by Michael Tokarev
 #                            <mjt@corpit.ru>
 # with_dovecot             - include DOVECOT SASL authentication
-# with_ipv6                - include IPV6 support
 # with_ldap                - include LDAP support
 # with_mysql               - include support for www.mysql.com's MySQL rpms
 # with_mysql_redhat        - include support for RedHat's MySQL rpms
@@ -70,7 +69,6 @@
 %define with_alt_prio     __WITH_ALT_PRIO__
 
 %define with_cdb          __WITH_CDB__
-%define with_ipv6         __WITH_IPV6__
 %define with_ldap         __WITH_LDAP__
 %define with_mysql        __WITH_MYSQL__
 %define with_mysql_redhat __WITH_MYSQL_REDHAT__
@@ -93,7 +91,7 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 1
 %define V_postfix 2.3.4
-%define rel 1__SUFFIX__
+%define rel 2__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -255,7 +253,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.6.21 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.6.22 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -434,11 +432,6 @@ CCARGS="${CCARGS} -fsigned-char"
 # explicitly disable TLS otherwise will be built on machine if
 # openssl is available
 	CCARGS="${CCARGS} -DNO_TLS"
-%endif
-
-# Disable IPv6 support if requested
-%if %{with_ipv6} == 0
-	CCARGS="${CCARGS} -DNO_IPV6"
 %endif
 
 # Required by some TLS implementations (RHEL 3 and RH9) and also some MySQL
@@ -725,7 +718,6 @@ POSTFIX_ALT_PRIO=%{with_alt_prio}
 POSTFIX_CDB=%{with_cdb}
 POSTFIX_DB=%{requires_db}
 POSTFIX_DOVECOT=%{with_dovecot}
-POSTFIX_IPV6=%{with_ipv6}
 POSTFIX_LDAP=%{with_ldap}
 POSTFIX_MYSQL=%{with_mysql}
 POSTFIX_MYSQL_PATHS=%{mysql_paths}
@@ -740,7 +732,7 @@ POSTFIX_VDA=%{with_vda}
 # export values to child processes
 export POSTFIX_MYSQL POSTFIX_MYSQL_PATHS POSTFIX_MYSQL_REDHAT \\
  POSTFIX_LDAP POSTFIX_PCRE POSTFIX_PGSQL \\
- POSTFIX_SASL POSTFIX_TLS POSTFIX_IPV6 POSTFIX_VDA \\
+ POSTFIX_SASL POSTFIX_TLS POSTFIX_VDA \\
  POSTFIX_SMTPD_MULTILINE_GREETING POSTFIX_DB POSTFIX_INCLUDE_DB \\
  POSTFIX_CDB POSTFIX_ALT_PRIO POSTFIX_DOVECOT
 
@@ -1150,6 +1142,10 @@ umask 022
 #
 
 %changelog
+
+* Wed Nov 08 2006 Simon J Mudd <sjmudd@pobox.com> 2.3.4-2
+  - as discussed with Wietse and on postfix-users remove any reference to
+    POSTFIX_IPV6 and with_ipv6 in the builds.
 
 * Sun Nov 05 2006 Simon J Mudd <sjmudd@pobox.com> 2.3.4-1
   - update postfix to 2.3.4

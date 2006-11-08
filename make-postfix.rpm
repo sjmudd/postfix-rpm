@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/make-postfix.rpm,v 1.1.6.1 2006/07/04 15:11:51 sjmudd Exp $
+# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/make-postfix.rpm,v 1.1.6.2 2006/11/08 22:23:20 sjmudd Exp $
 #
 # Script to build a Postfix rpm
 # - perform an upgrade, including the same parameters as the running rpm
@@ -9,7 +9,7 @@
 
 [ -n "$DEBUG" ] && set -x
 myname=$(basename $0)
-version=$(echo '$Id: make-postfix.rpm,v 1.1.6.1 2006/07/04 15:11:51 sjmudd Exp $' | awk '{ print $3 }')
+version=$(echo '$Id: make-postfix.rpm,v 1.1.6.2 2006/11/08 22:23:20 sjmudd Exp $' | awk '{ print $3 }')
 
 # provide usage message
 usage () {
@@ -48,7 +48,6 @@ clean_environment () {
 	echo "- clearing POSTFIX_* environment variables"
 	unset POSTFIX_CDB
 	unset POSTFIX_DB
-	unset POSTFIX_IPV6
 	unset POSTFIX_LDAP
 	unset POSTFIX_MYSQL
 	unset POSTFIX_MYSQL_PATHS
@@ -100,7 +99,6 @@ cd ${SOURCES}			|| msg_error "can not cd to ${SOURCES}"
 	[ -f make-postfix.spec ] || msg_error "file ${SOURCES}/make-postfix.spec not found or readable"
 	export POSTFIX_CDB
 	export POSTFIX_DB
-	export POSTFIX_IPV6
 	export POSTFIX_LDAP
 	export POSTFIX_MYSQL
 	export POSTFIX_MYSQL_PATHS

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.6.11 2006/08/28 08:46:58 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.6.12 2006/11/08 22:23:20 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -13,7 +13,6 @@
 # POSTFIX_CDB		support for Constant Database, CDB, by Michael Tokarev
 #			<mjt@corpit.ru>, as originally devised by djb.
 # POSTFIX_DOVECOT	include support for Dovecot SASL
-# POSTFIX_IPV6		include support for IPv6
 # POSTFIX_LDAP		include support for openldap packages
 # POSTFIX_MYSQL		include support for MySQL's MySQL packages
 # POSTFIX_MYSQL_REDHAT	include support for RedHat's mysql packages
@@ -236,35 +235,21 @@ END
     exit 1
 }
 
-# --- POSTFIX_IPV6 --- do we require ipv6 support?
+# --- POSTFIX_IPV6 --- This option is no longer supported on postfix-2.3
+# and later. If the variable is set then give an error message and exit.
 #
-# IPv6 support is included by default except:
-# - redhat servers
-# - yellowdog servers
-# - it can still explicitly be disabled with POSTFIX_IPV6=0
+[ -z "$POSTFIX_IPV6" ] || {
+    cat <<END
+WARNING: The environment variable POSTFIX_IPV6 is no longer supported in
+my rpms after postfix-2.3.4-1.
 
-DEFAULT_IPV6=1
-case ${releasename} in
-redhat|yellowdog)
-    DEFAULT_IPV6=0
-    ;;
-esac
+This is at Wietse's request. See archives of postfix-users in Nov-2006
+for more information.
 
-# set value to default value if not specified
-[ -z "$POSTFIX_IPV6" ] && POSTFIX_IPV6=$DEFAULT_IPV6
-if [ "$POSTFIX_IPV6" = 1 ]; then
-    if [ $POSTFIX_IPV6 = $DEFAULT_IPV6 ]; then
-	echo '  enabling IPv6 support in spec file by default (disable with POSTFIX_IPV6=0)'
-    else
-	echo '  enabling IPv6 support in spec file explicitly' 
-	SUFFIX="${SUFFIX}.ipv6"
-    fi
-else
-    if ! [ $POSTFIX_IPV6 = $DEFAULT_IPV6 ]; then
-	echo '  disabling IPv6 support in spec file explicitly' 
-	SUFFIX="${SUFFIX}.noipv6"
-    fi
-fi
+  Please unset POSTFIX_IPV6 to continue.
+END
+    exit 1
+}
 
 # --- REQUIRES_ZLIB --- do we require the zlib library?
 REQUIRES_ZLIB=
@@ -394,7 +379,6 @@ esac
 [ -z "$POSTFIX_CDB" ]	                   && POSTFIX_CDB=0
 [ -z "$POSTFIX_DB" ]			   && POSTFIX_DB=0
 [ -z "$POSTFIX_DOVECOT" ]		   && POSTFIX_DOVECOT=0
-[ -z "$POSTFIX_IPV6" ]			   && POSTFIX_IPV6=0
 [ -z "$POSTFIX_LDAP" ]			   && POSTFIX_LDAP=0
 [ -z "$POSTFIX_MYSQL" ]			   && POSTFIX_MYSQL=0
 [ -z "$POSTFIX_MYSQL_PATHS" ]		   && POSTFIX_MYSQL_PATHS=0
@@ -427,7 +411,6 @@ s!__SMTPD_MULTILINE_GREETING__!$POSTFIX_SMTPD_MULTILINE_GREETING!g
 s!__SUFFIX__!$SUFFIX!g
 s!__WITH_ALT_PRIO__!$POSTFIX_ALT_PRIO!g
 s!__WITH_CDB__!$POSTFIX_CDB!g
-s!__WITH_IPV6__!$POSTFIX_IPV6!g
 s!__WITH_LDAP__!$POSTFIX_LDAP!g
 s!__WITH_MYSQL_REDHAT__!$POSTFIX_MYSQL_REDHAT!g
 s!__WITH_MYSQL__!$POSTFIX_MYSQL!g
