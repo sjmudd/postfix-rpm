@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.6.12 2006/11/08 22:23:20 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.6.13 2006/11/08 22:28:09 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -219,7 +219,7 @@ fi
 	"$POSTFIX_SASL" = 2 -a \
 	$releasename = redhat -a \
 	$major -le 8 ] && {
-cat <<END
+    cat <<END
 WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
 
 According to the RedHat Postfix spec file on RH versions earlier than 8.0.1 as
@@ -240,13 +240,17 @@ END
 #
 [ -z "$POSTFIX_IPV6" ] || {
     cat <<END
-WARNING: The environment variable POSTFIX_IPV6 is no longer supported in
-my rpms after postfix-2.3.4-1.
+WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
+
+The environment variable POSTFIX_IPV6 is no longer supported in my rpms
+after postfix-2.3.4-1.
 
 This is at Wietse's request. See archives of postfix-users in Nov-2006
 for more information.
 
-  Please unset POSTFIX_IPV6 to continue.
+Please unset POSTFIX_IPV6 to continue.
+
+WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
 END
     exit 1
 }
