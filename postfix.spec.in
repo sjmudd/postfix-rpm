@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.6.22 2006/11/08 22:23:20 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.6.23 2006/11/16 22:51:35 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -30,6 +30,8 @@
 # with_sasl                - include Cyrus SASL/AUTH support (0 to disable sasl,
 #                            1 for sasl v1, or 2 for sasl v2, sasl_library is
 #                            the sasl library to link against, distribution dependent)
+# with_spf                 - include libspf2 library support (EXPERIMENTAL)
+#                            - rpms for libspf can be found at http://www.sosdg.org/rpm/libspf/
 # with_tls                 - include TLS support
 # with_tlsfix              - include TLS fix
 #                            - needed for rh6.2, rh9 and rhel3
@@ -75,6 +77,7 @@
 %define with_pcre         __WITH_PCRE__
 %define with_pgsql        __WITH_PGSQL__
 %define with_sasl         __WITH_SASL__
+%define with_spf          __WITH_SPF__
 %define with_dovecot      __WITH_DOVECOT__
 %define with_tls          __WITH_TLS__
 %define with_tlsfix       __WITH_TLSFIX__
@@ -91,7 +94,7 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 1
 %define V_postfix 2.3.4
-%define rel 2__SUFFIX__
+%define rel 3__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -167,6 +170,8 @@ Patch5: postfix-makedefs.patch
 
 # Optional patches
 Patch4:  http://web.onda.com.br/nadal/postfix/VDA/postfix-%{V_vda}-vda.patch.gz
+# SPF patch
+Patch8:  http://www.linuxrulz.org/nkukard/postfix/postfix-2.3/postfix-2.3.2_libspf2-1.2.x-20060819.patch
 Patch99: ftp://ftp.wl0.org/SOURCES/postfix-2.3.2-multiline-greeting.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{V_package}-buildroot
@@ -174,6 +179,11 @@ BuildRoot: %{_tmppath}/%{name}-%{V_package}-buildroot
 # Determine packaging requirements
 BuildRequires: /usr/bin/cc, gawk, sed, ed, patch, rpm >= 4
 Requires: gawk, sed, ed
+
+%if %{with_spf}
+BuildRequires: libspf2-devel >= 1.2.5
+Requires: libspf2 >= 1.2.5
+%endif
 
 %if %{requires_db}
 Requires: db%{requires_db}
@@ -253,7 +263,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.6.22 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.6.23 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -337,6 +347,10 @@ sh dict_cdb.sh
 %patch99  -p1 -b .multiline
 %endif
 
+%if %{with_spf}
+%patch8 -p1 -b .spf
+%endif
+
 # Modify master.cf: rmail --> rmail.postfix
 ed conf/master.cf <<EOF || exit 1
 %s/rmail/rmail.postfix/
@@ -403,6 +417,7 @@ CCARGS="${CCARGS} -fsigned-char"
     AUXLIBS="${AUXLIBS} -L%{sasl_lib_dir} -lsasl2"
   fi
 %endif
+
 # Provide support for Dovecot SASL
 %if %{with_dovecot}
   CCARGS="${CCARGS} -DUSE_SASL_AUTH"
@@ -410,6 +425,11 @@ CCARGS="${CCARGS} -fsigned-char"
   if [ "%{with_sasl}" = 0 ]; then
     CCARGS="${CCARGS} -DDEF_SERVER_SASL_TYPE=\\\"dovecot\\\""
   fi
+%endif
+
+%if %{with_spf}
+    AUXLIBS="${AUXLIBS} -lspf2"
+    CCARGS="${CCARGS} -DHAVE_NS_TYPE"
 %endif
 
 %if %{with_tls}
@@ -726,6 +746,7 @@ POSTFIX_PCRE=%{with_pcre}
 POSTFIX_PGSQL=%{with_pgsql}
 POSTFIX_SASL=%{with_sasl}
 POSTFIX_SMTPD_MULTILINE_GREETING=%{smtpd_multiline_greeting}
+POSTFIX_SPF=%{with_spf}
 POSTFIX_TLS=%{with_tls}
 POSTFIX_VDA=%{with_vda}
 
@@ -733,7 +754,8 @@ POSTFIX_VDA=%{with_vda}
 export POSTFIX_MYSQL POSTFIX_MYSQL_PATHS POSTFIX_MYSQL_REDHAT \\
  POSTFIX_LDAP POSTFIX_PCRE POSTFIX_PGSQL \\
  POSTFIX_SASL POSTFIX_TLS POSTFIX_VDA \\
- POSTFIX_SMTPD_MULTILINE_GREETING POSTFIX_DB POSTFIX_INCLUDE_DB \\
+ POSTFIX_SMTPD_MULTILINE_GREETING POSTFIX_DB \\
+ POSTFIX_INCLUDE_DB POSTFIX_SPF \\
  POSTFIX_CDB POSTFIX_ALT_PRIO POSTFIX_DOVECOT
 
 # other options used in the build (but not explicitly changeable by the user) are:
@@ -1142,6 +1164,10 @@ umask 022
 #
 
 %changelog
+
+* Fri Nov 11 2006 Simon J Mudd <sjmudd@pobox.com> 2.3.4-3
+  - add back support for SPF
+    - info provided by Eric Hoeve <eric@ehoeve.com>
 
 * Wed Nov 08 2006 Simon J Mudd <sjmudd@pobox.com> 2.3.4-2
   - as discussed with Wietse and on postfix-users remove any reference to
