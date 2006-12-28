@@ -21,7 +21,7 @@
 # - Mandrake Linux
 
 [ -n "$DEBUG" ] && set -x
-myversion=$(echo '$Revision: 1.12.6.1 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
+myversion=$(echo '$Revision: 1.12.6.2 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
 myname=$(basename $0)
 
 # Provide a usage message
@@ -132,6 +132,9 @@ elif is_installed tao-release; then
     # tao-release-1.0-TL16
     # Tao-Linux SHOULD behave like rhel, so we name it the same
     pkg_name=tao-release
+elif is_installed sl-release; then
+    # Warning: it has not been confirmed that this actually works.
+    pkg_name=sl-release
 elif is_installed fedora-release; then
     pkg_name=fedora-release
 elif is_installed redhat-release-es; then
@@ -170,6 +173,9 @@ whitebox-release)
     name=rhel
     ;;
 tao-release)
+    name=rhel
+    ;;
+sl-release)
     name=rhel
     ;;
 fedora-release)
