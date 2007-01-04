@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.6.24 2006/12/13 16:47:28 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.6.25 2007/01/04 19:54:53 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -93,7 +93,7 @@
 
 # If set to 1 if official version, 0 if snapshot
 %define official 1
-%define V_postfix 2.3.5
+%define V_postfix 2.3.6
 %define rel 1__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
@@ -263,7 +263,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.6.24 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.6.25 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -1164,6 +1164,9 @@ umask 022
 #
 
 %changelog
+
+* Thu Jan 04 2007 Simon J Mudd <sjmudd@pobox.com> 2.3.6-1
+  - update to postfix-2.3.6
 
 * Wed Dec 13 2006 Simon J Mudd <sjmudd@pobox.com> 2.3.5-1
   - update to postfix-2.3.5
