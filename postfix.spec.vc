@@ -4,7 +4,7 @@ prog V_cdb = {
   regex     = postfix-dict_cdb-(\d\.\d\.\d\d-\d\d\d\d\d\d\d\d).tar.gz
 }
 prog V_postfix = {
-  version   = 2.3.5
+  version   = 2.3.6
   url       = ftp://ftp.porcupine.org/mirrors/postfix-release/official/
   regex     = postfix-(\d+\.\d+\.\d+)\.tar\.gz
   dldir     = /home/sjmudd/RPM/SRC/postfix
