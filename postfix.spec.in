@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.304.6.27 2007/03/08 17:23:12 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.304.6.28 2007/03/08 21:40:24 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -263,7 +263,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.304.6.27 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.304.6.28 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -352,12 +352,6 @@ sh dict_cdb.sh
 %endif
 
 # Modify master.cf: rmail --> rmail.postfix
-# NOTE: 07/03/2007
-# - See http://lists.gnu.org/archive/html/bug-ed/2007-03/msg00000.html
-# The s command has been modified to use a ',' as the addressing range rather
-# than '%' as gnu ed-3.0 no longer supports this construct.
-# Other versions of ed do support it, but it appears that POSIX ed does not:
-# see http://pwet.fr/man/linux/commandes/posix/ed for a reference I found.
 ed conf/master.cf <<EOF || exit 1
 H
 ,s/rmail/rmail.postfix/
@@ -578,7 +572,7 @@ ln -sf ../sbin/sendmail.postfix $RPM_BUILD_ROOT%{usrlib_sendmail}
 # confusing post-install.
 ed ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/postfix-files <<EOF || exit 1
 H
-%s/\(\/man[158]\/.*\.[158]\):/\1%{mps}:/
+,s/\(\/man[158]\/.*\.[158]\):/\1%{mps}:/
 w
 q
 EOF
@@ -1177,6 +1171,8 @@ umask 022
   - upgrade to postfix-2.3.8
   - change ed construct to use ',' rather than '%' due to change in GNU ed
     behaviour. This appears to be more POSIX compliant.
+  - See http://lists.gnu.org/archive/html/bug-ed/2007-03/msg00000.html
+    Other versions of ed do support %, but it appears that POSIX ed does not.
 
 * Thu Feb 08 2007 Simon J Mudd <sjmudd@pobox.com> 2.3.7-1
   - upgrade to postfix-2.3.7
