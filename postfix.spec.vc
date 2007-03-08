@@ -15,9 +15,9 @@ prog V_vda = {
   regex     = postfix-(\d\.\d\.\d)-vda.patch.gz
 }
 prog V_spf = {
-  version   = 2.2.0-5
-  url       = http://www.ipnet6.org/postfix/download/
-  regex     = postfix-libspf2-(\d\.\d\.\d-\d)\.patch
+  version   = 2.3.2
+  url       = http://www.linuxrulz.org/nkukard/postfix/postfix-2.3/
+  regex     = postfix-(\d\.\d\.\d)_libspf2-.+-\d+.patch
 }
 prog V_postfinger = {
   version   = 1.30
