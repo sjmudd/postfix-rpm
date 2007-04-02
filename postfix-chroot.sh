@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# # $Id: postfix-chroot.sh,v 2.1.6.1 2006/07/04 15:11:51 sjmudd Exp $
+# # $Id: postfix-chroot.sh,v 2.1.6.2 2007/04/02 16:50:30 sjmudd Exp $
 #
 # postfix-chroot.sh - enable or disable Postfix chroot
 #
@@ -275,6 +275,8 @@ stop_postfix () {
 myname=`basename $0`
 [ $# = 1 ] || { usage; exit 1; }
 
+# set the umask to the RH default in case this has been modified
+umask 0022
 confdir=/etc/postfix
 libdir=/usr/lib
 postconf=/usr/sbin/postconf
