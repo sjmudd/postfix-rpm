@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22 2004/06/14 18:52:49 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.23 2007/04/02 16:57:36 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -9,78 +9,63 @@
 # 
 # The following external variables if set to 1 affect the behaviour
 #
+# POSTFIX_ALT_PRIO	allow the alternative's priority to be changed (default 30)
+# POSTFIX_CDB		support for Constant Database, CDB, by Michael Tokarev
+#			<mjt@corpit.ru>, as originally devised by djb.
+# POSTFIX_DOVECOT	include support for Dovecot SASL
+# POSTFIX_LDAP		include support for openldap packages
 # POSTFIX_MYSQL		include support for MySQL's MySQL packages
 # POSTFIX_MYSQL_REDHAT	include support for RedHat's mysql packages
 # POSTFIX_MYSQL_PATHS	include support for locally installed mysql binary,
 #			providing the colon seperated include and
-#			library paths ( /usr/include/mysql:/usr/lib/mysql )
-# POSTFIX_MYSQL_QUERY	include support for writing full select statements
-#			in mysql maps
-# POSTFIX_LDAP		include support for openldap packages
+#			library directories ( /usr/include/mysql:/usr/lib/mysql )
 # POSTFIX_PCRE		include support for pcre maps
 # POSTFIX_PGSQL		include support for PostGres database
-# POSTFIX_SASL		include support for SASL (1, 2 or 0 to disable)
-# POSTFIX_TLS		include support for TLS
-# POSTFIX_IPV6		include support for IPv6
-# POSTFIX_VDA		include support for Virtual Delivery Agent
+# POSTFIX_SASL		include Cyrus SASL/AUTH support
+#				0 to disable sasl,
+#				1 for sasl v1, or
+#				2 for sasl v2
 # POSTFIX_SMTPD_MULTILINE_GREETING
 #			include support for multitline SMTP banner
+# POSTFIX_SPF		include support for libspf2
+# POSTFIX_TLS		include support for TLS
+# POSTFIX_VDA		include support for Virtual Delivery Agent
 #
 # These two values will be setup according to your distribution, but
 # you may override them.
 # POSTFIX_DB		add support for dbX, (3, 4, or 0 to disable)
-# POSTFIX_INCLUDE_DB	include the dbX directory when compiling (0,1)
-#			and linking, basically a hack to allow db3 to
-#			work on rh6x. Maybe I should generalise this
-#			later.
-#
-# POSTFIX_CDB		support for Constant Database, CDB, by Michael Tokarev
-#			<mjt@corpit.ru>, as originally devised by djb.
 #
 # Distribution Specific Configurations
 # ------------------------------------
 #
 # Please advise me if any of these assumptions are incorrect.
 #
-# REQUIRES_INIT_D	1 by default, 0 for RH <=6, Mandrake <= 7
 # REQUIRES_ZLIB		0 by default, 1 when used with TLS on RH9 & RHEL3
 #			              1 when used with mysql_redhat/mysql
 #
 # All Red Hat Enterprise Linuxes will now be treated identically
 # and named rhelXX
 # - LDAP support is included on all enterprise linux varieties
+# - TLS support is also included
 #
-# Red Hat Linux Enterprise 3 requires
 # POSTFIX_DB=4		add db4 package to requires list
+# - Red Hat Linux Enterprise 3 / 4
+# - Red Hat Linux 9
+# - Red Hat Linux 8
 #
-# Red Hat Linux Enterprise 2.1 requires
 # POSTFIX_DB=3		add db3 package to requires list
-#
-# Red Hat Linux 9 requires
-# POSTFIX_DB=4		add db4 package to requires list
-#
-# Red Hat Linux 8 requires
-# POSTFIX_DB=4		add db4 package to requires list
-#
-# Red Hat Linux 7.x requires
-# POSTFIX_DB=3		add db3 package to requires list
+# - Red Hat Linux Enterprise 2.1
+# - Red Hat Linux 7.x
 #
 # Red Hat Linux MAY require (according to configuration)
 # TLSFIX=1		enable a fix for TLS support on RH 6.2 (see spec file)
-# TLSFIX=2		enable a fix for TLS support on RH 9 (see spec file)
-# POSTFIX_DB=3		add db3 package to requires list
-# POSTFIX_INCLUDE_DB=1	add /usr/include/db3 to the includes list
-#			and the db-3.1 library to the build instructions
+# TLSFIX=2		enable a fix for TLS support on RH 9 and RHEL3
 #
-# To rebuild the spec file, set the appropriate environment
-# variables and do the following:
-#
-# cd `rpm --eval '%{_sourcedir}'`
-# export POSTFIX_MYSQL=1	# for example
-# sh make-postfix.spec
-# cd `rpm --eval '%{_specdir}'`
-# rpmbuild -ba postfix.spec
+# For build instructions see:
+# - postfix.spec[.in]	if you have the source rpm installed
+# - postfix.spec.cf	if you have the binary rpm installed
 
+[ -n "$DEBUG" ] && set -x
 myname=`basename $0`
 
 error() {
@@ -91,47 +76,42 @@ error() {
 # are.
 
 [ `set | grep ^SUFFIX= | wc -l`          = 0 ] || error "Please do not set SUFFIX"
-[ `set | grep ^REQUIRES_INIT_D= | wc -l` = 0 ] || error "Please do not set REQUIRES_INIT_D directly"
 [ `set | grep ^TLSFIX= | wc -l`          = 0 ] || error "Please do not set TLSFIX"
 
 SUFFIX=			# RPM package suffix
 TLSFIX=			# Apply "fixes" to TLS patches
 
-# This appears to be .gz, except for Mandrake Linux which uses .bz2
-MANPAGE_SUFFIX=".gz"
+# change location of spec/source dir so they can be referenced by "%{name}"
+specdir=$(rpm --eval '%{_specdir}' | sed 's;%{name};postfix;')
+sourcedir=$(rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;')
 
 echo ""
-echo "Creating Postfix spec file: `rpm --eval '%{_specdir}'`/postfix.spec"
+echo "Creating Postfix spec file: ${specdir}/postfix.spec"
 echo "  Checking rpm database for distribution information..."
 echo "  - if the script gets stuck here:"
 echo "    check and remove /var/lib/rpm/__db.00? files"
 
 # Determine the distribution (is there a better way of doing this?)
+# - give (example values as shown)
+#
+# redhat-release-9.0-3 | whitebox-release-3.0-6_i386
+# redhat-9.0           | rhel-3.0
+# redhat               | rhel
+# 9                    | 3
+# 0                    | 0
 
-tmpdir=`rpm --eval '%{_sourcedir}'`
-fullname=`sh ${tmpdir}/postfix-get-distribution --full`		# redhat-release-9.0-3
-distribution=`sh ${tmpdir}/postfix-get-distribution`		# redhat-9.0
-releasename=`sh ${tmpdir}/postfix-get-distribution --name`	# redhat
-major=`sh ${tmpdir}/postfix-get-distribution --major`		# 9
-minor=`sh ${tmpdir}/postfix-get-distribution --minor`		# 0
+distro_info=$(sh ${sourcedir}/postfix-get-distribution --distro-info)
+fullname=$(echo "$distro_info" | cut -d" " -f5)
+releasename=$(echo "$distro_info" | cut -d" " -f1)
+major=$(echo "$distro_info" | cut -d" " -f3)
+minor=$(echo "$distro_info" | cut -d" " -f4)
+distribution="${releasename}-${major}.${minor}"
 
 echo "  Distribution is: ${fullname} (${distribution})"
 echo ""
 
-# --- REQUIRES_INIT_D --- do we require /etc/init.d?
-
-REQUIRES_INIT_D=1
-
-if [ ${releasename} = redhat -a ${major} -le 6 ]; then
-    REQUIRES_INIT_D=0
-fi
-# This may need checking?
-if [ ${releasename} = mandrake -a ${major} -le 7 ]; then
-    REQUIRES_INIT_D=0
-fi
-
 if [ "$POSTFIX_CDB" = 1 ]; then
-    echo "  adding CDB support to spec file"
+    echo "  enabling CDB support in spec file"
     SUFFIX="${SUFFIX}.cdb"
 fi
 
@@ -162,18 +142,22 @@ esac
 
 test -z "${POSTFIX_LDAP}" && POSTFIX_LDAP=${DEFAULT_LDAP}
 if [ "${POSTFIX_LDAP}" = 1 ]; then
-    echo "  adding LDAP support to spec file"
 
     # Only add the .ldap suffix if the distribution by default doesn´t support ldap
-    [ "${POSTFIX_LDAP}" != "${DEFAULT_LDAP}" ] && SUFFIX="${SUFFIX}.ldap"
+    if [ "${POSTFIX_LDAP}" != "${DEFAULT_LDAP}" ]; then
+	echo "  enabling explicit LDAP support in spec file"
+	SUFFIX="${SUFFIX}.ldap"
+    else
+    	echo '  enabling LDAP support in spec file by default (disable with POSTFIX_LDAP=0)'
+    fi
 fi
 
 if [ "$POSTFIX_PCRE" = 1 ]; then
-    echo "  adding PCRE support to spec file"
+    echo "  enabling PCRE support in spec file"
     SUFFIX="${SUFFIX}.pcre"
 fi
 if [ "$POSTFIX_PGSQL" = 1 ]; then
-    echo "  adding PostGres support to spec file"
+    echo "  enabling PostGres support in spec file"
     SUFFIX="${SUFFIX}.pgsql"
 fi
 # Check for conflicting MySQL requests and report an error if necessary
@@ -195,7 +179,7 @@ MYSQL_COUNT=0
 if [ "$POSTFIX_MYSQL" = 1 ]; then
     POSTFIX_MYSQL_REDHAT=0
     POSTFIX_MYSQL_PATHS=
-    echo "  adding MySQL support (www.mysql.com MySQL* packages) to spec file"
+    echo "  enabling MySQL support (www.mysql.com MySQL* packages) in spec file"
     SUFFIX="${SUFFIX}.MySQL"
 fi
 if [ -n "$POSTFIX_REDHAT_MYSQL" ]; then
@@ -208,33 +192,27 @@ fi
 if [ "$POSTFIX_MYSQL_REDHAT" = 1 ]; then
     POSTFIX_MYSQL=0
     POSTFIX_MYSQL_PATHS=
-    echo "  adding MySQL support (RedHat mysql* packages) to spec file"
+    echo "  enabling MySQL support (RedHat mysql* packages) in spec file"
     SUFFIX="${SUFFIX}.mysql"
 fi
-if [ -n "$POSTFIX_MYSQL_PATHS" ]; then
+if [ -n "$POSTFIX_MYSQL_PATHS" -a "$POSTFIX_MYSQL_PATHS" != 0 ]; then
     POSTFIX_MYSQL=0
     POSTFIX_MYSQL_REDHAT=0
-    echo "  adding MySQL support (paths set to $POSTFIX_MYSQL_PATHS) to spec file"
+    echo "  enabling MySQL support (paths set to $POSTFIX_MYSQL_PATHS) in spec file"
     SUFFIX="${SUFFIX}.mysql_path"
 fi
 
-if [ -n "$POSTFIX_MYSQLQUERY" ]; then
-    cat <<END
-WARNING: POSTFIX_MYSQLQUERY has been replaced by POSTFIX_MYSQL_QUERY.
-  Please unset POSTFIX_MYSQLQUERY and set POSTFIX_MYSQL_QUERY to continue.
-END
-    exit 1
-fi
-if [ "$POSTFIX_MYSQL_QUERY" = 1 ]; then
-    echo "  adding support for full mysql select statements to spec file"
-    SUFFIX="${SUFFIX}.mysql_query"
-fi
-
 if [ "$POSTFIX_SASL" = 1 -o "$POSTFIX_SASL" = 2 ]; then
-    echo "  adding SASL v${POSTFIX_SASL} support to spec file"
+    echo "  enabling Cyrus SASL v${POSTFIX_SASL} support in spec file"
     SUFFIX="${SUFFIX}.sasl${POSTFIX_SASL}"
 else
     POSTFIX_SASL=
+fi
+
+# enable support for Dovecot SASL
+if [ "$POSTFIX_DOVECOT" = 1 ]; then
+    echo "  enabling Dovecot SASL support in spec file"
+    SUFFIX="${SUFFIX}.dovecot"
 fi
 
 [ -z "$POSTFIX_RPM_NO_WARN" -a \
@@ -242,7 +220,7 @@ fi
 	"$POSTFIX_SASL" = 2 -a \
 	$releasename = redhat -a \
 	$major -le 8 ] && {
-cat <<END
+    cat <<END
 WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
 
 According to the RedHat Postfix spec file on RH versions earlier than 8.0.1 as
@@ -258,36 +236,56 @@ END
     exit 1
 }
 
-if [ "$POSTFIX_RBL_MAPS" = 1 ]; then
-    cat <<END
-WARNING: POSTFIX_RBL_MAPS no longer used.
-  Please unset POSTFIX_RBL_MAPS to continue.
-END
-    exit 1
+if [ "$POSTFIX_SPF" = 1 ]; then
+    POSTFIX_SPF=1
+
+    echo "  adding SPF support to spec file"
+    SUFFIX="${SUFFIX}.spf"
 fi
 
-if [ "$POSTFIX_IPV6" = 1 ]; then
-    echo "  adding IPv6 support to spec file"
-    SUFFIX="${SUFFIX}.ipv6"
-fi
+# --- POSTFIX_IPV6 --- This option is no longer supported on postfix-2.3
+# and later. If the variable is set then give an error message and exit.
+#
+[ -z "$POSTFIX_IPV6" ] || {
+    cat <<END
+WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
+
+The environment variable POSTFIX_IPV6 is no longer supported in my rpms
+after postfix-2.3.4-1.
+
+This is at Wietse's request. See archives of postfix-users in Nov-2006
+for more information.
+
+Please unset POSTFIX_IPV6 to continue.
+
+WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING
+END
+    exit 1
+}
 
 # --- REQUIRES_ZLIB --- do we require the zlib library?
 REQUIRES_ZLIB=
 [ "$POSTFIX_MYSQL" = 1 ]        && REQUIRES_ZLIB=1
 [ "$POSTFIX_MYSQL_REDHAT" = 1 ] && REQUIRES_ZLIB=1
 
+# --- POSTFIX_TLS --- enable by default, but can disable explicitly
+
+[ -z "$POSTFIX_TLS" ] && POSTFIX_TLS=1
 if [ "$POSTFIX_TLS" = 1 ]; then
-    echo "  adding TLS support to spec file"
-    SUFFIX="${SUFFIX}.tls"
+    echo '  enabling TLS support in spec file by default (disable with POSTFIX_TLS=0)'
+    #SUFFIX="${SUFFIX}.tls"	# disable this as it is now the default for 2.2 and later
 
     # Different fixes (see spec file)
     [ ${releasename} = 'redhat' -a ${major} -eq 6 ] && TLSFIX=1
     [ ${releasename} = 'redhat' -a ${major} -eq 9 ] && { TLSFIX=2; REQUIRES_ZLIB=1; }
     [ ${releasename} = 'fedora' -a ${major} -eq 1 ] && TLSFIX=2
-    [ ${releasename} = 'rhel'   -a ${major} -ge 3 ] && REQUIRES_ZLIB=1
+    [ ${releasename} = 'rhel'   -a ${major} -ge 3 ] && { TLSFIX=2; REQUIRES_ZLIB=1; }
+else
+    echo '  disabling TLS support in spec file'
+    SUFFIX="${SUFFIX}.notls"
 fi
 if [ "$POSTFIX_VDA" = 1 ]; then
-    echo "  adding VDA support to spec file"
+    echo '  enabling VDA support in spec file'
     SUFFIX="${SUFFIX}.vda"
 fi
 
@@ -304,6 +302,9 @@ rhel)
     # as this seems rather pointless (should run on all versions I think)
     DEFAULT_DB=4
     case ${major} in
+    4)
+        DIST=".rhel4"
+        ;;
     3)
         DIST=".rhel3"
         ;;
@@ -320,48 +321,27 @@ rhel)
     ;;
 
 fedora)
-	# distinguish fedora-core-1 / fedora-core-2
+	# distinguish fedora-core versions
         DEFAULT_DB=4
         DIST=".fc${major}"
 	;;
 
 redhat)
     case ${major} in
-    9)
+    8|9)
 	DEFAULT_DB=4
-	DIST=".rh9"
-	;;
-
-    8)
-	DEFAULT_DB=4
-	DIST=".rh8"
+	DIST=".rh${major}"
 	;;
 
     7)
 	DEFAULT_DB=3
-
-       case ${minor} in
-       0) DIST=".rh70.1" ;;
-       1) DIST=".rh70.1" ;;
-       2) DIST=".rh72" ;;
-       3) DIST=".rh73" ;;
-       *) ;;
-       esac
-       ;;
-
-    6)
-	# This may need checking
-	DEFAULT_DB=0
-	[ -z "$POSTFIX_DB" ] && POSTFIX_DB=${DEFAULT_DB}
-	[ "${POSTFIX_DB}" != "${DEFAULT_DB}" ] && POSTFIX_INCLUDE_DB=1
-	DIST=".rh6x"
-	;;
-
-    5)
-	# Tested on an updated rh5.2
-	DEFAULT_DB=0
-	[ -z "$POSTFIX_DB" ] && POSTFIX_DB=${DEFAULT_DB}
-	DIST=".rh5x"
+	case ${minor} in
+	0) DIST=".rh70.1" ;;
+	1) DIST=".rh70.1" ;;
+	2) DIST=".rh72" ;;
+	3) DIST=".rh73" ;;
+	*) ;;
+	esac
 	;;
 
     *)	;;
@@ -383,11 +363,9 @@ mandrake)
 	DIST=".mdk7x"
 	;;
     8)	DEFAULT_DB=3
-	MANPAGE_SUFFIX=".bz2"
 	DIST=".mdk8x"
 	;;
     9)	DEFAULT_DB=4
-	MANPAGE_SUFFIX=".bz2"
 	DIST=".mdk9x"
 	;;
     *)	DIST=".mdk"
@@ -400,63 +378,63 @@ esac
 [ -z "${POSTFIX_DB}" ] && POSTFIX_DB=${DEFAULT_DB}
 [ "${POSTFIX_DB}" != "${DEFAULT_DB}" -a "${POSTFIX_DB}" != 0 ] && {
     SUFFIX=".db${POSTFIX_DB}${SUFFIX}"
-    echo "  adding db${POSTFIX_DB} support to spec file"
+    echo "  enabling db${POSTFIX_DB} support in spec file"
 }
 [ -n "${DIST}" ] && SUFFIX="${SUFFIX}${DIST}"
 
-# set default values if they are still undefined
+[ -n "${POSTFIX_ALT_PRIO}" ] && {
+    echo "  setting alternatives priority to ${POSTFIX_ALT_PRIO}"
+}
 
-[ -z "$REQUIRES_INIT_D" ]		   && REQUIRES_INIT_D=0
-[ -z "$REQUIRES_ZLIB" ]			   && REQUIRES_ZLIB=0
-[ -z "$POSTFIX_INCLUDE_DB" ]		   && POSTFIX_INCLUDE_DB=0
+# set default values if they are still undefined
+[ -z "$POSTFIX_ALT_PRIO" ]	           && POSTFIX_ALT_PRIO=30
+[ -z "$POSTFIX_CDB" ]	                   && POSTFIX_CDB=0
 [ -z "$POSTFIX_DB" ]			   && POSTFIX_DB=0
+[ -z "$POSTFIX_DOVECOT" ]		   && POSTFIX_DOVECOT=0
 [ -z "$POSTFIX_LDAP" ]			   && POSTFIX_LDAP=0
 [ -z "$POSTFIX_MYSQL" ]			   && POSTFIX_MYSQL=0
-[ -z "$POSTFIX_MYSQL_REDHAT" ]		   && POSTFIX_MYSQL_REDHAT=0
 [ -z "$POSTFIX_MYSQL_PATHS" ]		   && POSTFIX_MYSQL_PATHS=0
-[ -z "$POSTFIX_MYSQL_QUERY" ]		   && POSTFIX_MYSQL_QUERY=0
+[ -z "$POSTFIX_MYSQL_REDHAT" ]		   && POSTFIX_MYSQL_REDHAT=0
 [ -z "$POSTFIX_PCRE" ]			   && POSTFIX_PCRE=0
 [ -z "$POSTFIX_PGSQL" ]			   && POSTFIX_PGSQL=0
 [ -z "$POSTFIX_SASL" ]			   && POSTFIX_SASL=0
+[ -z "$POSTFIX_SMTPD_MULTILINE_GREETING" ] && POSTFIX_SMTPD_MULTILINE_GREETING=0
+[ -z "$POSTFIX_SPF" ]			   && POSTFIX_SPF=0
 [ -z "$POSTFIX_TLS" ]			   && POSTFIX_TLS=0
 [ -z "$POSTFIX_VDA" ]			   && POSTFIX_VDA=0
+[ -z "$REQUIRES_ZLIB" ]			   && REQUIRES_ZLIB=0
 [ -z "$TLSFIX" ]			   && TLSFIX=0
-[ -z "$POSTFIX_SMTPD_MULTILINE_GREETING" ] && POSTFIX_SMTPD_MULTILINE_GREETING=0
-[ -z "$POSTFIX_CDB" ]	                   && POSTFIX_CDB=0
-[ -z "$POSTFIX_IPV6" ]			   && POSTFIX_IPV6=0
 
-cat > `rpm --eval '%{_specdir}'`/postfix.spec <<EOF
+cat > ${specdir}/postfix.spec <<EOF
 # W A R N I N G -- DO NOT EDIT THIS FILE -- W A R N I N G
 #
 # postfix.spec
 #
-# This file is generated automatically from postfix.spec.in in the SOURCES
-# directory.  If you want to build postfix with other options see
-# make-postfix.spec in the same directory for instructions.
+# This file was generated automatically from ${sourcedir}/postfix.spec.in.
+# If you want to build postfix with other options see make-postfix.spec in
+# the same directory for instructions.
 # --
 EOF
 sed "
-s!__CDB__!$POSTFIX_CDB!g
 s!__DISTRIBUTION__!$distribution!g
-s!__INCLUDE_DB__!$POSTFIX_INCLUDE_DB!g
-s!__IPV6__!$POSTFIX_IPV6!g
-s!__LDAP__!$POSTFIX_LDAP!g
-s!__MANPAGE_SUFFIX__!$MANPAGE_SUFFIX!g
 s!__MYSQL_PATHS__!$POSTFIX_MYSQL_PATHS!g
-s!__MYSQL__!$POSTFIX_MYSQL!g
-s!__MYSQL_QUERY__!$POSTFIX_MYSQL_QUERY!g
-s!__MYSQL_REDHAT__!$POSTFIX_MYSQL_REDHAT!g
-s!__PCRE__!$POSTFIX_PCRE!g
-s!__PGSQL__!$POSTFIX_PGSQL!g
 s!__REQUIRES_DB__!$POSTFIX_DB!g
-s!__REQUIRES_INIT_D__!$REQUIRES_INIT_D!g
 s!__REQUIRES_ZLIB__!$REQUIRES_ZLIB!g
-s!__SASL__!$POSTFIX_SASL!g
 s!__SMTPD_MULTILINE_GREETING__!$POSTFIX_SMTPD_MULTILINE_GREETING!g
 s!__SUFFIX__!$SUFFIX!g
-s!__TLSFIX__!$TLSFIX!g
-s!__TLS__!$POSTFIX_TLS!g
-s!__VDA__!$POSTFIX_VDA!g
-" `rpm --eval '%{_sourcedir}'`/postfix.spec.in >> `rpm --eval '%{_specdir}'`/postfix.spec
+s!__WITH_ALT_PRIO__!$POSTFIX_ALT_PRIO!g
+s!__WITH_CDB__!$POSTFIX_CDB!g
+s!__WITH_LDAP__!$POSTFIX_LDAP!g
+s!__WITH_MYSQL_REDHAT__!$POSTFIX_MYSQL_REDHAT!g
+s!__WITH_MYSQL__!$POSTFIX_MYSQL!g
+s!__WITH_PCRE__!$POSTFIX_PCRE!g
+s!__WITH_PGSQL__!$POSTFIX_PGSQL!g
+s!__WITH_SASL__!$POSTFIX_SASL!g
+s!__WITH_SPF__!$POSTFIX_SPF!g
+s!__WITH_TLSFIX__!$TLSFIX!g
+s!__WITH_TLS__!$POSTFIX_TLS!g
+s!__WITH_VDA__!$POSTFIX_VDA!g
+s!__WITH_DOVECOT__!$POSTFIX_DOVECOT!g
+" ${sourcedir}/postfix.spec.in >> ${specdir}/postfix.spec
 
 # end of make-postfix.spec
