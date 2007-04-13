@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.22.6.14 2006/11/16 22:51:35 sjmudd Exp $
+# $Id: make-postfix.spec,v 2.22.6.15 2007/04/13 21:50:10 sjmudd Exp $
 #
 # Script to create the postfix.spec file from postfix.spec.in
 #
@@ -302,11 +302,8 @@ rhel)
     # as this seems rather pointless (should run on all versions I think)
     DEFAULT_DB=4
     case ${major} in
-    4)
-        DIST=".rhel4"
-        ;;
-    3)
-        DIST=".rhel3"
+    3|4|5)
+        DIST=".rhel${major}"
         ;;
     2)
         DEFAULT_DB=3
