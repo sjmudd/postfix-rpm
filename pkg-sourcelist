@@ -11,6 +11,7 @@ postfix-dict_cdb-1.1.11-20021104.tar.gz
 postfix-etc-init.d-postfix
 postfix-files.patch
 postfix-get-distribution
+postfix-ldap-patch.2.3_2.4
 postfix-makedefs.patch
 postfix-mysql_query.patch
 postfix-pam.conf
