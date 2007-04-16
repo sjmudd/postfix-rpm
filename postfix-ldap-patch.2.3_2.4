@@ -1,0 +1,80 @@
+*** src/global/resolve_clnt.c-	Fri Dec  1 21:03:49 2006
+--- src/global/resolve_clnt.c	Sat Apr 14 14:23:47 2007
+***************
+*** 141,146 ****
+--- 141,147 ----
+    */
+  extern CLNT_STREAM *rewrite_clnt_stream;
+  
++ static time_t last_expire;
+  static VSTRING *last_class;
+  static VSTRING *last_sender;
+  static VSTRING *last_addr;
+***************
+*** 190,196 ****
+       */
+  #define IFSET(flag, text) ((reply->flags & (flag)) ? (text) : "")
+  
+!     if (*addr && strcmp(addr, STR(last_addr)) == 0
+  	&& strcmp(class, STR(last_class)) == 0
+  	&& strcmp(sender, STR(last_sender)) == 0) {
+  	vstring_strcpy(reply->transport, STR(last_reply.transport));
+--- 191,198 ----
+       */
+  #define IFSET(flag, text) ((reply->flags & (flag)) ? (text) : "")
+  
+!     if (event_time() < last_expire
+! 	&& *addr && strcmp(addr, STR(last_addr)) == 0
+  	&& strcmp(class, STR(last_class)) == 0
+  	&& strcmp(sender, STR(last_sender)) == 0) {
+  	vstring_strcpy(reply->transport, STR(last_reply.transport));
+***************
+*** 282,287 ****
+--- 284,290 ----
+      vstring_strcpy(last_reply.nexthop, STR(reply->nexthop));
+      vstring_strcpy(last_reply.recipient, STR(reply->recipient));
+      last_reply.flags = reply->flags;
++     last_expire = event_time() + 10;		/* XXX make configurable */
+  }
+  
+  /* resolve_clnt_free - destroy reply */
+*** src/global/rewrite_clnt.c-	Fri Dec  1 21:03:49 2006
+--- src/global/rewrite_clnt.c	Sat Apr 14 14:26:09 2007
+***************
+*** 72,77 ****
+--- 72,78 ----
+    */
+  CLNT_STREAM *rewrite_clnt_stream = 0;
+  
++ static time_t last_expire;
+  static VSTRING *last_rule;
+  static VSTRING *last_addr;
+  static VSTRING *last_result;
+***************
+*** 107,113 ****
+      /*
+       * Peek at the cache.
+       */
+!     if (strcmp(addr, STR(last_addr)) == 0
+  	&& strcmp(rule, STR(last_rule)) == 0) {
+  	vstring_strcpy(result, STR(last_result));
+  	if (msg_verbose)
+--- 108,115 ----
+      /*
+       * Peek at the cache.
+       */
+!     if (event_time() < last_expire
+! 	&& strcmp(addr, STR(last_addr)) == 0
+  	&& strcmp(rule, STR(last_rule)) == 0) {
+  	vstring_strcpy(result, STR(last_result));
+  	if (msg_verbose)
+***************
+*** 163,168 ****
+--- 165,171 ----
+      vstring_strcpy(last_rule, rule);
+      vstring_strcpy(last_addr, addr);
+      vstring_strcpy(last_result, STR(result));
++     last_expire = event_time() + 10;		/* XXX make configurable */
+  
+      return (result);
+  }
