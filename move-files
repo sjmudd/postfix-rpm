@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/Attic/move-files,v 1.1.2.1 2007/05/04 20:51:00 sjmudd Exp $
+# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/Attic/move-files,v 1.1.2.2 2007/05/04 20:58:32 sjmudd Exp $
 #
 # move files from their location after building to ftp site.
 
@@ -8,11 +8,12 @@
 #Wrote: /home/sjmudd/RPM/PKG/postfix-2.4.1-2.rhel4.i386.rpm
 
 VER=2.4
-BUILDDIR=/home/sjmudd/RPM/PKG/
-cd $BUILDDIR || exit 1
-
+BUILDDIR=~/RPM/PKG/
 BINPATTERN="postfix-$VER\.[0-9]-[0-9][0-9]*\.rh(el)?[0-9][0-9]*\.i386\.rpm"
 SRCPATTERN="postfix-$VER\.[0-9]-[0-9][0-9]*\.rh(el)?[0-9][0-9]*\.src\.rpm"
+DESTBASE=/home/mirror/ftp.wl0.org/official/$VER
+
+cd $BUILDDIR || exit 1
 
 echo "BINPATTERN=$BINPATTERN"
 for file in $(ls | egrep "$BINPATTERN")
@@ -20,7 +21,7 @@ do
 	#echo file=$file
 	distribution=$(ls "$file" | sed -e 's/\.i386\.rpm//' -e 's/^.*\.//')
 	#echo distribution=$distribution
-	destdir=/home/mirror/ftp.wl0.org/official/$VER/RPMS-$distribution-i386/
+	destdir=$DESTBASE/RPMS-$distribution-i386/
 	#echo destdir=$destdir
 
 	if ! [ -f $destdir$file ]; then
@@ -33,7 +34,7 @@ do
 	#echo file=$file
 	distribution=$(ls "$file" | sed -e 's/\.src\.rpm//' -e 's/^.*\.//')
 	#echo distribution=$distribution
-	destdir=/home/mirror/ftp.wl0.org/official/$VER/SRPMS
+	destdir=$DESTBASE/SRPMS
 	#echo destdir=$destdir
 	destfile=$(echo $file | sed -e "s/\.$distribution//")
 	#echo destfile=$destfile
