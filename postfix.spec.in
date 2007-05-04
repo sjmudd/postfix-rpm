@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.305.2.6 2007/05/02 22:00:04 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.305.2.7 2007/05/04 13:59:40 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -94,7 +94,7 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 1
 %define V_postfix 2.4.1
-%define rel 1__SUFFIX__
+%define rel 2__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -264,7 +264,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.305.2.6 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.305.2.7 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -824,14 +824,14 @@ fi
 }
 %endif
 
-# Add comments to the /etc/dovecot.conf configuration file showing how
-# to configure with Postfix if needed.
+# Add comments to the /etc/dovecot.conf configuration file if it exists
+# showing how to configure with Postfix if needed.  If postfix is mentioned
+# in the dovecot configuration file then DO NOTHING.
 
 DOVECOT_CONF=/etc/dovecot.conf
-# if postfix is mentioned in the dovecot configuration file then DO NOTHING
-if ! grep -q postfix $DOVECOT_CONF; then
-
-	# check if auth default is configured and add a COMMENTED SECTION taken from the SASL_README file
+if [ -f $DOVECOT_CONF ] && ! grep -q postfix $DOVECOT_CONF; then
+	# Check if auth default is configured and add a COMMENTED SECTION
+	# taken from the SASL_README file.
 	if grep -q 'auth default' $DOVECOT_CONF; then
 		ed $DOVECOT_CONF <<-EOF_END || exit 1
 		/auth default {
@@ -853,7 +853,7 @@ if ! grep -q postfix $DOVECOT_CONF; then
 		q
 		EOF_END
 	else
-		# add the whole section at the end
+		# Add the whole section at the end.
 		cat <<-EOF_END >> $DOVECOT_CONF
 	
 		# Postfix - suggested configuration taken from SASL_README (2.3.2).
@@ -1168,6 +1168,10 @@ umask 022
 #
 
 %changelog
+
+* Fri May 04 2007 Simon J Mudd <sjmudd@pobox.com> 2.4.1-2
+  - Only adjust /etc/dovecot.conf if the file actually exists.
+    Suggestion from Peter S. Mazinger <ps.m@gmx.net>
 
 * Thu May 03 2007 Simon J Mudd <sjmudd@pobox.com> 2.4.1-1
   - update to postfix-2.4.1
