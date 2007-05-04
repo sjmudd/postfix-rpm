@@ -1,13 +1,13 @@
 #!/bin/sh
 #
-# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/Attic/move-files,v 1.1.4.1 2007/05/04 20:51:25 sjmudd Exp $
+# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/Attic/move-files,v 1.1.4.2 2007/05/04 20:53:42 sjmudd Exp $
 #
 # move files from their location after building to ftp site.
 
 #Wrote: /home/sjmudd/RPM/PKG/postfix-2.4.1-2.rhel4.src.rpm
 #Wrote: /home/sjmudd/RPM/PKG/postfix-2.4.1-2.rhel4.i386.rpm
 
-VER=2.4
+VER=2.3
 BUILDDIR=/home/sjmudd/RPM/PKG/
 cd $BUILDDIR || exit 1
 
