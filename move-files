@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/Attic/move-files,v 1.1.4.3 2007/05/04 20:57:30 sjmudd Exp $
+# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/Attic/move-files,v 1.1.4.4 2007/05/05 07:00:07 sjmudd Exp $
 #
 # move files from their location after building to ftp site.
 
@@ -9,8 +9,8 @@
 
 VER=2.3
 BUILDDIR=~/RPM/PKG/
-BINPATTERN="postfix-$VER\.[0-9]-[0-9][0-9]*\.rh(el)?[0-9][0-9]*\.i386\.rpm"
-SRCPATTERN="postfix-$VER\.[0-9]-[0-9][0-9]*\.rh(el)?[0-9][0-9]*\.src\.rpm"
+BINPATTERN="postfix-$VER\.[0-9]-[0-9][0-9]*\.(fc|rh(el)?)[0-9][0-9]*\.i386\.rpm"
+SRCPATTERN="postfix-$VER\.[0-9]-[0-9][0-9]*\.(fc|rh(el)?)[0-9][0-9]*\.src\.rpm"
 DESTBASE=/home/mirror/ftp.wl0.org/official/$VER
 
 cd $BUILDDIR || exit 1
