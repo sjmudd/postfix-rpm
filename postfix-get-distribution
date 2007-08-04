@@ -21,7 +21,7 @@
 # - Mandrake Linux
 
 [ -n "$DEBUG" ] && set -x
-myversion=$(echo '$Revision: 1.13 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
+myversion=$(echo '$Revision: 1.13.2.1 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
 myname=$(basename $0)
 
 # Provide a usage message
@@ -110,6 +110,7 @@ minor=0
 #
 if is_installed redhat-release; then
     # We are using RedHat Linux OR RedHat Enterprise Linux
+    # redhat-release-5Server-5.0.0.9 (yet another versioning style!)
     # redhat-release-3ES-1
     # redhat-release-3ES-7.2
     # redhat-release-2.9.5AS-7 (taroon beta)
@@ -158,13 +159,13 @@ version=$(get_pkg_version ${pkg_name} "$full")
 # Tidy up the version information into something more usable.
 case $pkg_name in
 redhat-release)
-    if [ -n "$(echo "$full" | egrep '[EWA]S')" ]; then
+    if [ -n "$(echo "$full" | egrep '([EWA]S|Server)')" ]; then
         name=rhel
     else
         name=redhat
     fi
-    # trim off the ES/WS/AS stuff
-    version=$(echo "$version" | sed -e 's;[EWA]S;;')
+    # trim off the ES/WS/AS/Server stuff
+    version=$(echo "$version" | sed -e 's;(Server|[EWA]S);;')
     ;;
 centos-release)
     name=rhel
