@@ -21,7 +21,7 @@
 # - Mandrake Linux
 
 [ -n "$DEBUG" ] && set -x
-myversion=$(echo '$Revision: 1.13.2.1 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
+myversion=$(echo '$Revision: 1.13.2.2 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
 myname=$(basename $0)
 
 # Provide a usage message
@@ -165,7 +165,7 @@ redhat-release)
         name=redhat
     fi
     # trim off the ES/WS/AS/Server stuff
-    version=$(echo "$version" | sed -e 's;(Server|[EWA]S);;')
+    version=$(echo "$version" | sed -e 's;[EWA]S;;' -e 's;Server;;')
     ;;
 centos-release)
     name=rhel
