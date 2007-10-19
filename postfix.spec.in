@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.305.2.11 2007/08/19 15:24:22 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.305.2.12 2007/10/19 02:51:29 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -93,8 +93,8 @@
 
 # If set to 1 if official version, 0 if snapshot
 %define official 2
-%define V_postfix 2.4.5
-%define rel 3__SUFFIX__
+%define V_postfix 2.4.6
+%define rel 1__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -123,7 +123,8 @@
 %define mailq_path %{_bindir}/mailq.postfix
 %define rmail_path %{_bindir}/rmail.postfix
 %define sendmail_path %{_sbindir}/sendmail.postfix
-%define usrlib_sendmail %{_libdir}/sendmail.postfix
+# Don't use %{_libdir} as it gives the wrong directory on x86_64 servers
+%define usrlib_sendmail /usr/lib/sendmail.postfix
 
 %define initdir /etc/rc.d/init.d
 
@@ -264,7 +265,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.305.2.11 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.305.2.12 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -569,7 +570,7 @@ sh postfix-install -non-interactive \
 # The alternatives then point /usr/lib/sendmail to /usr/lib/sendmail.postfix.
 # This *is* all a bit silly ...
 
-install -d -m755 $RPM_BUILD_ROOT%{_libdir}
+install -d -m755 $RPM_BUILD_ROOT/usr/lib
 ln -sf ../sbin/sendmail.postfix $RPM_BUILD_ROOT%{usrlib_sendmail}
 
 # RPM compresses man pages automatically.  Edit postfix-files to avoid
@@ -894,7 +895,7 @@ fi
     --slave %{_bindir}/mailq mta-mailq %{mailq_path} \
     --slave %{_bindir}/newaliases mta-newaliases %{newaliases_path} \
     --slave %{_bindir}/rmail mta-rmail %{rmail_path} \
-    --slave %{_libdir}/sendmail mta-sendmail %{usrlib_sendmail} \
+    --slave /usr/lib/sendmail mta-sendmail %{usrlib_sendmail} \
     --slave %{_mandir}/man8/sendmail.8%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
     --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
     --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
@@ -914,7 +915,7 @@ exit 0
     --slave %{_bindir}/mailq mta-mailq %{mailq_path} \
     --slave %{_bindir}/newaliases mta-newaliases %{newaliases_path} \
     --slave %{_bindir}/rmail mta-rmail %{rmail_path} \
-    --slave %{_libdir}/sendmail mta-sendmail %{usrlib_sendmail} \
+    --slave /usr/lib/sendmail mta-sendmail %{usrlib_sendmail} \
     --slave %{_mandir}/man8/sendmail.8%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
     --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
     --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
@@ -935,7 +936,7 @@ exit 0	# ensure the trigger exit status is 0
     --slave %{_bindir}/mailq mta-mailq %{mailq_path} \
     --slave %{_bindir}/newaliases mta-newaliases %{newaliases_path} \
     --slave %{_bindir}/rmail mta-rmail %{rmail_path} \
-    --slave %{_libdir}/sendmail mta-sendmail %{usrlib_sendmail} \
+    --slave /usr/lib/sendmail mta-sendmail %{usrlib_sendmail} \
     --slave %{_mandir}/man8/sendmail.8%{mps}   mta-sendmailman   %{_mandir}/man1/sendmail.postfix.1%{mps} \
     --slave %{_mandir}/man1/mailq.1%{mps}      mta-mailqman      %{_mandir}/man1/mailq.postfix.1%{mps} \
     --slave %{_mandir}/man1/newaliases.1%{mps} mta-newaliasesman %{_mandir}/man1/newaliases.postfix.1%{mps} \
@@ -1170,6 +1171,13 @@ umask 022
 #
 
 %changelog
+
+* Fri Oct 19 2007 Simon J Mudd <sjmudd@pobox.com> 2.4.6-1
+  - upgrade to postfix-2.4.6
+
+* Thu Oct 11 2007 Simon J Mudd <sjmudd@pobox.com> 2.4.5-4
+  - fix the build for x86_64 as /usr/lib/sendmail was not used correctly.
+    Brought to my attention by Tom Diehl <tdiehl@tntechs.com>
 
 * Sun Aug 19 2007 Simon J Mudd <sjmudd@pobox.com> 2.4.5-3
   - update postfix-get-distribution as it did not work correctly with RHEL5.
