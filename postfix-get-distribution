@@ -21,7 +21,7 @@
 # - Mandrake Linux
 
 [ -n "$DEBUG" ] && set -x
-myversion=$(echo '$Revision: 1.13.2.2 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
+myversion=$(echo '$Revision: 1.13.2.3 $' | sed -e 's/^.*: //g' -e 's/ .*$//g')
 myname=$(basename $0)
 
 # Provide a usage message
@@ -71,7 +71,9 @@ get_pkg_full () {
         # if you have installed the XXX-release rpm more than once
         # this will ensure that only one of the instances is
         # recognised.
-        rpm -q ${pkg_name} | tail -1
+        # Use --queryformat so we don't break if .rpmmacros redefines 
+        # %_query_all_fmt
+        rpm --queryformat '%{NAME}-%{VERSION}-%{RELEASE}\n' -q ${pkg_name} | tail -1
     fi
 }
 
