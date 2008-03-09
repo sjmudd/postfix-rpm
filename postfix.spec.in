@@ -1,4 +1,4 @@
-# $Id: postfix.spec.in,v 2.305.2.13.2.3 2008/03/08 11:29:45 sjmudd Exp $
+# $Id: postfix.spec.in,v 2.305.2.13.2.4 2008/03/09 09:25:10 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -87,14 +87,14 @@
 %define debug %{?_with_debug:1}%{?!_with_debug:0}
 
 # patch and version information
-%define V_vda        2.4.0
+%define V_vda        2.5.1
 %define V_cdb        1.1.11-20021104
 %define V_postfinger 1.30
 
 # If set to 1 if official version, 0 if snapshot
 %define official 2
 %define V_postfix 2.5.1
-%define rel 0.2.TESTING__SUFFIX__
+%define rel 0.3.TESTING__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -170,7 +170,10 @@ Patch3: postfix-files.patch
 Patch5: postfix-makedefs.patch
 
 # Optional patches
-Patch4:  http://web.onda.com.br/nadal/postfix/VDA/postfix-%{V_vda}-vda.patch.gz
+# The vda patch maintainers patches are here (2.4.6)
+# The 2.5.1 patch provided by Chris 'Chipper' Chiapusio <chipper@llamas.net> (no url)
+Patch4:  http://vda.sourceforge.net/VDA/postfix-%{V_vda}-vda-ng.patch.gz
+
 # SPF patch
 Patch8:  http://www.linuxrulz.org/nkukard/postfix/postfix-2.3/postfix-2.3.2_libspf2-1.2.x-20060819.patch
 Patch99: ftp://ftp.wl0.org/SOURCES/postfix-2.3.2-multiline-greeting.patch
@@ -264,7 +267,7 @@ The binary and source rpms I produce are currently available at
 and the mirrors which can be found at the following URL:
 	http://postfix.WL0.org/en/mirrors/
 
-This package/specfile was built from postfix.spec.in $Revision: 2.305.2.13.2.3 $.
+This package/specfile was built from postfix.spec.in $Revision: 2.305.2.13.2.4 $.
 To see the build options used to build this package see the file %{_sysconfdir}/postfix/postfix.spec.cf
 
 To use postfix with alternative options download the source package and
@@ -1174,9 +1177,10 @@ umask 022
 
 %changelog
 
-* Tue Feb 27 2008 Simon J Mudd <sjmudd@pobox.com> 2.5.1-0.2.TESTING
+* Sun Mar 09 2008 Simon J Mudd <sjmudd@pobox.com> 2.5.1-0.3.TESTING
   - update to postfix-2.5 and postfix-2.5.1
   - add missing /var/lib/postfix
+  - VDA patch fixed: Chris 'Chipper' Chiapusio <chipper@llamas.net>
 
 * Tue Feb 27 2008 Simon J Mudd <sjmudd@pobox.com> 2.4.7-1
   - update to postfix-2.4.7
