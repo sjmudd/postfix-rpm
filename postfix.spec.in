@@ -93,8 +93,8 @@
 
 # If set to 1 if official version, 0 if snapshot
 %define official 2
-%define V_postfix 2.5.1
-%define rel 0.4__SUFFIX__
+%define V_postfix 2.5.2
+%define rel 1__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -1177,11 +1177,15 @@ umask 022
 
 %changelog
 
-* Sun Mar 09 2008 Simon J Mudd <sjmudd@pobox.com> 2.5.1-0.4
+* Sun May 10 2008 Simon J Mudd <sjmudd@pobox.com> 2.5.2-1
+  - update to postfix-2.5.2
+  - remove 2.5.1 milter patch
+
+* Wed Mar 12 2008 Simon J Mudd <sjmudd@pobox.com> 2.5.1-1
   - update to postfix-2.5 and postfix-2.5.1
   - add missing /var/lib/postfix
   - VDA patch fixed: Chris 'Chipper' Chiapusio <chipper@llamas.net>
-  - remove TESTING suffix but keep a release version < 1
+  - confirmed to work with POSTFIX_PCRE and POSTFIX_SASL options.
 
 * Tue Feb 27 2008 Simon J Mudd <sjmudd@pobox.com> 2.4.7-1
   - update to postfix-2.4.7
