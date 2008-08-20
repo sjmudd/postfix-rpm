@@ -93,7 +93,7 @@
 
 # If set to 1 if official version, 0 if snapshot
 %define official 2
-%define V_postfix 2.5.2
+%define V_postfix 2.5.4
 %define rel 1__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
@@ -1176,6 +1176,9 @@ umask 022
 #
 
 %changelog
+
+* Sun Aug 20 2008 Simon J Mudd <sjmudd@pobox.com> 2.5.4-1
+  - update to postfix-2.5.4
 
 * Sun May 10 2008 Simon J Mudd <sjmudd@pobox.com> 2.5.2-1
   - update to postfix-2.5.2
