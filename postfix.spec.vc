@@ -4,13 +4,13 @@ prog V_cdb = {
   regex     = postfix-dict_cdb-(\d\.\d\.\d\d-\d\d\d\d\d\d\d\d).tar.gz
 }
 prog V_postfix = {
-  version   = 2.5.1
+  version   = 2.5.4
   url       = ftp://ftp.porcupine.org/mirrors/postfix-release/official/
   regex     = postfix-(2\.5\.\d+)\.tar\.gz
   dldir     = /home/sjmudd/RPM/SRC/postfix
 }
 prog V_vda = {
-  version   = 2.4.0
+  version   = 2.5.4
   url       = http://web.onda.com.br/nadal/postfix/VDA/
   regex     = postfix-(\d\.\d\.\d)-vda.patch.gz
 }
