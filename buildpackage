@@ -12,6 +12,7 @@ myname=$(basename $0)
 
 # Perform the package build
 build () {
+[ -n "$NOSIGN" ] && sign=
 ( cd ${srcdir} && \
   sh make-postfix.spec && \
   chmod u+w ${specdir}/postfix.spec && \
