@@ -1176,8 +1176,11 @@ umask 022
 
 %changelog
 
+* Mon May 18 2009 Simon J Mudd <sjmudd@pobox.com> 2.5.7-2
+  - reflect that 2.5.7-1 was actually tagged as 2.5.7-2.
+
 * Mon May 18 2009 Simon J Mudd <sjmudd@pobox.com> 2.5.7-1
- - update to 2.5.7
+  - update to 2.5.7
 
 * Thu Apr 02 2009 Simon J Mudd <sjmudd@pobox.com> 2.5.6-2
   - ensure that build works on fedora-10 by adjusting patch
