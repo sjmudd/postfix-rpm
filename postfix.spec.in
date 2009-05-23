@@ -772,7 +772,7 @@ umask 022
 chkconfig --add postfix
 
 # Upgrade configuration as necessary
-sh %{_sysconfdir}/postfix/post-install upgrade-package \
+sh %{_libexecdir}/postfix/post-install upgrade-package \
 	config_directory=%{_sysconfdir}/postfix \
 	daemon_directory=%{_libexecdir}/postfix \
 	command_directory=%{_sbindir} \
