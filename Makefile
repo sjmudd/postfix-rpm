@@ -86,7 +86,7 @@ clean tidy:
 		[ -d $$dir ] && rm -rf $$dir/* || :
 	@dir=`rpm --eval '%{_builddir}' | sed 's;%{name};postfix;'`; \
 		[ -d $$dir ] && rm -rf $$dir/* || :
-	@[ -e build-output ] && rm build-output || :
+	@[ -e postfix-build.log ] && rm postfix-build.log || :
 	@for file in `ls results.* 2>/dev/null`; do rm $$file || :; done
 
 # Give some help

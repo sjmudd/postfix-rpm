@@ -94,7 +94,7 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 1
 %define V_postfix 2.6.0
-%define rel 1__SUFFIX__
+%define rel 0.1__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -331,11 +331,7 @@ fi
 %setup -q -n postfix-%{V_tarball}
 
 # Apply obligatory patches
-### DISABLED WHILE TESTING 2.6
-###
-### %patch3 -p1 -b .alternatives
-###
-###
+%patch3 -p1 -b .alternatives
 %patch5 -p1 -b .notls
 
 # Apply optional patches
@@ -544,18 +540,6 @@ mv man/man1/newaliases.1 man/man1/newaliases.postfix.1
 mv man/man1/sendmail.1   man/man1/sendmail.postfix.1
 mv man/man5/aliases.5    man/man5/aliases.postfix.5
 
-# add missing man pages
-mantools/srctoman - auxiliary/qshape/qshape.pl >man/man1/qshape.1
-mantools/srctoman src/smtpstone/smtp-source.c  >man/man1/smtp-source.1
-mantools/srctoman src/smtpstone/smtp-sink.c    >man/man1/smtp-sink.1
-
-# update conf/postfix-files
-cat <<EOF >> conf/postfix-files
-\$manpage_directory/man1/qshape.1:f:root:-:644
-\$manpage_directory/man1/smtp-sink.1:f:root:-:644
-\$manpage_directory/man1/smtp-source.1:f:root:-:644
-EOF
-
 # install postfix into build root
 sh postfix-install -non-interactive \
        install_root=${RPM_BUILD_ROOT} \
@@ -582,7 +566,7 @@ ln -sf ../sbin/sendmail.postfix $RPM_BUILD_ROOT%{usrlib_sendmail}
 
 # RPM compresses man pages automatically.  Edit postfix-files to avoid
 # confusing post-install.
-ed ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/postfix-files <<EOF || exit 1
+ed ${RPM_BUILD_ROOT}%{_libexecdir}/postfix/postfix-files <<EOF || exit 1
 H
 ,s/\(\/man[158]\/.*\.[158]\):/\1%{mps}:/
 w
@@ -1041,10 +1025,7 @@ umask 022
 %verify(not md5 size mtime) %config %dir %{_sysconfdir}/postfix
 %attr(0644, root, root)         %{_sysconfdir}/postfix/LICENSE
 %attr(0644, root, root)         %{_sysconfdir}/postfix/TLS_LICENSE
-%attr(0755, root, root) %config %{_sysconfdir}/postfix/postfix-script
-%attr(0755, root, root) %config %{_sysconfdir}/postfix/post-install
 %attr(0444, root, root) %config %{_sysconfdir}/postfix/makedefs.out
-%attr(0644, root, root)                                                %{_sysconfdir}/postfix/postfix-files
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/main.cf
 %attr(0644, root, root)                                                %{_sysconfdir}/postfix/main.cf.default
 %attr(0644, root, root)                                                %{_sysconfdir}/postfix/bounce.cf.default
@@ -1058,6 +1039,14 @@ umask 022
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/relocated
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/transport
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/virtual
+
+%attr(0755, root, root) %config %{_libexecdir}/postfix/postfix-script
+%attr(0755, root, root)         %{_libexecdir}/postfix/postfix-wrapper
+%attr(0755, root, root)         %{_libexecdir}/postfix/postmulti-script
+%attr(0755, root, root) %config %{_libexecdir}/postfix/post-install
+%attr(0644, root, root)         %{_libexecdir}/postfix/postfix-files
+%attr(0644, root, root)         %{_libexecdir}/postfix/main.cf
+%attr(0644, root, root)         %{_libexecdir}/postfix/master.cf
 
 %attr(0644, root, root) %{_sysconfdir}/postfix/README.rpm
 %attr(0644, root, root) %{_sysconfdir}/postfix/postfix.spec.cf
@@ -1102,6 +1091,7 @@ umask 022
 %doc %{docdir}/RELEASE_NOTES-2.2
 %doc %{docdir}/RELEASE_NOTES-2.3
 %doc %{docdir}/RELEASE_NOTES-2.4
+%doc %{docdir}/RELEASE_NOTES-2.5
 %doc %{docdir}/SEE_ALSO
 %doc %{docdir}/TLS_ACKNOWLEDGEMENTS
 %doc %{docdir}/TLS_CHANGES
@@ -1159,6 +1149,7 @@ umask 022
 %{_sbindir}/postlock
 %{_sbindir}/postlog
 %{_sbindir}/postmap
+%{_sbindir}/postmulti
 %{_sbindir}/postsuper
 
 %{_sbindir}/smtp-sink

@@ -32,7 +32,7 @@ SHELL=/bin/sh
 IFS="
 "
 BACKUP_IFS="$IFS"
-build_output=build-output
+build_output=postfix-build.log
 pkgdir=`pwd`
 sign='--sign'
 test_patches=0
