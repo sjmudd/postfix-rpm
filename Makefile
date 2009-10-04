@@ -18,10 +18,10 @@ setup:
 # (no longer builds)
 update latest:
 	@echo "--------------------------------------------------------------"
-	@echo ">>> updating CVS files"
+	@echo ">>> updating files from git repo"
 	@echo "--------------------------------------------------------------"
 	@echo ""
-	@cvs update || : 
+	@git pull || : 
 
 # download files if necessary
 fetch:

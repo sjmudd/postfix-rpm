@@ -1,6 +1,4 @@
 #
-# $Id: rpmmacros,v 2.1 2007/04/02 17:02:48 sjmudd Exp $
-#
 # Custom RPM macros configuration file for building RPM packages
 # as a non-root user.
 #

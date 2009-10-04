@@ -1,7 +1,5 @@
 #!/bin/sh
 #
-# $Id: make-postfix.spec,v 2.23.2.1 2007/04/13 21:50:14 sjmudd Exp $
-#
 # Script to create the postfix.spec file from postfix.spec.in
 #
 # It's behaviour depends on the version of Red Hat Linux it is running

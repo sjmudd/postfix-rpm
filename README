@@ -1,24 +1,19 @@
-$Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/README,v 2.2 2007/04/02 16:57:36 sjmudd Exp $
-
-README for postfix cvs build environment
+README for postfix git build environment
 ========================================
 
 This is the environment that I use to build my Postfix packages:
 
 local user having the following directory structure:
 
-~user/cvs/postfix-rpm	# which I rename to ...
-   |      postfix-1.1
-   |      postfix-2.0
-   |      postfix-2.1
-   |      postfix-current
+~user/git/postfix-rpm
+   |
    --/RPM/TMP
           SRC/postfix
           PKG
 
-The cvs directories DO NOT contain the Postfix tar balls.  These are
+The git directory DOES NOT contain the Postfix tar balls.  These are
 downloaded on demand by the build script.  The other patches are kept
-in the cvs directory and before building are linked to the file in the
+in the git directory and before building are linked to the file in the
 SOURCES directory.
 
 Common Makefile targets
@@ -26,8 +21,8 @@ Common Makefile targets
 
 setup:
 	setup the directory structure indicated above
-	You must actually checkout the cvs files you want.
-	See http://postfix.WL0.org/en/cvs for details
+	You must actually checkout the git files you want.
+	See http://postfix.WL0.org/en/git for details.
 
 all:
 	same as rpm
@@ -39,7 +34,7 @@ fetch:
 	retrieve the files from their source (if necessary)
 
 update:
-	update cvs file from cvs server
+	update files from git repository
         this also builds the rpm
 
 clean tidy:
@@ -47,17 +42,12 @@ clean tidy:
 	clean out the BUILD directory
 
 commit:
-	commit changes back to the cvs repository (only for cvs writers)
+	commit changes back to the git repository (only for git writers)
 	
 As you are reading this file you should have already checked out the postfix-rpm files.
 Thus you can run the following command to setup the directory structure.
 
 $ make setup 
 
-After this move your cvs directory to the appropriate place
-
-$ mv postfix-rpm ~/cvs/postfix-2.1
-
 You are now ready to build your RPM
-
 

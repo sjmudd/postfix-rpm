@@ -1,7 +1,5 @@
 #!/usr/bin/perl
-
-# $Id: vcheck,v 2.1 2007/04/02 17:02:48 sjmudd Exp $
-
+#
 #      Copyright (C) 1999-2001 by Marco G"otze, <gomar@mindless.com>.
 #   This program is distributed under the terms of the Artistic License.
 

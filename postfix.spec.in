@@ -1,5 +1,3 @@
-# $Id: postfix.spec.in,v 2.305.2.13.2.7 2008/03/09 09:46:05 sjmudd Exp $
-#
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
 # and regenerate the spec file.

@@ -1,7 +1,5 @@
 #!/bin/sh
 #
-# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/make-postfix.rpm,v 1.2 2007/04/02 17:02:48 sjmudd Exp $
-#
 # Script to build a Postfix rpm
 # - perform an upgrade, including the same parameters as the running rpm
 # - perform an upgrade, using the postfix.spec.cf equivalent file
@@ -9,12 +7,11 @@
 
 [ -n "$DEBUG" ] && set -x
 myname=$(basename $0)
-version=$(echo '$Id: make-postfix.rpm,v 1.2 2007/04/02 17:02:48 sjmudd Exp $' | awk '{ print $3 }')
 
 # provide usage message
 usage () {
 	cat <<-EOF
-	$myname version $version (C) 2004 Simon J Mudd
+	$myname (C) 2004-2009 Simon J Mudd
 
 	Script to build a Postfix RPM. This script is expected to be used
 	with the Postfix source RPM which contains it.
@@ -88,7 +85,7 @@ do
 	esac
 done
 
-echo "=== $myname version $version (C) 2004 Simon J Mudd ==="
+echo "=== $myname (C) 2004-2009 Simon J Mudd ==="
 echo ""
 
 [ -x "${rpmbuild}" ]		|| msg_error "rpmbuild ($rpmbuild) not found or executable"

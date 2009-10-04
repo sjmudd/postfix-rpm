@@ -1,7 +1,5 @@
 #!/bin/sh
 #
-# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/buildpackage,v 2.25 2007/04/02 16:57:36 sjmudd Exp $
-#
 # Shell script used to build my packages
 # - checks if the needed files exist and retrieve them
 # - checks if the files have been changed against those stored in the CVS

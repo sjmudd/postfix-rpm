@@ -1,7 +1,5 @@
 #!/bin/sh
 #
-# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/postfix-tracker.sh,v 2.1 2007/04/02 17:02:48 sjmudd Exp $
-#
 # Postfix version tracker (C) 2004 Simon J Mudd
 #
 # script to run vcheck and get a nice output of files that may need
