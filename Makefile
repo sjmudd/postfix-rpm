@@ -23,8 +23,14 @@ update latest:
 	@echo ""
 	@cvs update || : 
 
+# Build the .vc file as vcheck doesn't allow parameters and we need to
+# add %{_sourcedir}
+postfix.spec.vc: postfix.spec.vc.in
+	@srcdir=`/bin/rpm --eval '%{_sourcedir}'`; \
+		sed -e "s;@@SRCDIR@@;$$srcdir;" -e 's;%{name};postfix;' $< > $@
+
 # download files if necessary
-fetch:
+fetch: postfix.spec.vc
 	@echo "--------------------------------------------------------------"
 	@echo ">>> downloading source files (if needed)"
 	@echo "--------------------------------------------------------------"
@@ -88,7 +94,9 @@ clean tidy:
 		[ -d $$dir ] && rm -rf $$dir/* || :
 	@[ -e postfix-build.log ] && rm postfix-build.log || :
 	@for file in `ls results.* 2>/dev/null`; do rm $$file || :; done
+	@[ -e postfix.spec.vc ] && rm postfix.spec.vc || :
 
 # Give some help
 help:
 	@[ -f README ] && more README || echo "No help available sorry"
+
