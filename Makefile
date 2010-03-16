@@ -39,11 +39,12 @@ fetch: postfix.spec.vc
 
 # build the rpm
 build rpm:
-	@echo "--------------------------------------------------------------"
-	@echo ">>> Building RPM"
-	@echo "--------------------------------------------------------------"
-	@echo ""
-	@sh buildpackage
+	@echo '--------------------------------------------------------------'
+	@echo '>>> Building RPM and signing if necessary'
+	@echo '--------------------------------------------------------------'
+	@echo ''
+	@if grep -q '^%_signature' ~/.rpmmacros && grep -q '^%_gpg_name' ~/.rpmmacros && grep -q '^%_gpg_path' ~/.rpmmacros; then sign=''; else sign='--no-sign'; fi; \
+		sh buildpackage $$sign
 
 # build the rpm with no checks for locally uncommitted changes.
 nochecks:
