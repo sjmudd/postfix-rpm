@@ -1,63 +1,14 @@
-$Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/README,v 2.2 2007/04/02 16:57:36 sjmudd Exp $
+README
+======
 
-README for postfix cvs build environment
-========================================
+The files you are looking for are NOT on the master branch but a branch based on the postfix version:
 
-This is the environment that I use to build my Postfix packages:
+POSTFIX-2.7	postfix-2.7 packages
+POSTFIX-2.6	postfix-2.6 packages
+POSTFIX-2.5	postfix-2.5 packages
+POSTFIX-2.4	postfix-2.4 packages
+...
 
-local user having the following directory structure:
+To get onto the right branch simply do
 
-~user/cvs/postfix-rpm	# which I rename to ...
-   |      postfix-1.1
-   |      postfix-2.0
-   |      postfix-2.1
-   |      postfix-current
-   --/RPM/TMP
-          SRC/postfix
-          PKG
-
-The cvs directories DO NOT contain the Postfix tar balls.  These are
-downloaded on demand by the build script.  The other patches are kept
-in the cvs directory and before building are linked to the file in the
-SOURCES directory.
-
-Common Makefile targets
------------------------
-
-setup:
-	setup the directory structure indicated above
-	You must actually checkout the cvs files you want.
-	See http://postfix.WL0.org/en/cvs for details
-
-all:
-	same as rpm
-
-build/rpm:
-	build rpm
-
-fetch:
-	retrieve the files from their source (if necessary)
-
-update:
-	update cvs file from cvs server
-        this also builds the rpm
-
-clean tidy:
-	Clean out the mess: that is remove all symbolic links to the SOURCES directory,
-	clean out the BUILD directory
-
-commit:
-	commit changes back to the cvs repository (only for cvs writers)
-	
-As you are reading this file you should have already checked out the postfix-rpm files.
-Thus you can run the following command to setup the directory structure.
-
-$ make setup 
-
-After this move your cvs directory to the appropriate place
-
-$ mv postfix-rpm ~/cvs/postfix-2.1
-
-You are now ready to build your RPM
-
-
+$ git checkout POSTFIX_2_7
