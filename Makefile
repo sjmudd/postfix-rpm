@@ -14,14 +14,14 @@ setup:
 	@echo ""
 	@sh setup-rpm-environment
 
-# update to the latest version of the rpm
+# Update to the latest version of the rpm
 # (no longer builds)
 update latest:
 	@echo "--------------------------------------------------------------"
-	@echo ">>> updating CVS files"
+	@echo ">>> updating local files from remote git repository"
 	@echo "--------------------------------------------------------------"
 	@echo ""
-	@cvs update || : 
+	@git pull || : 
 
 # Build the .vc file as vcheck doesn't allow parameters and we need to
 # add %{_sourcedir}
@@ -29,7 +29,7 @@ postfix.spec.vc: postfix.spec.vc.in
 	@srcdir=`/bin/rpm --eval '%{_sourcedir}'`; \
 		sed -e "s;@@SRCDIR@@;$$srcdir;" -e 's;%{name};postfix;' $< > $@
 
-# download files if necessary
+# Download files if necessary
 fetch: postfix.spec.vc
 	@echo "--------------------------------------------------------------"
 	@echo ">>> downloading source files (if needed)"
@@ -48,7 +48,7 @@ build rpm:
 # build the rpm with no cvs checks first
 nochecks:
 	@echo "--------------------------------------------------------------"
-	@echo ">>> Building RPM (no cvs checks)"
+	@echo ">>> Building RPM (no git checks)"
 	@echo "--------------------------------------------------------------"
 	@echo ""
 	@sh buildpackage --no-check
@@ -56,19 +56,18 @@ nochecks:
 # Build the rpm
 default: rpm 
 
-# commit changes to cvs
+# commit changes to git - probably should NOT be doing this...
 commit:
-	@cvs commit
+	@git commit "Commit local changes from Makefile"
 
 # checks if there have been changes to source
-checkcvs:
+checkgit:
 	@echo ""
 	@echo "--------------------------------------------------------------"
-	@echo ">>> Checking for changes against the CVS repository"
+	@echo ">>> Checking for local changes against the git repository"
 	@echo "--------------------------------------------------------------"
 	@echo ""
-	@cvs diff 2>&1 >/dev/null || { echo ""; echo "WARNING Commit changes before building, or try $(MAKE) nochecks"; exit 1; }
-
+	@git diff 2>&1 >/dev/null || { echo ""; echo "WARNING Commit changes before building, or try $(MAKE) nochecks"; exit 1; }
 
 # Tests - test the different patches
 tests:
@@ -99,4 +98,3 @@ clean tidy:
 # Give some help
 help:
 	@[ -f README ] && more README || echo "No help available sorry"
-
