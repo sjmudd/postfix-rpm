@@ -84,6 +84,7 @@ tests:
 # - stuff in %{_tmppath} ~user/rpm/tmp/*
 # - stuff in %{_builddir} ~user/rpm/BUILD/*
 clean tidy:
+	@for f in postfix.spec.vc postfix-build.log; do [ -e $$f ] && rm $$f || :; done
 	@sh linkfiles --delete --quiet || :
 	@dir=`rpm --eval '%{_sourcedir}' | sed 's;%{name};postfix;'` ; \
 		for file in `ls $$dir`; do [ -L $$file ] && rm $$file || :; done
@@ -92,9 +93,7 @@ clean tidy:
 		[ -d $$dir ] && rm -rf $$dir/* || :
 	@dir=`rpm --eval '%{_builddir}' | sed 's;%{name};postfix;'`; \
 		[ -d $$dir ] && rm -rf $$dir/* || :
-	@[ -e postfix-build.log ] && rm postfix-build.log || :
 	@for file in `ls results.* 2>/dev/null`; do rm $$file || :; done
-	@[ -e postfix.spec.vc ] && rm postfix.spec.vc || :
 
 # Give some help
 help:
