@@ -1,7 +1,5 @@
 #!/bin/sh
 #
-# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/postfix-tracker.sh,v 2.1 2007/04/02 17:02:48 sjmudd Exp $
-#
 # Postfix version tracker (C) 2004 Simon J Mudd
 #
 # script to run vcheck and get a nice output of files that may need
@@ -13,7 +11,7 @@
 [ -n "$DEBUG" ] && set -x
 
 verbose=
-vcfile=postfix.spec.vc
+vcfile=postfix.spec.vc.in
 specfile=postfix.spec.in
 
 for variable in $(grep "^prog V_[a-z0-9]* = " $vcfile | awk '{ print $2 }')

@@ -3,7 +3,7 @@
 # This script sets up the rpm environment I use to build my packages
 # Namely:
 # - rpmmacros copied to ~/.rpmmacros if it doesn't exist
-# - cvs and rpm directory structure within $HOME based on the rpmmacros
+# - git and rpm directory structure within $HOME based on the rpmmacros
 #   installed previously
 
 msg_debug () {
@@ -25,12 +25,12 @@ msg_debug "$myname: started"
 
 [ $(id -u) = 0 ] && msg_err "This script is intented to be run as a non-root user"
 
-# create a ~/cvs subdirectory to put the cvs files
-# I use postfix-current, postfix-2.1, postfix-2.0, postfix-1.1 by renaming
-# postfix-rpm after checking out the appropriate tree.
+# Create a location to put the local git repo.
+# I use ~/git/postfix-rpm.git and then checkout the appropriate branch with
+# $ git checkout POSTFIX_2_7.
 
-msg_info "checking cvs directory:"
-dir=~/cvs
+msg_info "Checking git directory:"
+dir=~/git
 [ ! -d $dir ] && {
     mkdir $dir && msg_info "- $dir created [OK]" || \
 	msg_warn "- $dir - could not be created [ERROR]"
@@ -56,4 +56,3 @@ for param in _topdir _sourcedir _specdir _tmppath _builddir \
 		msg_warn "- $dir - could not be created [ERROR]"
     } || msg_info "- $dir exists [OK]"
 done
-

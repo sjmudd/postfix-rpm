@@ -45,7 +45,7 @@ build rpm:
 	@echo ""
 	@sh buildpackage
 
-# build the rpm with no cvs checks first
+# build the rpm with no checks for locally uncommitted changes.
 nochecks:
 	@echo "--------------------------------------------------------------"
 	@echo ">>> Building RPM (no git checks)"

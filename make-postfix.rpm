@@ -1,7 +1,5 @@
 #!/bin/sh
 #
-# $Header: /home/sjmudd/tmp/cvsroot/postfix-rpm/make-postfix.rpm,v 1.2 2007/04/02 17:02:48 sjmudd Exp $
-#
 # Script to build a Postfix rpm
 # - perform an upgrade, including the same parameters as the running rpm
 # - perform an upgrade, using the postfix.spec.cf equivalent file
