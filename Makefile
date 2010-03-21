@@ -35,7 +35,7 @@ fetch: postfix.spec.vc
 	@echo ">>> downloading source files (if needed)"
 	@echo "--------------------------------------------------------------"
 	@echo ""
-	@LANG= LC_CTYPE= LANG= ./vcheck --plain --no-update --download --catch-up --file postfix.spec.vc
+	@LC_CTYPE= LANG= ./vcheck --plain --no-update --download --catch-up --file postfix.spec.vc
 
 # build the rpm
 build rpm:
