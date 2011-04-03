@@ -93,8 +93,8 @@
 
 # If set to 1 if official version, 0 if snapshot
 %define official 1
-%define V_postfix 2.7.3
-%define rel 1__SUFFIX__
+%define V_postfix 2.8.2
+%define rel 0.2testing__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -347,7 +347,7 @@ sh dict_cdb.sh
 %endif
 
 %if %{smtpd_multiline_greeting}
-%patch99  -p1 -b .multiline
+##patch99  -p1 -b .multiline
 %endif
 
 %if %{with_spf}
@@ -633,7 +633,7 @@ for file in AAAREADME COMPATIBILITY COPYRIGHT HISTORY PORTING \
 	RELEASE_NOTES RELEASE_NOTES-1.0 RELEASE_NOTES-1.1 \
 	RELEASE_NOTES-2.0 RELEASE_NOTES-2.1 RELEASE_NOTES-2.2 \
 	RELEASE_NOTES-2.3 RELEASE_NOTES-2.4 RELEASE_NOTES-2.5 \
-	RELEASE_NOTES-2.6 \
+	RELEASE_NOTES-2.6 RELEASE_NOTES-2.7 \
 	TLS_ACKNOWLEDGEMENTS TLS_CHANGES TLS_LICENSE \
 	US_PATENT_6321267
 do
@@ -1038,13 +1038,13 @@ umask 022
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/transport
 %attr(0644, root, root) %verify(not md5 size mtime) %config(noreplace) %{_sysconfdir}/postfix/virtual
 
-%attr(0755, root, root) %config %{_libexecdir}/postfix/postfix-script
 %attr(0755, root, root)         %{_libexecdir}/postfix/postfix-wrapper
 %attr(0755, root, root)         %{_libexecdir}/postfix/postmulti-script
-%attr(0755, root, root) %config %{_libexecdir}/postfix/post-install
-%attr(0644, root, root)         %{_libexecdir}/postfix/postfix-files
 %attr(0644, root, root)         %{_libexecdir}/postfix/main.cf
 %attr(0644, root, root)         %{_libexecdir}/postfix/master.cf
+%attr(0755, root, root)         %{_libexecdir}/postfix/dnsblog
+%attr(0755, root, root)         %{_libexecdir}/postfix/postscreen
+%attr(0755, root, root)         %{_libexecdir}/postfix/tlsproxy
 
 %attr(0644, root, root) %{_sysconfdir}/postfix/README.rpm
 %attr(0644, root, root) %{_sysconfdir}/postfix/postfix.spec.cf
@@ -1091,6 +1091,7 @@ umask 022
 %doc %{docdir}/RELEASE_NOTES-2.4
 %doc %{docdir}/RELEASE_NOTES-2.5
 %doc %{docdir}/RELEASE_NOTES-2.6
+%doc %{docdir}/RELEASE_NOTES-2.7
 %doc %{docdir}/SEE_ALSO
 %doc %{docdir}/TLS_ACKNOWLEDGEMENTS
 %doc %{docdir}/TLS_CHANGES
@@ -1173,6 +1174,15 @@ umask 022
 #
 
 %changelog
+
+* Sun Apr 03 2011 Simon J Mudd <sjmudd@pobox.com> 2.8.2-0.2testing
+  - update to 2.8.2
+  - removed some files after doing the upgrade which postfix tells me are no
+    longer needed.
+
+* Sat Mar 12 2011 Simon J Mudd <sjmudd@pobox.com> 2.8.1-0.1testing
+  - preliminary changes to use postfix-2.8 tree
+  - smtpd multiline gretting patch disabled (temporarily)
 
 * Thu Mar 10 2011 Simon J Mudd <sjmudd@pobox.com> 2.7.3-1
   - update to 2.7.3
