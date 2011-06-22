@@ -1,40 +1,42 @@
-diff -uNr postfix-2.7.0.orig/src/smtpd/smtpd.c postfix-2.7.0/src/smtpd/smtpd.c
---- postfix-2.7.0.orig/src/smtpd/smtpd.c	2009-04-28 19:49:23.000000000 +0200
-+++ postfix-2.7.0/src/smtpd/smtpd.c	2009-05-24 00:17:56.000000000 +0200
-@@ -4377,7 +4377,7 @@
- 		    }
- 		}
+diff -rup postfix-2.8.3/src/smtpd/smtpd.c postfix-2.8.3-patched/src/smtpd/smtpd.c
+--- postfix-2.8.3/src/smtpd/smtpd.c     2011-02-07 20:34:41.000000000 +0200
++++ postfix-2.8.3-patched/src/smtpd/smtpd.c     2011-06-20 02:13:12.000000000 
++0300
+@@ -4528,7 +4528,7 @@ static void smtpd_proto(SMTPD_STATE *sta
+                smtp_flush(state->client);
  #endif
--		smtpd_chat_reply(state, "220 %s", var_smtpd_banner);
-+		smtpd_chat_reply_multiline(state, 220, var_smtpd_banner);
- 	    }
- 	}
+            } else {
+-               smtpd_chat_reply(state, "220 %s", var_smtpd_banner);
++               smtpd_chat_reply_multiline(state, "220 %s", var_smtpd_banner);
+            }
+        }
  
-diff -uNr postfix-2.7.0.orig/src/smtpd/smtpd_chat.c postfix-2.7.0/src/smtpd/smtpd_chat.c
---- postfix-2.7.0.orig/src/smtpd/smtpd_chat.c	2009-04-28 19:26:17.000000000 +0200
-+++ postfix-2.7.0/src/smtpd/smtpd_chat.c	2009-05-24 00:27:56.000000000 +0200
+diff -rup postfix-2.8.3/src/smtpd/smtpd_chat.c postfix-2.8.3-
+patched/src/smtpd/smtpd_chat.c
+--- postfix-2.8.3/src/smtpd/smtpd_chat.c        2011-01-09 00:47:59.000000000 +0200
++++ postfix-2.8.3-patched/src/smtpd/smtpd_chat.c        2011-06-20 02:12:23.000000000 +0300
 @@ -14,6 +14,11 @@
- /*	SMTPD_STATE *state;
- /*	char	*format;
+ /*     SMTPD_STATE *state;
+ /*     char    *format;
  /*
-+/*	void	smtpd_chat_reply_multiline(state, smtp_reply_code, format, ...)
-+/*	SMTPD_STATE *state;
-+/*	int	smtp_reply_code;
-+/*	char	*format;
++/*     void    smtpd_chat_reply_multiline(state, smtp_reply_code, format, ...)
++/*     SMTPD_STATE *state;
++/*     int     smtp_reply_code;
++/*     char    *format;
 +/*
- /*	void	smtpd_chat_notify(state)
- /*	SMTPD_STATE *state;
+ /*     void    smtpd_chat_notify(state)
+ /*     SMTPD_STATE *state;
  /*
 @@ -62,6 +67,7 @@
  #include <time.h>
- #include <stdlib.h>			/* 44BSD stdarg.h uses abort() */
+ #include <stdlib.h>                    /* 44BSD stdarg.h uses abort() */
  #include <stdarg.h>
 +#include <ctype.h>
  
  /* Utility library. */
  
-@@ -207,6 +213,61 @@
- 	state->flags |= SMTPD_FLAG_HANGUP;
+@@ -217,6 +223,61 @@ void    smtpd_chat_reply(SMTPD_STATE *st
+        state->flags |= SMTPD_FLAG_HANGUP;
  }
  
 +/* trim_line - remove trailing whitespace and return a pointer to the first */
@@ -95,9 +97,9 @@ diff -uNr postfix-2.7.0.orig/src/smtpd/smtpd_chat.c postfix-2.7.0/src/smtpd/smtp
  /* print_line - line_wrap callback */
  
  static void print_line(const char *str, int len, int indent, char *context)
-diff -uNr postfix-2.7.0.orig/src/smtpd/smtpd_chat.h postfix-2.7.0/src/smtpd/smtpd_chat.h
---- postfix-2.7.0.orig/src/smtpd/smtpd_chat.h	2006-04-24 20:48:28.000000000 +0200
-+++ postfix-2.7.0/src/smtpd/smtpd_chat.h	2009-05-24 00:28:30.000000000 +0200
+diff -rup postfix-2.8.3/src/smtpd/smtpd_chat.h postfix-2.8.3-patched/src/smtpd/smtpd_chat.h
+--- postfix-2.8.3/src/smtpd/smtpd_chat.h        2006-04-24 21:48:28.000000000 +0300
++++ postfix-2.8.3-patched/src/smtpd/smtpd_chat.h        2011-06-20 02:12:23.000000000 +0300
 @@ -15,6 +15,7 @@
  extern void smtpd_chat_reset(SMTPD_STATE *);
  extern void smtpd_chat_query(SMTPD_STATE *);
