@@ -6,11 +6,11 @@ This repo can be found at http://github.com/sjmudd/postfix-rpm.
 The postfix-rpm files are NOT on the master branch, but a branch
 whose name is based on the postfix version:
 
-POSTFIX-2.8	postfix-2.8 packages
-POSTFIX-2.7	postfix-2.7 packages
-POSTFIX-2.6	postfix-2.6 packages
-POSTFIX-2.5	postfix-2.5 packages
-POSTFIX-2.4	postfix-2.4 packages
+POSTFIX_2_8	postfix-2.8 packages
+POSTFIX_2_7	postfix-2.7 packages
+POSTFIX_2_6	postfix-2.6 packages
+POSTFIX_2_5	postfix-2.5 packages
+POSTFIX-2_4	postfix-2.4 packages
 ...
 
 To see a full list of remote branches try:
