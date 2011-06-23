@@ -6,6 +6,7 @@ This repo can be found at http://github.com/sjmudd/postfix-rpm.
 The postfix-rpm files are NOT on the master branch, but a branch
 whose name is based on the postfix version:
 
+POSTFIX-2.8	postfix-2.8 packages
 POSTFIX-2.7	postfix-2.7 packages
 POSTFIX-2.6	postfix-2.6 packages
 POSTFIX-2.5	postfix-2.5 packages
@@ -18,7 +19,7 @@ To see a full list of remote branches try:
 
 To get onto the right branch simply do
 
-$ git checkout POSTFIX_2_7 # or the appropriate branch
+$ git checkout POSTFIX_2_8 # or the appropriate branch
 
 The git repo contains all the history of the rpms I have built with the
 original cvs repository information being imported to git.
