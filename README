@@ -3,6 +3,7 @@ README
 
 The files you are looking for are NOT on the master branch but a branch based on the postfix version:
 
+POSTFIX-2.8	postfix-2.8 packages
 POSTFIX-2.7	postfix-2.7 packages
 POSTFIX-2.6	postfix-2.6 packages
 POSTFIX-2.5	postfix-2.5 packages
@@ -11,4 +12,4 @@ POSTFIX-2.4	postfix-2.4 packages
 
 To get onto the right branch simply do
 
-$ git checkout POSTFIX_2_7
+$ git checkout POSTFIX-2.8
