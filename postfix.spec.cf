@@ -1,6 +1,5 @@
-# NOTE: $Id: postfix.spec.cf,v 2.1 2007/04/02 17:02:48 sjmudd Exp $
 # NOTE:
-# NOTE: (C) 2004 Simon J Mudd <sjmudd@pobox.com>
+# NOTE: (C) 2004-2011 Simon J Mudd <sjmudd@pobox.com>
 # NOTE:
 # NOTE: The contents of this file are added to the configuration information
 # NOTE: provided in the /etc/postfix/postfix.spec.cf file generated when
@@ -16,8 +15,6 @@
 # NOTE:
 # NOTE: Lines starting with # NOTE: will be trimmed from the installed
 # NOTE: postfix.spec.cf file.
-#
-# $Id: postfix.spec.cf,v 2.1 2007/04/02 17:02:48 sjmudd Exp $
 #
 # 2. POSTFIX RPM [RE-]BUILDING INSTRUCTIONS
 #

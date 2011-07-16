@@ -1,7 +1,5 @@
 #!/bin/sh
 #
-# # $Id: postfix-chroot.sh,v 2.2 2007/04/02 16:57:36 sjmudd Exp $
-#
 # postfix-chroot.sh - enable or disable Postfix chroot
 #
 # (C) 2003 Simon J Mudd <sjmudd@pobox.com>

@@ -29,7 +29,7 @@ usage () {
 	cat <<-EOF
 	$myname version $myversion
 
-	Copyright (C) 2002-2006 - Simon J Mudd <sjmudd@pobox.com>
+	Copyright (C) 2002-2011 - Simon J Mudd <sjmudd@pobox.com>
 	This program may be freely redistributed under the terms of the GNU GPL
 
 	Usage: $myname [--help] [--distribution] [--name] [--major] [--minor] [--full]
@@ -125,6 +125,7 @@ if is_installed redhat-release; then
 elif is_installed centos-release; then
     # CentOS SHOULD behave like rhel, so we name it the same
     # centos-release-4-3.2
+    # centos-release-6-0.el6.centos.5
     pkg_name=centos-release
 elif is_installed whitebox-release; then
     # whitebox-release-3.0-6_i386

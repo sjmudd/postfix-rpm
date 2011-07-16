@@ -1,4 +1,3 @@
-# $Id: postfix.spec.in,v 2.305.2.13.2.7 2008/03/09 09:46:05 sjmudd Exp $
 #
 # File used to generate the distribution-specific postfix.spec file.
 # If you need to make changes to postfix.spec, make them to postfix.spec.in
@@ -94,7 +93,7 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 1
 %define V_postfix 2.8.3
-%define rel 2__SUFFIX__
+%define rel 3__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -1167,6 +1166,9 @@ umask 022
 #
 
 %changelog
+
+* Sat Jul 16 2011 Simon J Mudd <sjmudd@pobox.com> 2.8.3-3
+  - minor changes to recognise CentOS / RHEL 6
 
 * Thu Jun 23 2011 Simon J Mudd <sjmudd@pobox.com> 2.8.3-2
   - update to 2.8.3
