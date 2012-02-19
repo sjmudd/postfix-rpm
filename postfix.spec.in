@@ -1029,11 +1029,6 @@ umask 022
 %attr(0644, root, root) %{_sysconfdir}/postfix/README.rpm
 %attr(0644, root, root) %{_sysconfdir}/postfix/postfix.spec.cf
 
-# convenience links
-%{_sysconfdir}/postfix/html
-%{_sysconfdir}/postfix/readme
-%{_sysconfdir}/postfix/examples
-
 %attr(0755, root, root) %{_sysconfdir}/postfix/postfix-chroot.sh
 
 %attr(0755, root, root) %config %{initdir}/postfix
