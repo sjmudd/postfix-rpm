@@ -95,7 +95,7 @@
 # If set to 1 if official version, 0 if snapshot
 %define official 1
 %define V_postfix 2.9.0
-%define rel 1__SUFFIX__
+%define rel 2__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -116,7 +116,7 @@
 #
 #define docdir %{_docdir}/%{name}-%{version}
 %define docdir %{_docdir}/%{name}-%{V_package}-documentation
-%define readme_dir   %{docdir}/readme
+%define readme_dir   %{docdir}/README_FILES
 %define html_dir     %{docdir}/html
 %define examples_dir %{docdir}/examples
 
@@ -644,11 +644,6 @@ cat <<EOF >${RPM_BUILD_ROOT}%{docdir}/SEE_ALSO
 %{_docdir}/%{name}-%{version} may contain other documentation files.
 EOF
 
-# added for convenience
-ln -sf %{html_dir}     ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/html
-ln -sf %{readme_dir}   ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/readme
-ln -sf %{examples_dir} ${RPM_BUILD_ROOT}%{_sysconfdir}/postfix/examples
-
 # Install the smtpd.conf file for SASL support.
 %if %{with_sasl}
 mkdir -p ${RPM_BUILD_ROOT}%{sasl_lib_dir}
@@ -669,8 +664,6 @@ Documentation
 -------------
 
 Postfix documentation should be available in the directory %{docdir}/.
-I have also added a symbolic link to the readme_files and html
-directories from %{_sysconfdir}/postfix.
 
 The main Postfix web site is http://www.postfix.org.
 
@@ -680,13 +673,6 @@ Packages
 Newer versions of source and standard binary packages may be available from
 http://ftp.WL0.org or the mirrors listed at http://postfix.WL0.org.  Look
 in the appropriate directory according to your distribution.
-
-Mailing List
-------------
-
-I host a mailing list to announce new packages as they are released. If you
-are interested in subscribing take a look at
-http://postfix.WL0.org/en/lists/.  Previous announcements are archived.
 
 Chrooting
 ---------
