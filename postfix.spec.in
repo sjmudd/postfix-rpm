@@ -94,8 +94,8 @@
 
 # If set to 1 if official version, 0 if snapshot
 %define official 1
-%define V_postfix 2.9.0
-%define rel 2__SUFFIX__
+%define V_postfix 2.9.1
+%define rel 1__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
 %define ftp_dir official
@@ -1155,6 +1155,9 @@ umask 022
 #
 
 %changelog
+
+* Sun Feb 19 2012 Simon J Mudd <sjmudd@pobox.com> 2.9.1-1
+  - minor tweaks and upgrade to 2.9.1
 
 * Sat Feb 11 2012 Simon J Mudd <sjmudd@pobox.com> 2.9.0-1
   - initial work on postfix-2.9.0
