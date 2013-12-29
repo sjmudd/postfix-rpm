@@ -94,7 +94,7 @@
 
 # If set to 1 if official version, 0 if snapshot
 %define official 1
-%define V_postfix 2.9.5
+%define V_postfix 2.10.2
 %define rel 1__SUFFIX__
 %if %{official}
 %define V_tarball %{V_postfix}
@@ -136,8 +136,8 @@ Name: postfix
 Group: System Environment/Daemons
 URL: http://www.postfix.org
 License: IBM Public License
-PreReq: chkconfig, initscripts, shadow-utils
-PreReq: /etc/init.d, /sbin/service, chkconfig >= 1.3
+Requires(pre): chkconfig, initscripts, shadow-utils
+Requires(pre): /etc/init.d, /sbin/service, chkconfig >= 1.3
 Epoch: 2
 
 Provides: MTA smtpd smtpdaemon
@@ -176,7 +176,7 @@ Patch4:  http://vda.sourceforge.net/VDA/postfix-%{V_vda}-vda-ng.patch.gz
 
 # SPF patch
 Patch8:  http://www.linuxrulz.org/nkukard/postfix/postfix-2.3/postfix-2.3.2_libspf2-1.2.x-20060819.patch
-Patch99: ftp://ftp.wl0.org/SOURCES/postfix-2.8.3-multiline-greeting.patch
+Patch99: ftp://ftp.wl0.org/SOURCES/postfix-2.10.2-multiline-greeting.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{V_package}-buildroot
 
@@ -1150,6 +1150,9 @@ umask 022
 #
 
 %changelog
+
+* Sun Dec 29 2013 Simon J Mudd <sjmudd@pobox.com> 2.10.2-1
+  - upgrade to 2.10.2 (on CentOS 6, other versions not checked)
 
 * Mon Jan 14 2013 Simon J Mudd <sjmudd@pobox.com> 2.9.5-1
   - upgrade to 2.9.5
